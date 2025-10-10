@@ -44,6 +44,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.organization=13SOAT-andromeda
-            -Dsonar.projectKey=13SOAT_andromeda_tech-challenge-s1
+            -Dsonar.organization=13soat-andromeda
+            -Dsonar.projectKey=13SOAT-andromeda_tech-challenge-s1
             -Dsonar.go.coverage.reportPaths=coverage.out
