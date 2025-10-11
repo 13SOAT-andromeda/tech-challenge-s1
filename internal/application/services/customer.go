@@ -16,6 +16,11 @@ func NewCustomerService(repo ports.CustomerRepository) *CustomerService {
 }
 
 func (s *CustomerService) Create(ctx context.Context, c domain.Customer) (*domain.Customer, error) {
+
+	if c.Address == nil {
+		c.Address = &domain.Address{}
+	}
+
 	customer := &domain.Customer{
 		Name:     c.Name,
 		Email:    c.Email,
