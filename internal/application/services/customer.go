@@ -16,7 +16,7 @@ func NewCustomerService(repo ports.CustomerRepository) *CustomerService {
 }
 
 func (s *CustomerService) Create(ctx context.Context, c domain.Customer) (*domain.Customer, error) {
-	customer := domain.Customer{
+	customer := &domain.Customer{
 		Name:     c.Name,
 		Email:    c.Email,
 		Document: c.Document,
@@ -32,7 +32,13 @@ func (s *CustomerService) Create(ctx context.Context, c domain.Customer) (*domai
 		},
 	}
 
-	return s.repo.Save(ctx, customer)
+	err := s.repo.Create(ctx, customer)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return customer, nil
 }
 
 func (s *CustomerService) GetAll(ctx context.Context) ([]domain.Customer, error) {
