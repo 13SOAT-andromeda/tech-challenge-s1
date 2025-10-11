@@ -7,9 +7,8 @@ import (
 )
 
 type CustomerRepository interface {
-	Save(ctx context.Context, c domain.Customer) (*domain.Customer, error)
-	FindAll(ctx context.Context) ([]domain.Customer, error)
-	FindByID(ctx context.Context, id uint) (*domain.Customer, error)
+	Repository[domain.Customer]
+	FindByEmail(ctx context.Context, email string) (*domain.Customer, error)
 }
 
 type CustomerService interface {
