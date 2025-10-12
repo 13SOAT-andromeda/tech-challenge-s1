@@ -11,45 +11,6 @@ import (
 )
 
 // Mock do CustomerRepository
-type MockCustomerRepository struct {
-	mock.Mock
-}
-
-func (m *MockCustomerRepository) FindByID(ctx context.Context, id uint) (*domain.Customer, error) {
-	args := m.Called(ctx, id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*domain.Customer), args.Error(1)
-}
-
-func (m *MockCustomerRepository) FindAll(ctx context.Context) ([]domain.Customer, error) {
-	args := m.Called(ctx)
-	return args.Get(0).([]domain.Customer), args.Error(1)
-}
-
-func (m *MockCustomerRepository) Create(ctx context.Context, entity *domain.Customer) error {
-	args := m.Called(ctx, entity)
-	return args.Error(0)
-}
-
-func (m *MockCustomerRepository) Update(ctx context.Context, entity *domain.Customer) error {
-	args := m.Called(ctx, entity)
-	return args.Error(0)
-}
-
-func (m *MockCustomerRepository) Delete(ctx context.Context, id uint) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
-
-func (m *MockCustomerRepository) FindByEmail(ctx context.Context, email string) (*domain.Customer, error) {
-	args := m.Called(ctx, email)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*domain.Customer), args.Error(1)
-}
 
 // Testes
 func TestCustomerService_Create_Success(t *testing.T) {
@@ -121,7 +82,7 @@ func TestCustomerService_Create_RepositoryError(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestCustomerService_FindByID_Success(t *testing.T) {
+func TestCustomerService_GetByID_Success(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockCustomerRepository)
 	service := NewCustomerService(mockRepo)
@@ -145,7 +106,41 @@ func TestCustomerService_FindByID_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestCustomerService_FindByID_NotFound(t *testing.T) {
+func TestCustomerService_GetAll_Success(t *testing.T) {
+	// Arrange
+	mockRepo := new(MockCustomerRepository)
+	service := NewCustomerService(mockRepo)
+
+	ctx := context.Background()
+
+	expectedCustomers := []domain.Customer{
+		{
+			Name:  "João Silva",
+			Email: "joao@example.com",
+		},
+		{
+			Name:  "Maria Santos",
+			Email: "maria@example.com",
+		},
+	}
+
+	mockRepo.On("FindAll", ctx).Return(expectedCustomers, nil)
+
+	// Act
+	result, err := service.GetAll(ctx)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, result, 2)
+	assert.Equal(t, "João Silva", result[0].Name)
+	assert.Equal(t, "joao@example.com", result[0].Email)
+	assert.Equal(t, "Maria Santos", result[1].Name)
+	assert.Equal(t, "maria@example.com", result[1].Email)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_GetByID_NotFound(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockCustomerRepository)
 	service := NewCustomerService(mockRepo)
