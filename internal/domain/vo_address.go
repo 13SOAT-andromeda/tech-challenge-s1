@@ -8,3 +8,9 @@ type Address struct {
 	Country       string
 	ZipCode       string
 }
+
+func (c *Customer) EnsureAddress() {
+	if c.Address == nil {
+		c.Address = &Address{}
+	}
+}

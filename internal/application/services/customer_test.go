@@ -59,14 +59,6 @@ func TestCustomerService_Create_RepositoryError(t *testing.T) {
 	inputCustomer := domain.Customer{
 		Name:  "João Silva",
 		Email: "joao@example.com",
-		//Address: &domain.Address{
-		//	Address:       "Rua Teste",
-		//	AddressNumber: "123",
-		//	City:          "São Paulo",
-		//	Neighborhood:  "Centro",
-		//	Country:       "Brasil",
-		//	ZipCode:       "01234-567",
-		//},
 	}
 
 	expectedError := errors.New("database connection error")
