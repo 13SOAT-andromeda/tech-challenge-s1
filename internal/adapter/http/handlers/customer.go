@@ -17,19 +17,17 @@ func NewCustomerHandler(service ports.CustomerService) *CustomerHandler {
 }
 
 type createCustomerRequest struct {
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Document string `json:"document" binding:"required"`
-	Type     string `json:"type" binding:"required,oneof=individual company"`
-	Contact  string `json:"contact" binding:"required"`
-	Address  struct {
-		Address       string `json:"address" binding:"required"`
-		AddressNumber string `json:"address_number" binding:"required"`
-		City          string `json:"city" binding:"required"`
-		Neighborhood  string `json:"neighborhood" binding:"required"`
-		Country       string `json:"country" binding:"required"`
-		ZipCode       string `json:"zip_code" binding:"required"`
-	} `json:"address" binding:"required,dive"`
+	Name          string `json:"name" binding:"required"`
+	Email         string `json:"email" binding:"required,email"`
+	Document      string `json:"document" binding:"required"`
+	Type          string `json:"type" binding:"required,oneof=individual company"`
+	Contact       string `json:"contact" binding:"required"`
+	Address       string `json:"address" binding:"required"`
+	AddressNumber string `json:"address_number" binding:"required"`
+	City          string `json:"city" binding:"required"`
+	Neighborhood  string `json:"neighborhood" binding:"required"`
+	Country       string `json:"country" binding:"required"`
+	ZipCode       string `json:"zip_code" binding:"required"`
 }
 
 func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
@@ -46,12 +44,12 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 		Type:     json.Type,
 		Contact:  json.Contact,
 		Address: &domain.Address{
-			Address:       json.Address.Address,
-			AddressNumber: json.Address.AddressNumber,
-			City:          json.Address.City,
-			Neighborhood:  json.Address.Neighborhood,
-			Country:       json.Address.Country,
-			ZipCode:       json.Address.ZipCode,
+			Address:       json.Address,
+			AddressNumber: json.AddressNumber,
+			City:          json.City,
+			Neighborhood:  json.Neighborhood,
+			Country:       json.Country,
+			ZipCode:       json.ZipCode,
 		},
 	}
 
