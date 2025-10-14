@@ -17,6 +17,7 @@ type Router struct {
 func NewRouter(
 	config config.Config,
 	customerHandler handlers.CustomerHandler,
+	companyHandler handlers.CompanyHandler,
 ) *Router {
 	r := gin.Default()
 
@@ -38,6 +39,16 @@ func NewRouter(
 			customerGroup.GET("", customerHandler.GetAllCustomers)
 			customerGroup.POST("", customerHandler.CreateCustomer)
 			customerGroup.GET("/:id", customerHandler.GetCustomerByID)
+		}
+	}
+
+	{
+		companyGroup := router.Group("/company")
+		{
+			companyGroup.POST("", companyHandler.CreateCompany)
+			companyGroup.GET("/:id", companyHandler.GetCompanyByID)
+			companyGroup.PUT("/:id", companyHandler.UpdateCompany)
+			companyGroup.DELETE("/:id", companyHandler.DeleteCompany)
 		}
 	}
 
