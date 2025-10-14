@@ -18,8 +18,8 @@ func TestCustomerService_Create_Success(t *testing.T) {
 
 	ctx := context.Background()
 	inputCustomer := domain.Customer{
-		Name:     "João Silva",
-		Email:    "joao@example.com",
+		Name:     "Gedan Magalhaes",
+		Email:    "gedan@example.com",
 		Document: "12345678900",
 		Type:     "individual",
 		Contact:  "11999999999",
@@ -44,8 +44,8 @@ func TestCustomerService_Create_Success(t *testing.T) {
 	// Assert (Verificar)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, "João Silva", result.Name)
-	assert.Equal(t, "joao@example.com", result.Email)
+	assert.Equal(t, "Gedan Magalhaes", result.Name)
+	assert.Equal(t, "gedan@example.com", result.Email)
 	mockRepo.AssertExpectations(t)
 }
 
@@ -58,7 +58,7 @@ func TestCustomerService_Create_RepositoryError(t *testing.T) {
 
 	inputCustomer := domain.Customer{
 		Name:  "João Silva",
-		Email: "joao@example.com",
+		Email: "gedan@example.com",
 	}
 
 	expectedError := errors.New("database connection error")
@@ -83,8 +83,8 @@ func TestCustomerService_GetByID_Success(t *testing.T) {
 	ctx := context.Background()
 	customerID := uint(1)
 	expectedCustomer := &domain.Customer{
-		Name:  "João Silva",
-		Email: "joao@example.com",
+		Name:  "Gedan Magalhães",
+		Email: "gedan@example.com",
 	}
 
 	customerRepositoryResponse := model.FromDomain(*expectedCustomer)
@@ -110,12 +110,12 @@ func TestCustomerService_GetAll_Success(t *testing.T) {
 
 	expectedCustomers := []model.CustomerModel{
 		{
-			Name:  "João Silva",
-			Email: "joao@example.com",
+			Name:  "Gedan Magalhaes",
+			Email: "gedan@example.com",
 		},
 		{
-			Name:  "Maria Santos",
-			Email: "maria@example.com",
+			Name:  "Elen Magalhaes",
+			Email: "elen@example.com",
 		},
 	}
 
@@ -128,10 +128,10 @@ func TestCustomerService_GetAll_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Len(t, result, 2)
-	assert.Equal(t, "João Silva", result[0].Name)
-	assert.Equal(t, "joao@example.com", result[0].Email)
-	assert.Equal(t, "Maria Santos", result[1].Name)
-	assert.Equal(t, "maria@example.com", result[1].Email)
+	assert.Equal(t, "Gedan Magalhaes", result[0].Name)
+	assert.Equal(t, "gedan@example.com", result[0].Email)
+	assert.Equal(t, "Elen Magalhaes", result[1].Name)
+	assert.Equal(t, "elen@example.com", result[1].Email)
 	mockRepo.AssertExpectations(t)
 }
 
