@@ -37,7 +37,7 @@ func TestCustomerService_Create_Success(t *testing.T) {
 
 	// Configurar o mock para esperar a chamada Create e retornar sucesso
 	mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*model.CustomerModel")).
-		Return(mockModel, nil)
+		Return(&mockModel, nil)
 	// Act (Agir)
 	result, err := service.Create(ctx, inputCustomer)
 
@@ -62,7 +62,8 @@ func TestCustomerService_Create_RepositoryError(t *testing.T) {
 	}
 
 	expectedError := errors.New("database connection error")
-	mockRepo.On("Create", ctx, mock.AnythingOfType("*model.CustomerModel")).Return(expectedError)
+
+	mockRepo.On("Create", ctx, mock.AnythingOfType("*model.CustomerModel")).Return(nil, expectedError)
 
 	// Act
 	result, err := service.Create(ctx, inputCustomer)
@@ -86,7 +87,9 @@ func TestCustomerService_GetByID_Success(t *testing.T) {
 		Email: "joao@example.com",
 	}
 
-	mockRepo.On("FindByID", ctx, customerID).Return(expectedCustomer, nil)
+	customerRepositoryResponse := model.FromDomain(*expectedCustomer)
+
+	mockRepo.On("FindByID", ctx, customerID).Return(&customerRepositoryResponse, nil)
 
 	// Act
 	result, err := service.GetByID(ctx, customerID)
@@ -105,7 +108,7 @@ func TestCustomerService_GetAll_Success(t *testing.T) {
 
 	ctx := context.Background()
 
-	expectedCustomers := []domain.Customer{
+	expectedCustomers := []model.CustomerModel{
 		{
 			Name:  "João Silva",
 			Email: "joao@example.com",
