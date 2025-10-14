@@ -9,7 +9,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.1
-	gorm.io/driver/postgres v1.5.2
+	gorm.io/driver/postgres v1.5.6
 	gorm.io/gorm v1.30.0
 )
 

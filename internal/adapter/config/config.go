@@ -1,11 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"strings"
-
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -39,12 +36,6 @@ func getEnv(key, defaultValue string) string {
 }
 
 func Init() (*Config, error) {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error:", err)
-		panic("Error loading .env file")
-	}
-
 	database := &DataBaseConfig{
 		Host:     getEnv("DB_HOST", "localhost"),
 		User:     getEnv("DB_USER", "postgres"),
