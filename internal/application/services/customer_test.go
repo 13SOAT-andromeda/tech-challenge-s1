@@ -5,14 +5,12 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-// Mock do CustomerRepository
-
-// Testes
 func TestCustomerService_Create_Success(t *testing.T) {
 	// Arrange (Preparar)
 	mockRepo := new(MockCustomerRepository)
@@ -35,9 +33,11 @@ func TestCustomerService_Create_Success(t *testing.T) {
 		},
 	}
 
-	// Configurar o mock para esperar a chamada Create e retornar sucesso
-	mockRepo.On("Create", ctx, mock.AnythingOfType("*domain.Customer")).Return(nil)
+	mockModel := model.FromDomain(inputCustomer)
 
+	// Configurar o mock para esperar a chamada Create e retornar sucesso
+	mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*model.CustomerModel")).
+		Return(mockModel, nil)
 	// Act (Agir)
 	result, err := service.Create(ctx, inputCustomer)
 
@@ -62,7 +62,7 @@ func TestCustomerService_Create_RepositoryError(t *testing.T) {
 	}
 
 	expectedError := errors.New("database connection error")
-	mockRepo.On("Create", ctx, mock.AnythingOfType("*domain.Customer")).Return(expectedError)
+	mockRepo.On("Create", ctx, mock.AnythingOfType("*model.CustomerModel")).Return(expectedError)
 
 	// Act
 	result, err := service.Create(ctx, inputCustomer)
