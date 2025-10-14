@@ -3,6 +3,7 @@ package model
 import (
 	"testing"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,4 +37,25 @@ func TestCustomerInitialization(t *testing.T) {
 	assert.Equal(t, "New York", c.Address.City)
 	assert.Equal(t, "Brasil", c.Address.Country)
 	assert.Equal(t, "1234", c.Address.ZipCode)
+}
+
+func TestEnsureAddress(t *testing.T) {
+	c1 := &domain.Customer{}
+	c1.EnsureAddress()
+
+	assert.NotNil(t, c1.Address, "Address deve ser inicializado quando nil")
+
+	existingAddress := &domain.Address{
+		Address:       "Rua Teste",
+		AddressNumber: "123",
+		Neighborhood:  "Centro",
+		City:          "Cidade",
+		Country:       "Brasil",
+		ZipCode:       "12345-678",
+	}
+	c2 := &domain.Customer{Address: existingAddress}
+	c2.EnsureAddress()
+
+	// Deve manter o endereço existente
+	assert.Equal(t, existingAddress, c2.Address, "Address existente não deve ser sobrescrito")
 }
