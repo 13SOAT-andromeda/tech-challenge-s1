@@ -1,4 +1,4 @@
-package model
+﻿package model
 
 import (
 	"testing"
@@ -7,7 +7,50 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCustomerInitialization(t *testing.T) {
+func TestAddressModel_ToDomain(t *testing.T) {
+	modelAddr := &AddressModel{
+		Address:       "Rua Teste",
+		AddressNumber: "123",
+		Neighborhood:  "Centro",
+		City:          "Cidade",
+		Country:       "Brasil",
+		ZipCode:       "12345-678",
+	}
+
+	domainAddr := modelAddr.ToDomain()
+
+	assert.Equal(t, modelAddr.Address, domainAddr.Address)
+	assert.Equal(t, modelAddr.AddressNumber, domainAddr.AddressNumber)
+	assert.Equal(t, modelAddr.Neighborhood, domainAddr.Neighborhood)
+	assert.Equal(t, modelAddr.City, domainAddr.City)
+	assert.Equal(t, modelAddr.Country, domainAddr.Country)
+	assert.Equal(t, modelAddr.ZipCode, domainAddr.ZipCode)
+}
+
+func TestFromDomainAddress(t *testing.T) {
+	domainAddr := &domain.Address{
+		Address:       "Rua Teste",
+		AddressNumber: "123",
+		Neighborhood:  "Centro",
+		City:          "Cidade",
+		Country:       "Brasil",
+		ZipCode:       "12345-678",
+	}
+
+	modelAddr := FromDomainAddress(domainAddr)
+
+	assert.Equal(t, domainAddr.Address, modelAddr.Address)
+	assert.Equal(t, domainAddr.AddressNumber, modelAddr.AddressNumber)
+	assert.Equal(t, domainAddr.Neighborhood, modelAddr.Neighborhood)
+	assert.Equal(t, domainAddr.City, modelAddr.City)
+	assert.Equal(t, domainAddr.Country, modelAddr.Country)
+	assert.Equal(t, domainAddr.ZipCode, modelAddr.ZipCode)
+
+	nilModel := FromDomainAddress(nil)
+	assert.Equal(t, AddressModel{}, nilModel)
+}
+
+func TestCustomerModelInitialization(t *testing.T) {
 	c := CustomerModel{
 		ID:       1,
 		Name:     "Gedan",
@@ -53,9 +96,10 @@ func TestEnsureAddress(t *testing.T) {
 		Country:       "Brasil",
 		ZipCode:       "12345-678",
 	}
-	c2 := &domain.Customer{Address: existingAddress}
+	c2 := &domain.Customer{
+		Address: existingAddress,
+	}
 	c2.EnsureAddress()
 
-	// Deve manter o endereço existente
 	assert.Equal(t, existingAddress, c2.Address, "Address existente não deve ser sobrescrito")
 }
