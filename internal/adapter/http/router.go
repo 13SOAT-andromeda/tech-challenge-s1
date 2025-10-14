@@ -19,8 +19,6 @@ func NewRouter(
 	customerHandler handlers.CustomerHandler,
 	companyHandler handlers.CompanyHandler,
 ) *Router {
-	r := gin.Default()
-
 	if config.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -54,7 +52,7 @@ func NewRouter(
 
 	router.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
 
-	return &Router{r}
+	return &Router{router}
 }
 
 func (r *Router) Server(listenAddr string) error {
