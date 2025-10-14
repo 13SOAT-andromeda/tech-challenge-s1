@@ -29,8 +29,15 @@ func (r *BaseRepository[T]) FindAll(ctx context.Context) ([]T, error) {
 	return entities, err
 }
 
-func (r *BaseRepository[T]) Create(ctx context.Context, entity *T) error {
-	return r.db.WithContext(ctx).Create(entity).Error
+func (r *BaseRepository[T]) Create(ctx context.Context, entity *T) (*T, error) {
+
+	err := r.db.WithContext(ctx).Create(entity).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return entity, nil
 }
 
 func (r *BaseRepository[T]) Update(ctx context.Context, entity *T) error {

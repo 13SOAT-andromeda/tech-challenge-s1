@@ -3,12 +3,13 @@ package ports
 import (
 	"context"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
 
 type CustomerRepository interface {
-	Repository[domain.Customer]
-	FindByEmail(ctx context.Context, email string) (*domain.Customer, error)
+	Repository[model.CustomerModel]
+	FindByEmail(ctx context.Context, email string) (*model.CustomerModel, error)
 }
 
 type CustomerService interface {
