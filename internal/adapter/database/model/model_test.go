@@ -1,4 +1,4 @@
-﻿package model
+package model
 
 import (
 	"testing"
@@ -82,11 +82,11 @@ func TestCustomerModelInitialization(t *testing.T) {
 	assert.Equal(t, "1234", c.Address.ZipCode)
 }
 
-func TestEnsureAddress(t *testing.T) {
+func Test_EnsureAddress(t *testing.T) {
 	c1 := &domain.Customer{}
 	c1.EnsureAddress()
 
-	assert.NotNil(t, c1.Address, "Address deve ser inicializado quando nil")
+	assert.Equal(t, &domain.Address{}, c1.Address)
 
 	existingAddress := &domain.Address{
 		Address:       "Rua Teste",
@@ -102,4 +102,37 @@ func TestEnsureAddress(t *testing.T) {
 	c2.EnsureAddress()
 
 	assert.Equal(t, existingAddress, c2.Address, "Address existente não deve ser sobrescrito")
+}
+
+func TestCustomerModel_ToFromDomain(t *testing.T) {
+	modelCustomer := CustomerModel{
+		ID:       1,
+		Name:     "Gedan",
+		Email:    "gedan@example.com",
+		Document: "12345678900",
+		Type:     "teste",
+		Contact:  "11999999999",
+		Address: AddressModel{
+			Address:       "Rua Teste",
+			AddressNumber: "317",
+			Neighborhood:  "Centro",
+			City:          "New York",
+			Country:       "Brasil",
+			ZipCode:       "1234",
+		},
+	}
+
+	domainCustomer := ToDomain(modelCustomer)
+
+	assert.Equal(t, modelCustomer.ID, domainCustomer.ID)
+	assert.Equal(t, modelCustomer.Name, domainCustomer.Name)
+	assert.Equal(t, modelCustomer.Email, domainCustomer.Email)
+	assert.Equal(t, modelCustomer.Document, domainCustomer.Document)
+	assert.Equal(t, modelCustomer.Type, domainCustomer.Type)
+	assert.Equal(t, modelCustomer.Contact, domainCustomer.Contact)
+	assert.Equal(t, modelCustomer.Address.Address, domainCustomer.Address.Address)
+
+	newModel := FromDomain(domainCustomer)
+
+	assert.Equal(t, modelCustomer, newModel)
 }
