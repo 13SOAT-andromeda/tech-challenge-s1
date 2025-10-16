@@ -4,19 +4,22 @@ import (
 	"context"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"gorm.io/gorm"
 )
 
-type CompanyRepository struct {
-	db *gorm.DB
+type companyRepository struct {
+	*BaseRepository[model.CompanyModel]
 }
 
-func NewCompanyRepository[T any](db *gorm.DB) *BaseRepository[T] {
-	return &BaseRepository[T]{db: db}
+func NewCompanyRepository(db *gorm.DB) ports.CompanyRepository {
+	return &companyRepository{
+		BaseRepository: NewBaseRepository[model.CompanyModel](db),
+	}
 }
 
-func (r *CompanyRepository) Save(ctx context.Context, c domain.Company) (*domain.Company, error) {
+func (r *companyRepository) Save(ctx context.Context, c domain.Company) (*domain.Company, error) {
 	m := model.CompanyFromDomain(c)
 	if err := r.db.Create(&m).Error; err != nil {
 		return nil, err
@@ -25,7 +28,7 @@ func (r *CompanyRepository) Save(ctx context.Context, c domain.Company) (*domain
 	return &entity, nil
 }
 
-func (r *CompanyRepository) FindByID(ctx context.Context, id uint) (*domain.Company, error) {
+func (r *companyRepository) FindByID(ctx context.Context, id uint) (*domain.Company, error) {
 	var m model.CompanyModel
 	if err := r.db.Preload("Address").First(&m, id).Error; err != nil {
 		return nil, err
@@ -34,7 +37,7 @@ func (r *CompanyRepository) FindByID(ctx context.Context, id uint) (*domain.Comp
 	return &entity, nil
 }
 
-func (r *CompanyRepository) UpdateByID(ctx context.Context, id uint, c domain.Company) (*domain.Company, error) {
+func (r *companyRepository) UpdateByID(ctx context.Context, id uint, c domain.Company) (*domain.Company, error) {
 	var m model.CompanyModel
 	if err := r.db.First(&m, id).Error; err != nil {
 		return nil, err
@@ -65,7 +68,7 @@ func (r *CompanyRepository) UpdateByID(ctx context.Context, id uint, c domain.Co
 	return &entity, nil
 }
 
-func (r *CompanyRepository) DeleteByID(ctx context.Context, id uint) (*domain.Company, error) {
+func (r *companyRepository) DeleteByID(ctx context.Context, id uint) (*domain.Company, error) {
 	var m model.CompanyModel
 	if err := r.db.Preload("Address").First(&m, id).Error; err != nil {
 		return nil, err

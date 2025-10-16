@@ -40,10 +40,13 @@ func main() {
 	dbase := db.GetDB()
 
 	customerRepository := repository.NewCustomerRepository(dbase)
+	companyRepository := repository.NewCompanyRepository(dbase)
 
 	customerService := services.NewCustomerService(customerRepository)
+	companyService := services.NewCompanyService(companyRepository)
 
 	customerHandler := handlers.NewCustomerHandler(customerService)
+	companyHandler := handlers.NewCompanyHandler(companyService)
 
 	router := http.NewRouter(*cfg, *customerHandler)
 	log.Printf("Starting HTTP server on port %s", cfg.Http.Port)

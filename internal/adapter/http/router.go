@@ -32,7 +32,7 @@ func NewRouter(
 	router.Use(gin.Logger(), gin.Recovery(), cors.New(corsConfig))
 
 	{
-		customerGroup := router.Group("/customer")
+		customerGroup := router.Group("/customers")
 		{
 			customerGroup.GET("", customerHandler.GetAllCustomers)
 			customerGroup.POST("", customerHandler.CreateCustomer)
@@ -41,7 +41,7 @@ func NewRouter(
 	}
 
 	{
-		companyGroup := router.Group("/company")
+		companyGroup := router.Group("/companies")
 		{
 			companyGroup.POST("", companyHandler.CreateCompany)
 			companyGroup.GET("/:id", companyHandler.GetCompanyByID)
