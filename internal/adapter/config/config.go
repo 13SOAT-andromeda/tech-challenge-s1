@@ -3,6 +3,8 @@ package config
 import (
 	"os"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -36,6 +38,8 @@ func getEnv(key, defaultValue string) string {
 }
 
 func Init() (*Config, error) {
+	_ = godotenv.Load()
+
 	database := &DataBaseConfig{
 		Host:     getEnv("DB_HOST", "localhost"),
 		User:     getEnv("DB_USER", "postgres"),
