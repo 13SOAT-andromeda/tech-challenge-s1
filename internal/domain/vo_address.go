@@ -14,3 +14,9 @@ func (c *Customer) EnsureAddress() {
 		c.Address = &Address{}
 	}
 }
+
+func (c *Company) EnsureAddressCompany() {
+	if c.Address == nil {
+		c.Address = &Address{}
+	}
+}

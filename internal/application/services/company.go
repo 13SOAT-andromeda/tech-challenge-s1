@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
@@ -16,47 +17,49 @@ func NewCompanyService(repo ports.CompanyRepository) *CompanyService {
 }
 
 func (s *CompanyService) CreateCompany(ctx context.Context, c domain.Company) (*domain.Company, error) {
-	company := domain.Company{
-		Name:     c.Name,
-		Email:    c.Email,
-		Document: c.Document,
-		Contact:  c.Contact,
-		Address: &domain.Address{
-			Address:       c.Address.Address,
-			AddressNumber: c.Address.AddressNumber,
-			City:          c.Address.City,
-			Neighborhood:  c.Address.Neighborhood,
-			Country:       c.Address.Country,
-			ZipCode:       c.Address.ZipCode,
-		},
+	c.EnsureAddressCompany()
+
+	companyModel := model.CompanyFromDomain(c)
+
+	createModel, err := s.repo.Create(ctx, &companyModel)
+	if err != nil {
+		return nil, err
 	}
 
-	return s.repo.Save(ctx, company)
+	createdCompany := model.CompanyToDomain(*createModel)
+	return &createdCompany, nil
 }
 
-func (s *CompanyService) GetCompanyByID(ctx context.Context, id uint) (*domain.Company, error) {
-	return s.repo.FindByID(ctx, id)
-}
-
-func (s *CompanyService) UpdateCompany(ctx context.Context, id uint, c domain.Company) (*domain.Company, error) {
-	company := domain.Company{
-		Name:     c.Name,
-		Email:    c.Email,
-		Document: c.Document,
-		Contact:  c.Contact,
-		Address: &domain.Address{
-			Address:       c.Address.Address,
-			AddressNumber: c.Address.AddressNumber,
-			City:          c.Address.City,
-			Neighborhood:  c.Address.Neighborhood,
-			Country:       c.Address.Country,
-			ZipCode:       c.Address.ZipCode,
-		},
+func (s *CompanyService) GetCompanyById(ctx context.Context, id uint) (*domain.Company, error) {
+	companyModel, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
 	}
 
-	return s.repo.UpdateByID(ctx, id, company)
+	companyDomain := model.CompanyToDomain(*companyModel)
+	return &companyDomain, nil
 }
 
-func (s *CompanyService) DeleteCompany(ctx context.Context, id uint) (*domain.Company, error) {
-	return s.repo.DeleteByID(ctx, id)
+func (s *CompanyService) UpdateCompanyById(ctx context.Context, id uint, c domain.Company) (*domain.Company, error) {
+	c.EnsureAddressCompany()
+
+	companyModel := model.CompanyFromDomain(c)
+
+	updatedModel, err := s.repo.Update(ctx, id, &companyModel)
+	if err != nil {
+		return nil, err
+	}
+
+	updatedCompany := model.CompanyToDomain(*updatedModel)
+	return &updatedCompany, nil
+}
+
+func (s *CompanyService) DeleteCompanyById(ctx context.Context, id uint) (*domain.Company, error) {
+	deletedModel, err := s.repo.Delete(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	deletedCompany := model.CompanyToDomain(*deletedModel)
+	return &deletedCompany, nil
 }
