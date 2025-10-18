@@ -6,6 +6,6 @@ type User struct {
 	Email    string
 	Contact  string
 	Address  *Address
-	Password *Password
+	Password *Password `json:"-"`
 	Role     string
 }
