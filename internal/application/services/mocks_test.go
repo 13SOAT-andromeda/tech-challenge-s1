@@ -57,3 +57,45 @@ func (m *MockCustomerRepository) FindByEmail(ctx context.Context, email string) 
 	}
 	return args.Get(0).(*model.CustomerModel), args.Error(1)
 }
+
+type MockCompanyRepository struct {
+	mock.Mock
+}
+
+var _ ports.CompanyRepository = (*MockCompanyRepository)(nil)
+
+func (m *MockCompanyRepository) FindByID(ctx context.Context, id uint) (*model.CompanyModel, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*model.CompanyModel), args.Error(1)
+}
+
+func (m *MockCompanyRepository) FindAll(ctx context.Context) ([]model.CompanyModel, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]model.CompanyModel), args.Error(1)
+}
+
+func (m *MockCompanyRepository) Create(ctx context.Context, entity *model.CompanyModel) (*model.CompanyModel, error) {
+	args := m.Called(ctx, entity)
+
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).(*model.CompanyModel), args.Error(1)
+}
+
+func (m *MockCompanyRepository) Update(ctx context.Context, entity *model.CompanyModel) error {
+	args := m.Called(ctx, entity)
+	return args.Error(0)
+}
+
+func (m *MockCompanyRepository) Delete(ctx context.Context, id uint) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
