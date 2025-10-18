@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
@@ -36,7 +37,7 @@ func TestCustomerService_Create_Success(t *testing.T) {
 	mockModel := model.FromDomain(inputCustomer)
 
 	// Configurar o mock para esperar a chamada Create e retornar sucesso
-	mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*model.CustomerModel")).
+	mockRepo.On("Create", mock.Anything, mock.AnythingOfType(reflect.TypeOf(&model.CustomerModel{}).String())).
 		Return(&mockModel, nil)
 	// Act (Agir)
 	result, err := service.Create(ctx, inputCustomer)

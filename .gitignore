@@ -25,7 +25,10 @@ go.work
 go.work.sum
 
 # env file
-# .env
+.env
+
+# Local development files
+main
 
 # Editor/IDE
 .idea/
