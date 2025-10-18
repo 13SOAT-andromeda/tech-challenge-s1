@@ -17,6 +17,7 @@ type Router struct {
 func NewRouter(
 	config config.Config,
 	customerHandler handlers.CustomerHandler,
+	UserHandler handlers.UserHandler,
 ) *Router {
 	if config.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -36,6 +37,14 @@ func NewRouter(
 			customerGroup.GET("", customerHandler.GetAllCustomers)
 			customerGroup.POST("", customerHandler.CreateCustomer)
 			customerGroup.GET("/:id", customerHandler.GetCustomerByID)
+		}
+
+		userGroup := router.Group("/user")
+		{
+			userGroup.GET("", UserHandler.GetAll)
+			userGroup.POST("", UserHandler.Create)
+			userGroup.GET("/:id", UserHandler.GetByID)
+			userGroup.GET("/search", UserHandler.Search)
 		}
 	}
 
