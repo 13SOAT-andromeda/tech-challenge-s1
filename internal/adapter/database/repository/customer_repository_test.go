@@ -39,7 +39,6 @@ func TestCustomerRepository_FindByEmail(t *testing.T) {
 
 	t.Run("success - customer found", func(t *testing.T) {
 		expectedCustomer := model.CustomerModel{
-			ID:       1,
 			Email:    "test@example.com",
 			Name:     "Test User",
 			Document: "12345678900",
@@ -70,7 +69,7 @@ func TestCustomerRepository_FindByEmail(t *testing.T) {
 				expectedCustomer.Address.Country,
 				expectedCustomer.Address.Neighborhood)
 
-		expectedSQL := `SELECT * FROM "Customers" WHERE email = $1 ORDER BY "Customers"."id" LIMIT $2`
+		expectedSQL := `SELECT * FROM "Customer" WHERE email = $1 AND "Customer"."deleted_at" IS NULL ORDER BY "Customer"."id" LIMIT $2`
 
 		mock.ExpectQuery(regexp.QuoteMeta(
 			expectedSQL)).
@@ -87,7 +86,7 @@ func TestCustomerRepository_FindByEmail(t *testing.T) {
 	})
 
 	t.Run("error - customer not found", func(t *testing.T) {
-		expectedSQL := regexp.QuoteMeta(`SELECT * FROM "Customers" WHERE email = $1 ORDER BY "Customers"."id" LIMIT $2`)
+		expectedSQL := regexp.QuoteMeta(`SELECT * FROM "Customer" WHERE email = $1 AND "Customer"."deleted_at" IS NULL ORDER BY "Customer"."id" LIMIT $2`)
 		emailNaoEncontrado := "notfound@example.com"
 
 		mock.ExpectQuery(expectedSQL).
@@ -125,7 +124,7 @@ func TestBaseRepository_FindByID(t *testing.T) {
 				expectedCustomer.Document, expectedCustomer.Type, expectedCustomer.Contact)
 
 		mock.ExpectQuery(regexp.QuoteMeta(
-			`SELECT * FROM "Customers" WHERE "Customers"."id" = $1 ORDER BY "Customers"."id" LIMIT $2`)).
+			`SELECT * FROM "Customer" WHERE "Customer"."id" = $1 AND "Customer"."deleted_at" IS NULL ORDER BY "Customer"."id" LIMIT $2`)).
 			WithArgs(expectedCustomer.ID, 1).
 			WillReturnRows(rows)
 
@@ -140,7 +139,7 @@ func TestBaseRepository_FindByID(t *testing.T) {
 
 	t.Run("error - customer not found", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(
-			`SELECT * FROM "Customers" WHERE "Customers"."id" = $1 ORDER BY "Customers"."id" LIMIT $2`)).
+			`SELECT * FROM "Customer" WHERE "Customer"."id" = $1 AND "Customer"."deleted_at" IS NULL ORDER BY "Customer"."id" LIMIT $2`)).
 			WithArgs(uint(999), 1).
 			WillReturnError(gorm.ErrRecordNotFound)
 
@@ -169,10 +168,13 @@ func TestBaseRepository_Create(t *testing.T) {
 			Contact:  "11999999999",
 		}
 
-		expectedSQL := `INSERT INTO "Customers" ("name","email","document","type","contact","address","address_number","neighborhood","city","country","zip_code") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`
+		expectedSQL := `INSERT INTO "Customer" ("created_at","updated_at","deleted_at","name","email","document","type","contact","address","address_number","neighborhood","city","country","zip_code") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING "id"`
 
 		mock.ExpectQuery(regexp.QuoteMeta(expectedSQL)).
 			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
 				customer.Name,
 				customer.Email,
 				customer.Document,
@@ -203,10 +205,13 @@ func TestBaseRepository_Create(t *testing.T) {
 			Type:     "CPF",
 			Contact:  "11999999999",
 		}
-		expectedSQL := `INSERT INTO "Customers" ("name","email","document","type","contact","address","address_number","neighborhood","city","country","zip_code") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`
+		expectedSQL := `INSERT INTO "Customer" ("created_at","updated_at","deleted_at","name","email","document","type","contact","address","address_number","neighborhood","city","country","zip_code") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING "id"`
 
 		mock.ExpectQuery(regexp.QuoteMeta(expectedSQL)).
 			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
 				customer.Name,
 				customer.Email,
 				customer.Document,
@@ -240,8 +245,8 @@ func TestBaseRepository_Delete(t *testing.T) {
 		customerID := uint(1)
 
 		mock.ExpectExec(regexp.QuoteMeta(
-			`DELETE FROM "Customers" WHERE "Customers"."id" = $1`)).
-			WithArgs(customerID).
+			`UPDATE "Customer" SET "deleted_at"=$1 WHERE "Customer"."id" = $2 AND "Customer"."deleted_at" IS NULL`)).
+			WithArgs(sqlmock.AnyArg(), customerID).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 
 		err := repo.Delete(ctx, customerID)
@@ -254,8 +259,8 @@ func TestBaseRepository_Delete(t *testing.T) {
 		customerID := uint(1)
 
 		mock.ExpectExec(regexp.QuoteMeta(
-			`DELETE FROM "Customers" WHERE "Customers"."id" = $1`)).
-			WithArgs(customerID).
+			`UPDATE "Customer" SET "deleted_at"=$1 WHERE "Customer"."id" = $2 AND "Customer"."deleted_at" IS NULL`)).
+			WithArgs(sqlmock.AnyArg(), customerID).
 			WillReturnError(sql.ErrConnDone)
 
 		err := repo.Delete(ctx, customerID)
@@ -272,13 +277,13 @@ func TestBaseRepository_FindAll(t *testing.T) {
 	repo := NewCustomerRepository(db)
 	ctx := context.Background()
 
-	t.Run("success - multiple Customers", func(t *testing.T) {
+	t.Run("success - multiple Customer", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "name", "email", "document", "type", "contact"}).
 			AddRow(1, "User 1", "user1@example.com", "12345678900", "CPF", "11999999999").
 			AddRow(2, "User 2", "user2@example.com", "98765432100", "CPF", "11888888888")
 
 		mock.ExpectQuery(regexp.QuoteMeta(
-			`SELECT * FROM "Customers"`)).
+			`SELECT * FROM "Customer"`)).
 			WillReturnRows(rows)
 
 		Customer, err := repo.FindAll(ctx)
@@ -294,7 +299,7 @@ func TestBaseRepository_FindAll(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "name", "email", "document", "type", "contact"})
 
 		mock.ExpectQuery(regexp.QuoteMeta(
-			`SELECT * FROM "Customers"`)).
+			`SELECT * FROM "Customer"`)).
 			WillReturnRows(rows)
 
 		Customer, err := repo.FindAll(ctx)
@@ -306,7 +311,7 @@ func TestBaseRepository_FindAll(t *testing.T) {
 
 	t.Run("error - database error", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(
-			`SELECT * FROM "Customers"`)).
+			`SELECT * FROM "Customer"`)).
 			WillReturnError(sql.ErrConnDone)
 
 		Customer, err := repo.FindAll(ctx)
