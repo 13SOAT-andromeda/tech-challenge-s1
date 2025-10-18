@@ -52,7 +52,6 @@ func TestFromDomainAddress(t *testing.T) {
 
 func TestCustomerModelInitialization(t *testing.T) {
 	c := CustomerModel{
-		ID:       1,
 		Name:     "Gedan",
 		Email:    "gedan@example.com",
 		Document: "12345678900",
@@ -82,27 +81,27 @@ func TestCustomerModelInitialization(t *testing.T) {
 	assert.Equal(t, "1234", c.Address.ZipCode)
 }
 
-//func Test_EnsureAddress(t *testing.T) {
-//	c1 := &domain.Customer{}
-//	c1.EnsureAddress()
-//
-//	assert.Equal(t, &domain.Address{}, c1.Address)
-//
-//	existingAddress := &domain.Address{
-//		Address:       "Rua Teste",
-//		AddressNumber: "123",
-//		Neighborhood:  "Centro",
-//		City:          "Cidade",
-//		Country:       "Brasil",
-//		ZipCode:       "12345-678",
-//	}
-//	c2 := &domain.Customer{
-//		Address: existingAddress,
-//	}
-//	c2.EnsureAddress()
-//
-//	assert.Equal(t, existingAddress, c2.Address, "Address existente não deve ser sobrescrito")
-//}
+func Test_EnsureAddress(t *testing.T) {
+	c1 := &domain.Customer{}
+	c1.EnsureAddress()
+
+	assert.Equal(t, &domain.Address{}, c1.Address)
+
+	existingAddress := &domain.Address{
+		Address:       "Rua Teste",
+		AddressNumber: "123",
+		Neighborhood:  "Centro",
+		City:          "Cidade",
+		Country:       "Brasil",
+		ZipCode:       "12345-678",
+	}
+	c2 := &domain.Customer{
+		Address: existingAddress,
+	}
+	c2.EnsureAddress()
+
+	assert.Equal(t, existingAddress, c2.Address, "Address existente não deve ser sobrescrito")
+}
 
 func TestCustomerModel_ToFromDomain(t *testing.T) {
 	modelCustomer := CustomerModel{
