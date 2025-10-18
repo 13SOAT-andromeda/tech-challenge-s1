@@ -1,16 +1,20 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
-type Customer struct {
+type User struct {
 	ID        uint
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
 	Name      string
 	Email     string
-	Document  string
-	Type      string
 	Contact   string
-	Address   *Address
+	Address   string
+	Password  string
+	Role      string
+
+	Sessions []Session
 }

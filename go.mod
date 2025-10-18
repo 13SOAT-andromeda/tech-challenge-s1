@@ -3,6 +3,7 @@ module github.com/13SOAT-andromeda/tech-challenge-s1
 go 1.25
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.10.1
 	github.com/joho/godotenv v1.5.1
