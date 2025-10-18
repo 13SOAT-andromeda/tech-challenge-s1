@@ -16,9 +16,7 @@ func NewCompanyService(repo ports.CompanyRepository) *CompanyService {
 	return &CompanyService{repo: repo}
 }
 
-func (s *CompanyService) CreateCompany(ctx context.Context, c domain.Company) (*domain.Company, error) {
-	c.EnsureAddressCompany()
-
+func (s *CompanyService) Create(ctx context.Context, c domain.Company) (*domain.Company, error) {
 	companyModel := model.CompanyFromDomain(c)
 
 	createModel, err := s.repo.Create(ctx, &companyModel)
@@ -30,7 +28,7 @@ func (s *CompanyService) CreateCompany(ctx context.Context, c domain.Company) (*
 	return &createdCompany, nil
 }
 
-func (s *CompanyService) GetCompanyById(ctx context.Context, id uint) (*domain.Company, error) {
+func (s *CompanyService) GetByID(ctx context.Context, id uint) (*domain.Company, error) {
 	companyModel, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -40,26 +38,29 @@ func (s *CompanyService) GetCompanyById(ctx context.Context, id uint) (*domain.C
 	return &companyDomain, nil
 }
 
-func (s *CompanyService) UpdateCompanyById(ctx context.Context, id uint, c domain.Company) (*domain.Company, error) {
-	c.EnsureAddressCompany()
-
+func (s *CompanyService) UpdateByID(ctx context.Context, id uint, c domain.Company) (*domain.Company, error) {
 	companyModel := model.CompanyFromDomain(c)
 
-	updatedModel, err := s.repo.Update(ctx, id, &companyModel)
-	if err != nil {
+	// Chamada ajustada: Update provavelmente recebe apenas o modelo e retorna um erro
+	if err := s.repo.Update(ctx, &companyModel); err != nil {
 		return nil, err
 	}
 
-	updatedCompany := model.CompanyToDomain(*updatedModel)
+	// Converte o modelo atualizado (local) para domínio e retorna
+	updatedCompany := model.CompanyToDomain(companyModel)
 	return &updatedCompany, nil
 }
 
-func (s *CompanyService) DeleteCompanyById(ctx context.Context, id uint) (*domain.Company, error) {
-	deletedModel, err := s.repo.Delete(ctx, id)
+func (s *CompanyService) DeleteByID(ctx context.Context, id uint) (*domain.Company, error) {
+	companyModel, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	deletedCompany := model.CompanyToDomain(*deletedModel)
+	if err := s.repo.Delete(ctx, id); err != nil {
+		return nil, err
+	}
+
+	deletedCompany := model.CompanyToDomain(*companyModel)
 	return &deletedCompany, nil
 }

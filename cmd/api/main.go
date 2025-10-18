@@ -31,6 +31,7 @@ func main() {
 
 	err = db.AutoMigrate(
 		&model.CustomerModel{},
+		&model.CompanyModel{},
 	)
 
 	if err != nil {
@@ -48,7 +49,7 @@ func main() {
 	customerHandler := handlers.NewCustomerHandler(customerService)
 	companyHandler := handlers.NewCompanyHandler(companyService)
 
-	router := http.NewRouter(*cfg, *customerHandler)
+	router := http.NewRouter(*cfg, *customerHandler, *companyHandler)
 	log.Printf("Starting HTTP server on port %s", cfg.Http.Port)
 
 	if err = router.Server(":" + cfg.Http.Port); err != nil {

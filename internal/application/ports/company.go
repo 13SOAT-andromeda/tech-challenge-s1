@@ -13,8 +13,8 @@ type CompanyRepository interface {
 }
 
 type CompanyService interface {
-	CreateCompany(ctx context.Context, c domain.Company) (*domain.Company, error)
-	GetCompanyById(ctx context.Context, id uint) (*domain.Company, error)
-	UpdateCompanyById(ctx context.Context, id uint, c domain.Company) (*domain.Company, error)
-	DeleteCompanyById(ctx context.Context, id uint) (*domain.Company, error)
+	Create(ctx context.Context, c domain.Company) (*domain.Company, error)
+	GetByID(ctx context.Context, id uint) (*domain.Company, error)
+	UpdateByID(ctx context.Context, id uint, c domain.Company) (*domain.Company, error)
+	DeleteByID(ctx context.Context, id uint) (*domain.Company, error)
 }

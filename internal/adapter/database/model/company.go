@@ -11,6 +11,10 @@ type CompanyModel struct {
 	Address  domain.Address `gorm:"embedded"`
 }
 
+func (CompanyModel) TableName() string {
+	return "Companies"
+}
+
 func CompanyToDomain(model CompanyModel) domain.Company {
 	return domain.Company{
 		ID:       model.ID,

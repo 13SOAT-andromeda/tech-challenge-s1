@@ -17,9 +17,6 @@ func NewCustomerService(repo ports.CustomerRepository) *CustomerService {
 }
 
 func (s *CustomerService) Create(ctx context.Context, c domain.Customer) (*domain.Customer, error) {
-
-	c.EnsureAddress()
-
 	customerModel := model.FromDomain(c)
 
 	createdModel, err := s.repo.Create(ctx, &customerModel)

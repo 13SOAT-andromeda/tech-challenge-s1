@@ -18,18 +18,16 @@ func NewCompanyHandler(service ports.CompanyService) *CompanyHandler {
 }
 
 type createCompanyRequest struct {
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Document string `json:"document" binding:"required"`
-	Contact  string `json:"contact" binding:"required"`
-	Address  struct {
-		Address       string `json:"address" binding:"required"`
-		AddressNumber string `json:"address_number" binding:"required"`
-		City          string `json:"city" binding:"required"`
-		Neighborhood  string `json:"neighborhood" binding:"required"`
-		Country       string `json:"country" binding:"required"`
-		ZipCode       string `json:"zip_code" binding:"required"`
-	} `json:"address" binding:"required,dive"`
+	Name          string `json:"name" binding:"required"`
+	Email         string `json:"email" binding:"required,email"`
+	Document      string `json:"document" binding:"required"`
+	Contact       string `json:"contact" binding:"required"`
+	Address       string `json:"address" binding:"required"`
+	AddressNumber string `json:"address_number" binding:"required"`
+	City          string `json:"city" binding:"required"`
+	Neighborhood  string `json:"neighborhood" binding:"required"`
+	Country       string `json:"country" binding:"required"`
+	ZipCode       string `json:"zip_code" binding:"required"`
 }
 
 func (h *CompanyHandler) CreateCompany(ctx *gin.Context) {
@@ -45,16 +43,16 @@ func (h *CompanyHandler) CreateCompany(ctx *gin.Context) {
 		Document: json.Document,
 		Contact:  json.Contact,
 		Address: &domain.Address{
-			Address:       json.Address.Address,
-			AddressNumber: json.Address.AddressNumber,
-			City:          json.Address.City,
-			Neighborhood:  json.Address.Neighborhood,
-			Country:       json.Address.Country,
-			ZipCode:       json.Address.ZipCode,
+			Address:       json.Address,
+			AddressNumber: json.AddressNumber,
+			City:          json.City,
+			Neighborhood:  json.Neighborhood,
+			Country:       json.Country,
+			ZipCode:       json.ZipCode,
 		},
 	}
 
-	if _, err := h.service.Create(ctx, c); err != nil {
+	if _, err := h.service.Create(ctx.Request.Context(), c); err != nil {
 		ctx.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
@@ -69,7 +67,7 @@ func (h *CompanyHandler) GetCompanyByID(ctx *gin.Context) {
 		ctx.JSON(400, gin.H{"error": "ID inválido"})
 		return
 	}
-	company, err := h.service.GetByID(ctx, uint(idUint))
+	company, err := h.service.GetByID(ctx.Request.Context(), uint(idUint))
 	if err != nil {
 		ctx.JSON(404, gin.H{"error": "Company not found"})
 		return
@@ -98,16 +96,16 @@ func (h *CompanyHandler) UpdateCompany(ctx *gin.Context) {
 		Document: json.Document,
 		Contact:  json.Contact,
 		Address: &domain.Address{
-			Address:       json.Address.Address,
-			AddressNumber: json.Address.AddressNumber,
-			City:          json.Address.City,
-			Neighborhood:  json.Address.Neighborhood,
-			Country:       json.Address.Country,
-			ZipCode:       json.Address.ZipCode,
+			Address:       json.Address,
+			AddressNumber: json.AddressNumber,
+			City:          json.City,
+			Neighborhood:  json.Neighborhood,
+			Country:       json.Country,
+			ZipCode:       json.ZipCode,
 		},
 	}
 
-	if err, _ := h.service.UpdateByID(ctx, uint(idUint), c); err != nil {
+	if _, err := h.service.UpdateByID(ctx.Request.Context(), uint(idUint), c); err != nil {
 		ctx.JSON(500, gin.H{"error": "Failed to update company"})
 		return
 	}
@@ -122,7 +120,7 @@ func (h *CompanyHandler) DeleteCompany(ctx *gin.Context) {
 		ctx.JSON(400, gin.H{"error": "ID invalid"})
 		return
 	}
-	if err, _ := h.service.DeleteByID(ctx, uint(idUint)); err != nil {
+	if _, err := h.service.DeleteByID(ctx.Request.Context(), uint(idUint)); err != nil {
 		ctx.JSON(500, gin.H{"error": "Failed to delete company"})
 		return
 	}
