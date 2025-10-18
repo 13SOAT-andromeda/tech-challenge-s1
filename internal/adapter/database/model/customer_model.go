@@ -19,29 +19,36 @@ func (CustomerModel) TableName() string {
 	return "Customer"
 }
 
-func ToDomain(model CustomerModel) domain.Customer {
-	return domain.Customer{
-		ID:       model.ID,
-		Name:     model.Name,
-		Email:    model.Email,
-		Document: model.Document,
-		Type:     model.Type,
-		Contact:  model.Contact,
-		Address:  model.Address.ToDomain(),
+func (m *CustomerModel) ToDomain() *domain.Customer {
+	if m == nil {
+		return nil
+	}
+	return &domain.Customer{
+		ID:        m.ID,
+		Name:      m.Name,
+		Email:     m.Email,
+		Document:  m.Document,
+		Type:      m.Type,
+		Contact:   m.Contact,
+		Address:   m.Address.ToDomain(),
+		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
 	}
 }
 
-func FromDomain(domain domain.Customer) CustomerModel {
-	model := CustomerModel{
-
-		Name:     domain.Name,
-		Email:    domain.Email,
-		Document: domain.Document,
-		Type:     domain.Type,
-		Contact:  domain.Contact,
-		Address:  FromDomainAddress(domain.Address),
+func FromDomainCustomer(d *domain.Customer) *CustomerModel {
+	if d == nil {
+		return nil
 	}
-	model.ID = domain.ID
+	model := CustomerModel{
+		Name:     d.Name,
+		Email:    d.Email,
+		Document: d.Document,
+		Type:     d.Type,
+		Contact:  d.Contact,
+		Address:  FromDomainAddress(d.Address),
+	}
+	model.ID = d.ID
 
-	return model
+	return &model
 }

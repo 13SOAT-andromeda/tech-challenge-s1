@@ -1,11 +1,16 @@
 package domain
 
+import "time"
+
 type Customer struct {
-	ID       uint
-	Name     string
-	Email    string
-	Document string
-	Type     string
-	Contact  string
-	Address  *Address
+	ID        uint
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time
+	Name      string
+	Email     string
+	Document  string
+	Type      string
+	Contact   string
+	Address   *Address
 }

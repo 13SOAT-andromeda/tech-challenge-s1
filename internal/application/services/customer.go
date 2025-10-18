@@ -18,19 +18,17 @@ func NewCustomerService(repo ports.CustomerRepository) *CustomerService {
 
 func (s *CustomerService) Create(ctx context.Context, c domain.Customer) (*domain.Customer, error) {
 
-	c.EnsureAddress()
+	customerModel := model.FromDomainCustomer(&c)
 
-	customerModel := model.FromDomain(c)
-
-	createdModel, err := s.repo.Create(ctx, &customerModel)
+	createdModel, err := s.repo.Create(ctx, customerModel)
 
 	if err != nil {
 		return nil, err
 	}
 
-	createdCustomer := model.ToDomain(*createdModel)
+	createdCustomer := createdModel.ToDomain()
 
-	return &createdCustomer, nil
+	return createdCustomer, nil
 }
 
 func (s *CustomerService) GetAll(ctx context.Context) ([]domain.Customer, error) {
@@ -44,7 +42,7 @@ func (s *CustomerService) GetAll(ctx context.Context) ([]domain.Customer, error)
 	domainCustomers := make([]domain.Customer, 0, len(customerModels))
 
 	for _, customerModel := range customerModels {
-		domainCustomers = append(domainCustomers, model.ToDomain(customerModel))
+		domainCustomers = append(domainCustomers, *(&customerModel).ToDomain())
 	}
 
 	return domainCustomers, nil
@@ -57,7 +55,7 @@ func (s *CustomerService) GetByID(ctx context.Context, id uint) (*domain.Custome
 	if err != nil {
 		return nil, err
 	}
-	customerDomain := model.ToDomain(*customerModel)
+	customerDomain := customerModel.ToDomain()
 
-	return &customerDomain, nil
+	return customerDomain, nil
 }
