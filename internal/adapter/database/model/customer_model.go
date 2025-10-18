@@ -1,9 +1,12 @@
 package model
 
-import "github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+import (
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"gorm.io/gorm"
+)
 
 type CustomerModel struct {
-	ID       uint   `gorm:"primaryKey"`
+	gorm.Model
 	Name     string `gorm:"not null"`
 	Email    string
 	Document string       `gorm:"unique"`
@@ -13,7 +16,7 @@ type CustomerModel struct {
 }
 
 func (CustomerModel) TableName() string {
-	return "Customers"
+	return "Customer"
 }
 
 func ToDomain(model CustomerModel) domain.Customer {
@@ -29,8 +32,8 @@ func ToDomain(model CustomerModel) domain.Customer {
 }
 
 func FromDomain(domain domain.Customer) CustomerModel {
-	return CustomerModel{
-		ID:       domain.ID,
+	model := CustomerModel{
+
 		Name:     domain.Name,
 		Email:    domain.Email,
 		Document: domain.Document,
@@ -38,4 +41,7 @@ func FromDomain(domain domain.Customer) CustomerModel {
 		Contact:  domain.Contact,
 		Address:  FromDomainAddress(domain.Address),
 	}
+	model.ID = domain.ID
+
+	return model
 }

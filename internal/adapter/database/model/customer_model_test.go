@@ -52,7 +52,6 @@ func TestFromDomainAddress(t *testing.T) {
 
 func TestCustomerModelInitialization(t *testing.T) {
 	c := CustomerModel{
-		ID:       1,
 		Name:     "Gedan",
 		Email:    "gedan@example.com",
 		Document: "12345678900",
@@ -106,7 +105,6 @@ func Test_EnsureAddress(t *testing.T) {
 
 func TestCustomerModel_ToFromDomain(t *testing.T) {
 	modelCustomer := CustomerModel{
-		ID:       1,
 		Name:     "Gedan",
 		Email:    "gedan@example.com",
 		Document: "12345678900",
