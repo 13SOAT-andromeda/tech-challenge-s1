@@ -45,6 +45,8 @@ func NewRouter(
 			userGroup.POST("", UserHandler.Create)
 			userGroup.GET("/:id", UserHandler.GetByID)
 			userGroup.GET("/search", UserHandler.Search)
+			userGroup.PUT("/:id", UserHandler.Update)
+			userGroup.DELETE("/:id", UserHandler.Delete)
 		}
 	}
 
