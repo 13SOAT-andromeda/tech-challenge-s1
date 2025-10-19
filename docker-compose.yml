@@ -15,7 +15,10 @@ services:
       - db_data:/var/lib/postgresql/data
 
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: "${ENV}"
     depends_on:
       - db
     env_file:
