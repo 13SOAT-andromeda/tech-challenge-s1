@@ -31,7 +31,7 @@ FROM golang:1.25 AS development
 WORKDIR /app
 
 # Install git and ca-certificates so `go install` can fetch remote modules
-RUN apt-get update && apt-get install -y git ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential git ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Ensure go binaries installed with `go install` are on PATH
 ENV PATH="/go/bin:${PATH}"
@@ -52,7 +52,7 @@ COPY . .
 COPY ./swagger ./swagger
 
 # Ensure the tmp directory (used by air.toml) exists and is writable
-RUN mkdir -p ./tmp && chmod -R 777 ./tmp
+RUN mkdir -p ./tmp && chmod -R 754 ./tmp
 
 # Expose the application port
 EXPOSE 8080
@@ -70,6 +70,9 @@ FROM alpine:latest AS production
 # Set the working directory
 WORKDIR /app
 
+# Create a non-root user to run the application
+RUN addgroup -S nonroot && adduser -S nonroot -G nonroot
+
 # Install ca-certificates (needed for SSL/TLS connections/health checks)
 RUN apk add --no-cache ca-certificates curl
 
@@ -78,6 +81,9 @@ COPY --from=production_builder /usr/local/bin/main /app/main
 
 # Ensure the binary is executable
 RUN chmod +x /app/main
+
+# Switch to the non-root user
+USER nonroot
 
 # Expose the application port
 EXPOSE 8080
