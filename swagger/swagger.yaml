@@ -1,0 +1,27 @@
+swagger: "2.0"
+info:
+  title: "Todo API"
+  version: "1.0.0"
+host: "localhost:8080"
+schemes:
+  - http
+paths:
+  /todos:
+    get:
+      summary: "List all todos"
+      operationId: listTodos
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Todo"
+definitions:
+  Todo:
+    type: object
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
