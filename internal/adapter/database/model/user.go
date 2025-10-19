@@ -10,6 +10,7 @@ type UserModel struct {
 	Address  AddressModel `gorm:"embedded"`
 	Password string       `gorm:"not null"`
 	Role     string       `gorm:"not null"`
+	Active   bool         `gorm:"default:true"`
 }
 
 func (u *UserModel) TableName() string {
@@ -23,17 +24,14 @@ func NewUserModelFromDomain(domain domain.User) UserModel {
 		Email:    domain.Email,
 		Contact:  domain.Contact,
 		Role:     domain.Role,
-		Password: domain.Password.Get(),
+		Password: domain.Password.GetHashed(),
 		Address:  FromDomainAddress(domain.Address),
+		Active:   domain.Active,
 	}
 }
 
 func (u *UserModel) ToDomain() domain.User {
-	pass, err := domain.NewPassword(u.Password)
-
-	if err != nil {
-		return domain.User{}
-	}
+	pass := domain.NewPasswordFromHash(u.Password)
 
 	return domain.User{
 		ID:       u.ID,
@@ -42,5 +40,6 @@ func (u *UserModel) ToDomain() domain.User {
 		Contact:  u.Contact,
 		Role:     u.Role,
 		Password: pass,
+		Active:   u.Active,
 	}
 }
