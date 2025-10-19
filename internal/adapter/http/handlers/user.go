@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/utils"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
+	appErrors "github.com/13SOAT-andromeda/tech-challenge-s1/internal/core/errors"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/gin-gonic/gin"
 )
@@ -31,10 +33,21 @@ type createUserRequest struct {
 	ZipCode       string `json:"zip_code" binding:"required"`
 }
 
+type updateUserRequest struct {
+	Name          string `json:"name"`
+	Contact       string `json:"contact"`
+	Address       string `json:"address"`
+	AddressNumber string `json:"address_number"`
+	City          string `json:"city"`
+	Neighborhood  string `json:"neighborhood"`
+	Country       string `json:"country"`
+	ZipCode       string `json:"zip_code"`
+}
+
 func (h *UserHandler) Create(ctx *gin.Context) {
 	var json createUserRequest
 	if err := ctx.ShouldBindJSON(&json); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -42,6 +55,12 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	p.Hash()
+	if err := p.Hash(); err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -62,20 +81,20 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 	}
 
 	if _, err := h.service.Create(ctx, u); err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(201, gin.H{"message": "Customer created successfully"})
+	ctx.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
 }
 
 func (h *UserHandler) GetAll(ctx *gin.Context) {
 	users, err := h.service.GetAll(ctx)
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(200, users)
+	ctx.JSON(http.StatusOK, users)
 }
 
 func (h *UserHandler) GetByID(ctx *gin.Context) {
@@ -83,39 +102,83 @@ func (h *UserHandler) GetByID(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "Invalid customer ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": appErrors.ErrUserIdInvalid.Error()})
 		return
 	}
 
-	customer, err := h.service.GetByID(ctx, uint(id))
+	user, err := h.service.GetByID(ctx, uint(id))
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if customer == nil {
-		ctx.JSON(404, gin.H{"error": "Customer not found"})
+	if user == nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": appErrors.ErrUserNotFound.Error()})
 		return
 	}
-	ctx.JSON(200, customer)
+	ctx.JSON(http.StatusOK, user)
 }
 
 func (h *UserHandler) Search(ctx *gin.Context) {
-	params := ParamsToMap(ctx.Params)
+	u := ctx.Request.URL.Query()
+	params := utils.ParamsToMap(u)
 
 	users, err := h.service.Search(ctx, params)
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(200, users)
+	ctx.JSON(http.StatusOK, users)
 }
 
-func ParamsToMap(params gin.Params) map[string]interface{} {
-	paramsMap := make(map[string]interface{})
-	for _, param := range params {
-		paramsMap[param.Key] = param.Value
+func (h *UserHandler) Update(ctx *gin.Context) {
+	var json updateUserRequest
+	id, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": appErrors.ErrUserIdInvalid.Error()})
+		return
 	}
 
-	return paramsMap
+	if err := ctx.ShouldBindJSON(&json); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	u := domain.User{
+		ID:      uint(id),
+		Name:    json.Name,
+		Contact: json.Contact,
+		Address: &domain.Address{
+			Address:       json.Address,
+			AddressNumber: json.AddressNumber,
+			City:          json.City,
+			Neighborhood:  json.Neighborhood,
+			Country:       json.Country,
+			ZipCode:       json.ZipCode,
+		},
+	}
+
+	if _, err := h.service.Update(ctx, u); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
+}
+
+func (h *UserHandler) Delete(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": appErrors.ErrUserIdInvalid.Error()})
+		return
+	}
+
+	if err := h.service.Delete(ctx, uint(id)); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "User deleted"})
 }

@@ -8,4 +8,5 @@ type User struct {
 	Address  *Address
 	Password *Password `json:"-"`
 	Role     string
+	Active   bool
 }
