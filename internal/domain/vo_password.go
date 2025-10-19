@@ -4,10 +4,13 @@ import (
 	"unicode"
 
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/core/errors"
 )
 
 type Password struct {
-	value string
+	value  string
+	hashed string
 }
 
 func NewPassword(value string) (*Password, error) {
@@ -15,33 +18,45 @@ func NewPassword(value string) (*Password, error) {
 		return nil, err
 	}
 
-	hash, err := hash(value)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &Password{value: hash}, nil
+	return &Password{value: value}, nil
 }
 
-func (p *Password) Get() string {
+func NewPasswordFromHash(hashed string) *Password {
+	return &Password{hashed: hashed}
+}
+
+func (p *Password) GetValue() string {
 	return p.value
 }
 
-func hash(value string) (string, error) {
-	p := []byte(value)
-	hash, err := bcrypt.GenerateFromPassword(p, 15)
+func (p *Password) GetHashed() string {
+	return p.hashed
+}
+
+func (p *Password) Hash() error {
+	pass := []byte(p.value)
+	hash, err := bcrypt.GenerateFromPassword(pass, 15)
 
 	if err != nil {
-		return "", ErrPasswordHash
+		return errors.ErrPasswordHash
 	}
 
-	return string(hash), nil
+	p.hashed = string(hash)
+
+	return nil
+}
+
+func (p *Password) Compare(password string) error {
+	err := bcrypt.CompareHashAndPassword([]byte(p.hashed), []byte(password))
+	if err != nil {
+		return errors.ErrPasswordInvalid
+	}
+	return nil
 }
 
 func validatePassword(password string) error {
 	if len(password) < 8 {
-		return ErrPasswordTooShort
+		return errors.ErrPasswordTooShort
 	}
 
 	var (
@@ -65,22 +80,8 @@ func validatePassword(password string) error {
 	}
 
 	if !hasUpper || !hasLower || !hasNumber || !hasSpecial {
-		return ErrPasswordInvalidFormat
+		return errors.ErrPasswordInvalidFormat
 	}
 
 	return nil
-}
-
-var (
-	ErrPasswordTooShort      = &ValidationError{Message: "senha deve ter pelo menos 8 caracteres"}
-	ErrPasswordHash          = &ValidationError{Message: "erro ao criar o hash da senha"}
-	ErrPasswordInvalidFormat = &ValidationError{Message: "senha deve conter pelo menos uma letra maiúscula, uma minúscula, um número e um caractere especial"}
-)
-
-type ValidationError struct {
-	Message string
-}
-
-func (e *ValidationError) Error() string {
-	return e.Message
 }
