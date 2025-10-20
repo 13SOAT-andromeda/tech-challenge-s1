@@ -39,9 +39,20 @@ func (s *CompanyService) GetByID(ctx context.Context, id uint) (*domain.Company,
 }
 
 func (s *CompanyService) UpdateByID(ctx context.Context, id uint, c domain.Company) error {
-	model := company.FromDomain(c)
 
-	err := s.repo.Update(ctx, &model)
+	c.ID = id
+
+	ent := company.FromDomain(c)
+
+	// note: check this doc https://gorm.io/docs/update.html
+	findedCompany, err := s.repo.First(ctx, &ent)
+	if err != nil {
+		return err
+	}
+
+	model := company.FromDomain(company.ToDomain(*findedCompany))
+
+	err = s.repo.Update(ctx, &model)
 	if err != nil {
 		return err
 	}

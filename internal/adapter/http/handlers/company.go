@@ -106,7 +106,7 @@ func (h *CompanyHandler) UpdateCompany(ctx *gin.Context) {
 	}
 
 	if err := h.service.UpdateByID(ctx.Request.Context(), uint(idUint), c); err != nil {
-		ctx.JSON(500, gin.H{"error": "Failed to update company"})
+		ctx.JSON(500, gin.H{"error": "Failed to update company", "details": err.Error()})
 		return
 	}
 
