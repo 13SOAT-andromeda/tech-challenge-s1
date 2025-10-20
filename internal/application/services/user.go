@@ -4,6 +4,8 @@ import (
 	"context"
 
 	appErrors "github.com/13SOAT-andromeda/tech-challenge-s1/internal/core/errors"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/converters"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
@@ -22,6 +24,16 @@ func (s *UserService) Create(ctx context.Context, u domain.User) (*domain.User, 
 
 	if u.Address == nil {
 		u.Address = &domain.Address{}
+	}
+
+	if exists, err := s.exists(ctx, 0, u.Email); err != nil {
+		return nil, err
+	} else if exists {
+		return nil, appErrors.ErrUserEmailAlreadyExists
+	}
+
+	if err := u.Password.Hash(); err != nil {
+		return nil, appErrors.ErrPasswordHash
 	}
 
 	userModel := model.NewUserModelFromDomain(u)
@@ -113,9 +125,9 @@ func (s *UserService) Update(ctx context.Context, u domain.User) (*domain.User, 
 		return nil, appErrors.ErrUserPasswordUpdateNotAllowed
 	}
 
-	mergedUser := MergeStructs(existingDomain, u).(domain.User)
+	mergedUser := converters.MergeStructs(existingDomain, u).(domain.User)
 
-	mergedUser.Password = domain.NewPasswordFromHash(existingUser.Password)
+	mergedUser.Password = domain.NewPasswordFromHash(existingUser.Password, encryption.NewBcryptHasher())
 
 	userModel := model.NewUserModelFromDomain(mergedUser)
 
