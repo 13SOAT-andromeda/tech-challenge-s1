@@ -43,6 +43,7 @@ func (u *UserModel) ToDomain() domain.User {
 		Contact:  u.Contact,
 		Role:     u.Role,
 		Password: pass,
+		Address:  u.Address.ToDomain(),
 		Active:   u.Active,
 	}
 }

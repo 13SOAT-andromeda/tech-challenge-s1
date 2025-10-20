@@ -8,47 +8,50 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockCustomerRepository struct {
+// MockRepository genérico
+type MockRepository[T any] struct {
 	mock.Mock
 }
 
-var _ ports.CustomerRepository = (*MockCustomerRepository)(nil)
-
-func (m *MockCustomerRepository) FindByID(ctx context.Context, id uint) (*model.CustomerModel, error) {
+func (m *MockRepository[T]) FindByID(ctx context.Context, id uint) (*T, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*model.CustomerModel), args.Error(1)
+	return args.Get(0).(*T), args.Error(1)
 }
 
-func (m *MockCustomerRepository) FindAll(ctx context.Context) ([]model.CustomerModel, error) {
+func (m *MockRepository[T]) FindAll(ctx context.Context) ([]T, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]model.CustomerModel), args.Error(1)
+	return args.Get(0).([]T), args.Error(1)
 }
 
-func (m *MockCustomerRepository) Create(ctx context.Context, entity *model.CustomerModel) (*model.CustomerModel, error) {
+func (m *MockRepository[T]) Create(ctx context.Context, entity *T) (*T, error) {
 	args := m.Called(ctx, entity)
-
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-
-	return args.Get(0).(*model.CustomerModel), args.Error(1)
+	return args.Get(0).(*T), args.Error(1)
 }
 
-func (m *MockCustomerRepository) Update(ctx context.Context, entity *model.CustomerModel) error {
+func (m *MockRepository[T]) Update(ctx context.Context, entity *T) error {
 	args := m.Called(ctx, entity)
 	return args.Error(0)
 }
 
-func (m *MockCustomerRepository) Delete(ctx context.Context, id uint) error {
+func (m *MockRepository[T]) Delete(ctx context.Context, id uint) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
+
+type MockCustomerRepository struct {
+	MockRepository[model.CustomerModel]
+}
+
+var _ ports.CustomerRepository = (*MockCustomerRepository)(nil)
 
 func (m *MockCustomerRepository) FindByEmail(ctx context.Context, email string) (*model.CustomerModel, error) {
 	args := m.Called(ctx, email)
@@ -56,4 +59,20 @@ func (m *MockCustomerRepository) FindByEmail(ctx context.Context, email string) 
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*model.CustomerModel), args.Error(1)
+}
+
+type MockUserRepository struct {
+	MockRepository[model.UserModel]
+}
+
+var _ ports.UserRepository = (*MockUserRepository)(nil)
+
+func (m *MockUserRepository) Search(ctx context.Context, params ports.UserSearch) []model.UserModel {
+	args := m.Called(ctx, params)
+	return args.Get(0).([]model.UserModel)
+}
+
+func (m *MockUserRepository) Exists(ctx context.Context, id uint, email string) (bool, error) {
+	args := m.Called(ctx, id, email)
+	return args.Bool(0), args.Error(1)
 }
