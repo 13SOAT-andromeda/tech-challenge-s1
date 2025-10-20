@@ -1,6 +1,8 @@
-package services
+package converters
 
 import (
+	"net/url"
+	"reflect"
 	"testing"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
@@ -12,6 +14,9 @@ func TestMergeStructs(t *testing.T) {
 		Email  string
 		Age    int
 		Active bool
+		Height float64
+		Weight float64
+		Type   uint
 	}
 
 	existing := TestStruct{
@@ -19,6 +24,9 @@ func TestMergeStructs(t *testing.T) {
 		Email:  "joao@email.com",
 		Age:    30,
 		Active: true,
+		Height: 1.80,
+		Weight: 70.0,
+		Type:   1,
 	}
 
 	update := TestStruct{
@@ -26,6 +34,8 @@ func TestMergeStructs(t *testing.T) {
 		Email:  "",
 		Age:    0,
 		Active: false,
+		Height: 1.80,
+		Type:   0,
 	}
 
 	result := MergeStructs(existing, update).(TestStruct)
@@ -35,6 +45,9 @@ func TestMergeStructs(t *testing.T) {
 		Email:  "joao@email.com",
 		Age:    30,
 		Active: false,
+		Height: 1.80,
+		Weight: 70.0,
+		Type:   1,
 	}
 
 	if result != expected {
@@ -86,5 +99,25 @@ func TestMergeStructsWithDomainUser(t *testing.T) {
 	}
 	if result.Active != expected.Active {
 		t.Errorf("Active: expected %t, got %t", expected.Active, result.Active)
+	}
+}
+
+func TestParamsToMap(t *testing.T) {
+	params := url.Values{
+		"name":  {"Jon Snow"},
+		"email": {"jon@winterfell.com"},
+		"age":   {"30"},
+	}
+
+	result := ParamsToMap(params)
+
+	expected := map[string]interface{}{
+		"name":  "Jon Snow",
+		"email": "jon@winterfell.com",
+		"age":   "30",
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("Expected %+v, got %+v", expected, result)
 	}
 }

@@ -1,8 +1,18 @@
-package services
+package converters
 
 import (
+	"net/url"
 	"reflect"
 )
+
+func ParamsToMap(params url.Values) map[string]interface{} {
+	paramsMap := make(map[string]interface{})
+	for key, value := range params {
+		paramsMap[key] = value[0]
+	}
+
+	return paramsMap
+}
 
 // MergeStructs faz merge entre dois structs, preservando valores do target quando source é zero value
 // Para campos específicos como bool, considera apenas string vazia, 0 para números e nil para ponteiros como "não fornecido"
