@@ -12,5 +12,5 @@ type Customer struct {
 	Document  string
 	Type      string
 	Contact   string
-	Address   *Address
+	Address   Address
 }

@@ -1,37 +1,35 @@
-package model
+package customer_vehicle
 
 import (
 	"time"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"gorm.io/gorm"
 )
 
-type CustomerVehicleModel struct {
+type Model struct {
 	gorm.Model
 	CustomerId uint
 	VehicleId  uint
 
-	Vehicle  VehicleModel  `gorm:"foreignKey:VehicleId;references:ID"`
-	Customer CustomerModel `gorm:"foreignKey:CustomerId;references:ID"`
+	Vehicle  model.VehicleModel `gorm:"foreignKey:VehicleId;references:ID"`
+	Customer customer.Model     `gorm:"foreignKey:CustomerId;references:ID"`
 }
 
-func (CustomerVehicleModel) TableName() string {
+func (Model) TableName() string {
 	return "Customer_Vehicle"
 }
 
-func (m *CustomerVehicleModel) ToDomain() *domain.CustomerVehicle {
-	if m == nil {
-		return nil
-	}
-
+func ToDomain(m Model) domain.CustomerVehicle {
 	var deletedAt *time.Time
 
 	if m.DeletedAt.Valid {
 		deletedAt = &m.DeletedAt.Time
 	}
 
-	return &domain.CustomerVehicle{
+	return domain.CustomerVehicle{
 		ID:         m.ID,
 		CreatedAt:  m.CreatedAt,
 		UpdatedAt:  m.UpdatedAt,
@@ -41,12 +39,9 @@ func (m *CustomerVehicleModel) ToDomain() *domain.CustomerVehicle {
 	}
 }
 
-func FromDomainCustomerVehicle(domainEntity *domain.CustomerVehicle) *CustomerVehicleModel {
-	if domainEntity == nil {
-		return nil
-	}
-
+func FromDomain(domainEntity domain.CustomerVehicle) Model {
 	var deletedAt gorm.DeletedAt
+
 	if domainEntity.DeletedAt != nil {
 		deletedAt = gorm.DeletedAt{
 			Time:  *domainEntity.DeletedAt,
@@ -54,7 +49,7 @@ func FromDomainCustomerVehicle(domainEntity *domain.CustomerVehicle) *CustomerVe
 		}
 	}
 
-	return &CustomerVehicleModel{
+	return Model{
 		Model: gorm.Model{
 			ID:        domainEntity.ID,
 			CreatedAt: domainEntity.CreatedAt,

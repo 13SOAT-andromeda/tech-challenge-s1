@@ -1,0 +1,38 @@
+package order_product
+
+import (
+	"testing"
+
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestOrderProductModelInitialization(t *testing.T) {
+	op := Model{
+		ProductId: 1,
+		OrderId:   1,
+	}
+
+	assert.NotNil(t, op)
+	assert.Equal(t, uint(1), op.ProductId)
+	assert.Equal(t, uint(1), op.OrderId)
+}
+
+func TestOrderProductModel_ToFromDomain(t *testing.T) {
+	modelOrderProduct := Model{
+		ProductId: 1,
+		OrderId:   1,
+		Product:   model.ProductModel{},
+		Order:     order.Model{User: model.UserModel{Sessions: []model.SessionModel{}}},
+	}
+
+	domain := ToDomain(modelOrderProduct)
+
+	assert.Equal(t, modelOrderProduct.ProductId, domain.ProductId)
+	assert.Equal(t, modelOrderProduct.OrderId, domain.OrderId)
+
+	newModel := FromDomain(domain)
+
+	assert.Equal(t, modelOrderProduct, newModel)
+}

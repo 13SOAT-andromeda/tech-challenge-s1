@@ -1,11 +1,15 @@
-package model
+package order
 
 import (
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"time"
+
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
 
-type OrderModel struct {
+type Model struct {
 	ID                uint      `gorm:"primaryKey"`
 	DateIn            time.Time `gorm:"not null"`
 	DateOut           *time.Time
@@ -18,21 +22,17 @@ type OrderModel struct {
 	UserId            uint
 	CustomerVehicleId uint
 	CompanyId         uint
-
-	User            UserModel            `gorm:"foreignKey:UserId;references:ID"`
-	CustomerVehicle CustomerVehicleModel `gorm:"foreignKey:CustomerVehicleId;references:ID"`
-	Company         CompanyModel         `gorm:"foreignKey:CompanyId;references:ID"`
+	User              model.UserModel                       `gorm:"foreignKey:UserId;references:ID"`
+	CustomerVehicle   customer_vehicle.CustomerVehicleModel `gorm:"foreignKey:CustomerVehicleId;references:ID"`
+	Company           company.Model                         `gorm:"foreignKey:CompanyId;references:ID"`
 }
 
-func (OrderModel) TableName() string {
+func (Model) TableName() string {
 	return "Order"
 }
 
-func (m *OrderModel) ToDomain() *domain.Order {
-	if m == nil {
-		return nil
-	}
-	return &domain.Order{
+func ToDomain(m Model) domain.Order {
+	return domain.Order{
 		ID:                m.ID,
 		DateIn:            m.DateIn,
 		DateOut:           m.DateOut,
@@ -47,15 +47,12 @@ func (m *OrderModel) ToDomain() *domain.Order {
 		CompanyId:         m.CompanyId,
 		User:              *(&m.User).ToDomain(),
 		CustomerVehicle:   *(&m.CustomerVehicle).ToDomain(),
-		Company:           *(&m.Company).ToDomain(),
+		Company:           company.ToDomain(m.Company),
 	}
 }
 
-func FromDomainOrder(d *domain.Order) *OrderModel {
-	if d == nil {
-		return nil
-	}
-	return &OrderModel{
+func FromDomain(d domain.Order) Model {
+	return Model{
 		ID:                d.ID,
 		DateIn:            d.DateIn,
 		DateOut:           d.DateOut,
@@ -68,8 +65,8 @@ func FromDomainOrder(d *domain.Order) *OrderModel {
 		UserId:            d.UserId,
 		CustomerVehicleId: d.CustomerVehicleId,
 		CompanyId:         d.CompanyId,
-		User:              *FromDomainUser(&d.User),
-		CustomerVehicle:   *FromDomainCustomerVehicle(&d.CustomerVehicle),
-		Company:           *FromDomainCompany(&d.Company),
+		User:              *model.FromDomainUser(&d.User),
+		CustomerVehicle:   *customer_vehicle.FromDomainCustomerVehicle(&d.CustomerVehicle),
+		Company:           company.FromDomain(d.Company),
 	}
 }

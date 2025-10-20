@@ -1,10 +1,10 @@
 package domain
 
 type Company struct {
-	ID       uint
-	Name     string
-	Email    string
-	Document string
-	Contact  string
-	Address  Address
+	ID       uint    `json:"id"`
+	Name     string  `json:"name"`
+	Email    string  `json:"email"`
+	Address  Address `json:"address"`
+	Document string  `json:"document"`
+	Contact  string  `json:"contact"`
 }

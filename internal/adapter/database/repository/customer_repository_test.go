@@ -6,7 +6,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/address"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -38,13 +39,13 @@ func TestCustomerRepository_FindByEmail(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("success - customer found", func(t *testing.T) {
-		expectedCustomer := model.CustomerModel{
+		expectedCustomer := customer.Model{
 			Email:    "test@example.com",
 			Name:     "Test User",
 			Document: "12345678900",
 			Type:     "CPF",
 			Contact:  "11999999999",
-			Address: model.AddressModel{
+			Address: address.Model{
 				City:          "New York",
 				Country:       "US",
 				Address:       "Teste",
@@ -160,7 +161,7 @@ func TestBaseRepository_Create(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("success", func(t *testing.T) {
-		customer := &model.CustomerModel{
+		customer := &customer.Model{
 			Email:    "new@example.com",
 			Name:     "New User",
 			Document: "12345678900",
@@ -198,7 +199,7 @@ func TestBaseRepository_Create(t *testing.T) {
 	})
 
 	t.Run("error - database error", func(t *testing.T) {
-		customer := &model.CustomerModel{
+		customer := &customer.Model{
 			Email:    "error@example.com",
 			Name:     "Error User",
 			Document: "12345678900",

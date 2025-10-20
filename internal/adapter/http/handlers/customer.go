@@ -43,7 +43,7 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 		Document: json.Document,
 		Type:     json.Type,
 		Contact:  json.Contact,
-		Address: &domain.Address{
+		Address: domain.Address{
 			Address:       json.Address,
 			AddressNumber: json.AddressNumber,
 			City:          json.City,

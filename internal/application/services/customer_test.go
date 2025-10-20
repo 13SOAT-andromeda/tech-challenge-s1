@@ -6,14 +6,13 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestCustomerService_Create_Success(t *testing.T) {
-	// Arrange (Preparar)
 	mockRepo := new(MockCustomerRepository)
 	service := NewCustomerService(mockRepo)
 
@@ -24,7 +23,7 @@ func TestCustomerService_Create_Success(t *testing.T) {
 		Document: "12345678900",
 		Type:     "individual",
 		Contact:  "11999999999",
-		Address: &domain.Address{
+		Address: domain.Address{
 			Address:       "Rua Teste",
 			AddressNumber: "123",
 			City:          "São Paulo",
@@ -34,15 +33,12 @@ func TestCustomerService_Create_Success(t *testing.T) {
 		},
 	}
 
-	mockModel := model.FromDomainCustomer(&inputCustomer)
-
-	// Configurar o mock para esperar a chamada Create e retornar sucesso
-	mockRepo.On("Create", mock.Anything, mock.AnythingOfType(reflect.TypeOf(&model.CustomerModel{}).String())).
+	mockModel := customer.FromDomain(inputCustomer)
+	mockRepo.On("Create", mock.Anything, mock.AnythingOfType(reflect.TypeOf(&customer.Model{}).String())).
 		Return(mockModel, nil)
-	// Act (Agir)
+
 	result, err := service.Create(ctx, inputCustomer)
 
-	// Assert (Verificar)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, "Gedan Magalhaes", result.Name)
@@ -51,7 +47,6 @@ func TestCustomerService_Create_Success(t *testing.T) {
 }
 
 func TestCustomerService_Create_RepositoryError(t *testing.T) {
-	// Arrange
 	mockRepo := new(MockCustomerRepository)
 	service := NewCustomerService(mockRepo)
 
@@ -66,10 +61,8 @@ func TestCustomerService_Create_RepositoryError(t *testing.T) {
 
 	mockRepo.On("Create", ctx, mock.AnythingOfType("*model.CustomerModel")).Return(nil, expectedError)
 
-	// Act
 	result, err := service.Create(ctx, inputCustomer)
 
-	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
 	assert.Equal(t, expectedError, err)
@@ -77,39 +70,37 @@ func TestCustomerService_Create_RepositoryError(t *testing.T) {
 }
 
 func TestCustomerService_GetByID_Success(t *testing.T) {
-	// Arrange
 	mockRepo := new(MockCustomerRepository)
 	service := NewCustomerService(mockRepo)
 
 	ctx := context.Background()
 	customerID := uint(1)
-	expectedCustomer := &domain.Customer{
+
+	expectedCustomer := domain.Customer{
 		Name:  "Gedan Magalhães",
 		Email: "gedan@example.com",
 	}
 
-	customerRepositoryResponse := model.FromDomainCustomer(expectedCustomer)
+	customerRepositoryResponse := customer.FromDomain(expectedCustomer)
 
 	mockRepo.On("FindByID", ctx, customerID).Return(customerRepositoryResponse, nil)
 
-	// Act
 	result, err := service.GetByID(ctx, customerID)
 
-	// Assert
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, expectedCustomer.Name, result.Name)
+
 	mockRepo.AssertExpectations(t)
 }
 
 func TestCustomerService_GetAll_Success(t *testing.T) {
-	// Arrange
 	mockRepo := new(MockCustomerRepository)
 	service := NewCustomerService(mockRepo)
 
 	ctx := context.Background()
 
-	expectedCustomers := []model.CustomerModel{
+	expectedCustomers := []customer.Model{
 		{
 			Name:  "Gedan Magalhaes",
 			Email: "gedan@example.com",
@@ -122,10 +113,8 @@ func TestCustomerService_GetAll_Success(t *testing.T) {
 
 	mockRepo.On("FindAll", ctx).Return(expectedCustomers, nil)
 
-	// Act
 	result, err := service.GetAll(ctx)
 
-	// Assert
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Len(t, result, 2)
@@ -133,11 +122,11 @@ func TestCustomerService_GetAll_Success(t *testing.T) {
 	assert.Equal(t, "gedan@example.com", result[0].Email)
 	assert.Equal(t, "Elen Magalhaes", result[1].Name)
 	assert.Equal(t, "elen@example.com", result[1].Email)
+
 	mockRepo.AssertExpectations(t)
 }
 
 func TestCustomerService_GetByID_NotFound(t *testing.T) {
-	// Arrange
 	mockRepo := new(MockCustomerRepository)
 	service := NewCustomerService(mockRepo)
 
@@ -146,10 +135,8 @@ func TestCustomerService_GetByID_NotFound(t *testing.T) {
 
 	mockRepo.On("FindByID", ctx, customerID).Return(nil, errors.New("customer not found"))
 
-	// Act
 	result, err := service.GetByID(ctx, customerID)
 
-	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
 	mockRepo.AssertExpectations(t)

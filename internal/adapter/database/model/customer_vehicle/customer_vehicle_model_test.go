@@ -1,4 +1,4 @@
-package model
+package customer_vehicle
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ import (
 )
 
 func TestCustomerVehicleModelInitialization(t *testing.T) {
-	cv := CustomerVehicleModel{
+	cv := Model{
 		CustomerId: 1,
 		VehicleId:  1,
 	}
@@ -23,7 +23,7 @@ func TestCustomerVehicleModel_ToFromDomain(t *testing.T) {
 	now := time.Now()
 	deletedAt := now.Add(time.Hour * 1)
 
-	modelCustomerVehicle := &CustomerVehicleModel{
+	modelCustomerVehicle := Model{
 		Model: gorm.Model{
 			ID:        1,
 			CreatedAt: now,
@@ -34,7 +34,7 @@ func TestCustomerVehicleModel_ToFromDomain(t *testing.T) {
 		VehicleId:  1,
 	}
 
-	domainCustomerVehicle := modelCustomerVehicle.ToDomain()
+	domainCustomerVehicle := ToDomain(modelCustomerVehicle)
 
 	assert.Equal(t, modelCustomerVehicle.ID, domainCustomerVehicle.ID)
 	assert.Equal(t, modelCustomerVehicle.CustomerId, domainCustomerVehicle.CustomerId)
@@ -43,7 +43,7 @@ func TestCustomerVehicleModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelCustomerVehicle.UpdatedAt, domainCustomerVehicle.UpdatedAt)
 	assert.Equal(t, modelCustomerVehicle.DeletedAt.Time, *domainCustomerVehicle.DeletedAt)
 
-	newModel := FromDomainCustomerVehicle(domainCustomerVehicle)
+	newModel := FromDomain(domainCustomerVehicle)
 
 	assert.Equal(t, modelCustomerVehicle, newModel)
 }

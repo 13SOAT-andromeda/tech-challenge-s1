@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
@@ -17,18 +17,16 @@ func NewCustomerService(repo ports.CustomerRepository) *CustomerService {
 }
 
 func (s *CustomerService) Create(ctx context.Context, c domain.Customer) (*domain.Customer, error) {
+	model := customer.FromDomain(c)
 
-	customerModel := model.FromDomainCustomer(&c)
-
-	createdModel, err := s.repo.Create(ctx, customerModel)
-
+	response, err := s.repo.Create(ctx, &model)
 	if err != nil {
 		return nil, err
 	}
 
-	createdCustomer := createdModel.ToDomain()
+	result := customer.ToDomain(*response)
 
-	return createdCustomer, nil
+	return &result, nil
 }
 
 func (s *CustomerService) GetAll(ctx context.Context) ([]domain.Customer, error) {
@@ -42,20 +40,19 @@ func (s *CustomerService) GetAll(ctx context.Context) ([]domain.Customer, error)
 	domainCustomers := make([]domain.Customer, 0, len(customerModels))
 
 	for _, customerModel := range customerModels {
-		domainCustomers = append(domainCustomers, *(&customerModel).ToDomain())
+		domainCustomers = append(domainCustomers, customer.ToDomain(customerModel))
 	}
 
 	return domainCustomers, nil
 }
 
 func (s *CustomerService) GetByID(ctx context.Context, id uint) (*domain.Customer, error) {
-
-	customerModel, err := s.repo.FindByID(ctx, id)
+	response, err := s.repo.FindByID(ctx, id)
 
 	if err != nil {
 		return nil, err
 	}
-	customerDomain := customerModel.ToDomain()
+	result := customer.ToDomain(*response)
 
-	return customerDomain, nil
+	return &result, nil
 }
