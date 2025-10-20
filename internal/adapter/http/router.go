@@ -50,7 +50,16 @@ func NewRouter(
 		}
 	}
 
-	router.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
+
+	// serve static swagger files from ./swagger so /swagger/swagger.yaml is available
+	router.Static("/swagger", "./swagger")
+
+	// Serve the swagger UI under /docs and point it to the static spec at /swagger/swagger.yaml
+	// Use a different prefix than /swagger to avoid wildcard conflicts with the static route.
+	router.GET("/docs/*any", swagger.WrapHandler(swaggerFiles.Handler, swagger.URL("/swagger/swagger.yaml")))
 
 	return &Router{router}
 }

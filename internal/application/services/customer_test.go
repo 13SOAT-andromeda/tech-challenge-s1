@@ -34,11 +34,11 @@ func TestCustomerService_Create_Success(t *testing.T) {
 		},
 	}
 
-	mockModel := model.FromDomain(inputCustomer)
+	mockModel := model.FromDomainCustomer(&inputCustomer)
 
 	// Configurar o mock para esperar a chamada Create e retornar sucesso
 	mockRepo.On("Create", mock.Anything, mock.AnythingOfType(reflect.TypeOf(&model.CustomerModel{}).String())).
-		Return(&mockModel, nil)
+		Return(mockModel, nil)
 	// Act (Agir)
 	result, err := service.Create(ctx, inputCustomer)
 
@@ -88,9 +88,9 @@ func TestCustomerService_GetByID_Success(t *testing.T) {
 		Email: "gedan@example.com",
 	}
 
-	customerRepositoryResponse := model.FromDomain(*expectedCustomer)
+	customerRepositoryResponse := model.FromDomainCustomer(expectedCustomer)
 
-	mockRepo.On("FindByID", ctx, customerID).Return(&customerRepositoryResponse, nil)
+	mockRepo.On("FindByID", ctx, customerID).Return(customerRepositoryResponse, nil)
 
 	// Act
 	result, err := service.GetByID(ctx, customerID)
