@@ -3,7 +3,6 @@ package domain
 import (
 	"testing"
 
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/core/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,11 +19,11 @@ func (b *mockHasher) Compare(hashedPassword, password []byte) error {
 type mockHasherFailed struct{}
 
 func (b *mockHasherFailed) Generate(password []byte, cost int) ([]byte, error) {
-	return []byte(""), errors.ErrPasswordHash
+	return []byte(""), ErrPasswordHash
 }
 
 func (b *mockHasherFailed) Compare(hashedPassword, password []byte) error {
-	return errors.ErrPasswordInvalid
+	return ErrPasswordInvalid
 }
 
 func TestWeakPassword(t *testing.T) {
@@ -32,7 +31,7 @@ func TestWeakPassword(t *testing.T) {
 
 	p, err := NewPassword(weakPass, &mockHasher{})
 
-	assert.ErrorIs(t, errors.ErrPasswordInvalidFormat, err)
+	assert.ErrorIs(t, ErrPasswordInvalidFormat, err)
 	assert.Nil(t, p)
 }
 
@@ -41,7 +40,7 @@ func TestShortPassword(t *testing.T) {
 
 	p, err := NewPassword(emptyPass, &mockHasher{})
 
-	assert.ErrorIs(t, errors.ErrPasswordTooShort, err)
+	assert.ErrorIs(t, ErrPasswordTooShort, err)
 	assert.Nil(t, p)
 }
 
@@ -50,7 +49,7 @@ func TestInvalidPassword(t *testing.T) {
 
 	p, err := NewPassword(invalidPass, &mockHasher{})
 
-	assert.ErrorIs(t, errors.ErrPasswordInvalidFormat, err)
+	assert.ErrorIs(t, ErrPasswordInvalidFormat, err)
 	assert.Nil(t, p)
 }
 
@@ -98,7 +97,7 @@ func TestCompareInvalidPassword(t *testing.T) {
 
 	err := p.Compare("invalidpass")
 
-	assert.ErrorIs(t, errors.ErrPasswordInvalid, err)
+	assert.ErrorIs(t, ErrPasswordInvalid, err)
 }
 
 func TestInvalidHashPassword(t *testing.T) {
@@ -106,5 +105,5 @@ func TestInvalidHashPassword(t *testing.T) {
 
 	p := NewPasswordFromHash(hashed, &mockHasherFailed{})
 
-	assert.ErrorIs(t, errors.ErrPasswordHash, p.Hash())
+	assert.ErrorIs(t, ErrPasswordHash, p.Hash())
 }

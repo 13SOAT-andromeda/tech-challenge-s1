@@ -3,7 +3,6 @@ package domain
 import (
 	"unicode"
 
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/core/errors"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
 )
 
@@ -38,7 +37,7 @@ func (p *Password) Hash() error {
 	hash, err := p.hasher.Generate(pass, 15)
 
 	if err != nil {
-		return errors.ErrPasswordHash
+		return ErrPasswordHash
 	}
 
 	p.hashed = string(hash)
@@ -49,14 +48,14 @@ func (p *Password) Hash() error {
 func (p *Password) Compare(password string) error {
 	err := p.hasher.Compare([]byte(p.hashed), []byte(password))
 	if err != nil {
-		return errors.ErrPasswordInvalid
+		return ErrPasswordInvalid
 	}
 	return nil
 }
 
 func validatePassword(password string) error {
 	if len(password) < 8 {
-		return errors.ErrPasswordTooShort
+		return ErrPasswordTooShort
 	}
 
 	var (
@@ -80,7 +79,7 @@ func validatePassword(password string) error {
 	}
 
 	if !hasUpper || !hasLower || !hasNumber || !hasSpecial {
-		return errors.ErrPasswordInvalidFormat
+		return ErrPasswordInvalidFormat
 	}
 
 	return nil

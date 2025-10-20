@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
-	appErrors "github.com/13SOAT-andromeda/tech-challenge-s1/internal/core/errors"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/converters"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
@@ -97,7 +96,7 @@ func (h *UserHandler) GetByID(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": appErrors.ErrUserIdInvalid.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -108,7 +107,7 @@ func (h *UserHandler) GetByID(ctx *gin.Context) {
 	}
 
 	if user == nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": appErrors.ErrUserNotFound.Error()})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 	ctx.JSON(http.StatusOK, user)
@@ -131,7 +130,7 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": appErrors.ErrUserIdInvalid.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -166,7 +165,7 @@ func (h *UserHandler) Delete(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": appErrors.ErrUserIdInvalid.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
