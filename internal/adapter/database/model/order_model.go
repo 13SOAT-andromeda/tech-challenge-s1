@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"time"
+
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
 
 type OrderModel struct {
@@ -45,7 +46,7 @@ func (m *OrderModel) ToDomain() *domain.Order {
 		UserId:            m.UserId,
 		CustomerVehicleId: m.CustomerVehicleId,
 		CompanyId:         m.CompanyId,
-		User:              *(&m.User).ToDomain(),
+		User:              m.User.ToDomain(),
 		CustomerVehicle:   *(&m.CustomerVehicle).ToDomain(),
 		Company:           *(&m.Company).ToDomain(),
 	}
@@ -68,7 +69,7 @@ func FromDomainOrder(d *domain.Order) *OrderModel {
 		UserId:            d.UserId,
 		CustomerVehicleId: d.CustomerVehicleId,
 		CompanyId:         d.CompanyId,
-		User:              *FromDomainUser(&d.User),
+		User:              NewUserModelFromDomain(d.User),
 		CustomerVehicle:   *FromDomainCustomerVehicle(&d.CustomerVehicle),
 		Company:           *FromDomainCompany(&d.Company),
 	}
