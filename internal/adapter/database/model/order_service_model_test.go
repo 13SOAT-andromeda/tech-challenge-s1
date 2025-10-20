@@ -25,7 +25,7 @@ func TestOrderServiceModel_ToFromDomain(t *testing.T) {
 		OrderId:   1,
 		Price:     50.0,
 		Service:   ServiceModel{},
-		Order:     OrderModel{User: UserModel{Sessions: []SessionModel{}}},
+		Order:     OrderModel{User: UserModel{}},
 	}
 
 	domainOrderService := modelOrderService.ToDomain()

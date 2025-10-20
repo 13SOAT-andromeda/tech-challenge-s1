@@ -22,7 +22,7 @@ func TestOrderProductModel_ToFromDomain(t *testing.T) {
 		ProductId: 1,
 		OrderId:   1,
 		Product:   ProductModel{},
-		Order:     OrderModel{User: UserModel{Sessions: []SessionModel{}}},
+		Order:     OrderModel{User: UserModel{}},
 	}
 
 	domainOrderProduct := modelOrderProduct.ToDomain()

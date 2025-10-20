@@ -59,7 +59,7 @@ func TestOrderModel_ToFromDomain(t *testing.T) {
 		UserId:            1,
 		CustomerVehicleId: 1,
 		CompanyId:         1,
-		User:              UserModel{Sessions: []SessionModel{}},
+		User:              UserModel{},
 		CustomerVehicle:   CustomerVehicleModel{},
 		Company:           CompanyModel{},
 	}

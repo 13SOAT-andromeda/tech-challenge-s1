@@ -2,49 +2,61 @@ package model
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 )
 
 func TestUserModelInitialization(t *testing.T) {
 	u := UserModel{
-		Name:     "User A",
-		Email:    "user.a@example.com",
-		Contact:  "11987654321",
-		Address:  "Rua dos Testes, 123",
+		Name:    "User A",
+		Email:   "user.a@example.com",
+		Contact: "11987654321",
+		Address: AddressModel{
+			Address:       "Rua dos Testes, 123",
+			AddressNumber: "123",
+			Neighborhood:  "Centro",
+			City:          "São Paulo",
+			Country:       "Brasil",
+			ZipCode:       "01234-567",
+		},
 		Password: "password",
 		Role:     "user",
+		Active:   true,
 	}
 
 	assert.NotNil(t, u)
 	assert.Equal(t, "User A", u.Name)
 	assert.Equal(t, "user.a@example.com", u.Email)
 	assert.Equal(t, "11987654321", u.Contact)
-	assert.Equal(t, "Rua dos Testes, 123", u.Address)
+	assert.Equal(t, "Rua dos Testes, 123", u.Address.Address)
+	assert.Equal(t, "123", u.Address.AddressNumber)
+	assert.Equal(t, "Centro", u.Address.Neighborhood)
+	assert.Equal(t, "São Paulo", u.Address.City)
+	assert.Equal(t, "Brasil", u.Address.Country)
+	assert.Equal(t, "01234-567", u.Address.ZipCode)
 	assert.Equal(t, "password", u.Password)
 	assert.Equal(t, "user", u.Role)
+	assert.Equal(t, true, u.Active)
 }
 
 func TestUserModel_ToFromDomain(t *testing.T) {
-	now := time.Now()
-	deletedAt := now.Add(time.Hour * 1)
 
-	modelUser := &UserModel{
-		Model: gorm.Model{
-			ID:        1,
-			CreatedAt: now,
-			UpdatedAt: now,
-			DeletedAt: gorm.DeletedAt{Time: deletedAt, Valid: true},
+	modelUser := UserModel{
+		ID:      1,
+		Name:    "User A",
+		Email:   "user.a@example.com",
+		Contact: "11987654321",
+		Address: AddressModel{
+			Address:       "Rua dos Testes, 123",
+			AddressNumber: "123",
+			Neighborhood:  "Centro",
+			City:          "São Paulo",
+			Country:       "Brasil",
+			ZipCode:       "01234-567",
 		},
-		Name:     "User A",
-		Email:    "user.a@example.com",
-		Contact:  "11987654321",
-		Address:  "Rua dos Testes, 123",
 		Password: "password",
 		Role:     "user",
-		Sessions: []SessionModel{},
+		Active:   true,
 	}
 
 	domainUser := modelUser.ToDomain()
@@ -53,14 +65,17 @@ func TestUserModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelUser.Name, domainUser.Name)
 	assert.Equal(t, modelUser.Email, domainUser.Email)
 	assert.Equal(t, modelUser.Contact, domainUser.Contact)
-	assert.Equal(t, modelUser.Address, domainUser.Address)
-	assert.Equal(t, modelUser.Password, domainUser.Password)
+	assert.Equal(t, modelUser.Address.Address, domainUser.Address.Address)
+	assert.Equal(t, modelUser.Address.AddressNumber, domainUser.Address.AddressNumber)
+	assert.Equal(t, modelUser.Address.Neighborhood, domainUser.Address.Neighborhood)
+	assert.Equal(t, modelUser.Address.City, domainUser.Address.City)
+	assert.Equal(t, modelUser.Address.Country, domainUser.Address.Country)
+	assert.Equal(t, modelUser.Address.ZipCode, domainUser.Address.ZipCode)
+	assert.Equal(t, modelUser.Password, domainUser.Password.GetHashed())
 	assert.Equal(t, modelUser.Role, domainUser.Role)
-	assert.Equal(t, modelUser.CreatedAt, domainUser.CreatedAt)
-	assert.Equal(t, modelUser.UpdatedAt, domainUser.UpdatedAt)
+	assert.Equal(t, modelUser.Active, domainUser.Active)
 
-	newModel := FromDomainUser(domainUser)
-	newModel.DeletedAt = modelUser.DeletedAt
+	newModel := NewUserModelFromDomain(domainUser)
 
 	assert.Equal(t, modelUser, newModel)
 }
