@@ -3,26 +3,26 @@ package domain
 import (
 	"unicode"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/core/errors"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
 )
 
 type Password struct {
 	value  string
 	hashed string
+	hasher encryption.Hasher
 }
 
-func NewPassword(value string) (*Password, error) {
+func NewPassword(value string, hasher encryption.Hasher) (*Password, error) {
 	if err := validatePassword(value); err != nil {
 		return nil, err
 	}
 
-	return &Password{value: value}, nil
+	return &Password{value: value, hasher: hasher}, nil
 }
 
-func NewPasswordFromHash(hashed string) *Password {
-	return &Password{hashed: hashed}
+func NewPasswordFromHash(hashed string, hasher encryption.Hasher) *Password {
+	return &Password{hashed: hashed, hasher: hasher}
 }
 
 func (p *Password) GetValue() string {
@@ -35,7 +35,7 @@ func (p *Password) GetHashed() string {
 
 func (p *Password) Hash() error {
 	pass := []byte(p.value)
-	hash, err := bcrypt.GenerateFromPassword(pass, 15)
+	hash, err := p.hasher.Generate(pass, 15)
 
 	if err != nil {
 		return errors.ErrPasswordHash
@@ -47,7 +47,7 @@ func (p *Password) Hash() error {
 }
 
 func (p *Password) Compare(password string) error {
-	err := bcrypt.CompareHashAndPassword([]byte(p.hashed), []byte(password))
+	err := p.hasher.Compare([]byte(p.hashed), []byte(password))
 	if err != nil {
 		return errors.ErrPasswordInvalid
 	}
