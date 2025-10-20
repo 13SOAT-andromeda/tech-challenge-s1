@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/utils"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	appErrors "github.com/13SOAT-andromeda/tech-challenge-s1/internal/core/errors"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/converters"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
 	"github.com/gin-gonic/gin"
 )
 
@@ -51,16 +52,10 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 		return
 	}
 
-	p, err := domain.NewPassword(json.Password)
+	p, err := domain.NewPassword(json.Password, encryption.NewBcryptHasher())
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	p.Hash()
-	if err := p.Hash(); err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -121,7 +116,7 @@ func (h *UserHandler) GetByID(ctx *gin.Context) {
 
 func (h *UserHandler) Search(ctx *gin.Context) {
 	u := ctx.Request.URL.Query()
-	params := utils.ParamsToMap(u)
+	params := converters.ParamsToMap(u)
 
 	users, err := h.service.Search(ctx, params)
 	if err != nil {

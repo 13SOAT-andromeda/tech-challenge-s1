@@ -1,6 +1,9 @@
 package model
 
-import "github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+import (
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
+)
 
 type UserModel struct {
 	ID       uint         `gorm:"primaryKey"`
@@ -31,7 +34,7 @@ func NewUserModelFromDomain(domain domain.User) UserModel {
 }
 
 func (u *UserModel) ToDomain() domain.User {
-	pass := domain.NewPasswordFromHash(u.Password)
+	pass := domain.NewPasswordFromHash(u.Password, encryption.NewBcryptHasher())
 
 	return domain.User{
 		ID:       u.ID,
