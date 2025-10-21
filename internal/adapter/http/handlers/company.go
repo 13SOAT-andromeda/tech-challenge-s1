@@ -42,7 +42,7 @@ func (h *CompanyHandler) CreateCompany(ctx *gin.Context) {
 		Email:    json.Email,
 		Document: json.Document,
 		Contact:  json.Contact,
-		Address: domain.Address{
+		Address: &domain.Address{
 			Address:       json.Address,
 			AddressNumber: json.AddressNumber,
 			City:          json.City,
@@ -95,7 +95,7 @@ func (h *CompanyHandler) UpdateCompany(ctx *gin.Context) {
 		Email:    json.Email,
 		Document: json.Document,
 		Contact:  json.Contact,
-		Address: domain.Address{
+		Address: &domain.Address{
 			Address:       json.Address,
 			AddressNumber: json.AddressNumber,
 			City:          json.City,

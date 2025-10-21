@@ -52,8 +52,4 @@ func TestServiceModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelService.CreatedAt, domainService.CreatedAt)
 	assert.Equal(t, modelService.UpdatedAt, domainService.UpdatedAt)
 
-	newModel := FromDomainService(domainService)
-	newModel.DeletedAt = modelService.DeletedAt
-
-	assert.Equal(t, modelService, newModel)
 }

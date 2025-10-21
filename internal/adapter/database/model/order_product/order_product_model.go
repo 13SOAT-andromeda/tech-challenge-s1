@@ -17,20 +17,21 @@ func (Model) TableName() string {
 	return "Order_Product"
 }
 
-func ToDomain(m Model) domain.OrderProduct {
-	return domain.OrderProduct{
+func (m *Model) ToDomain() *domain.OrderProduct {
+	return &domain.OrderProduct{
 		ProductId: m.ProductId,
 		OrderId:   m.OrderId,
-		Product:   *(&m.Product).ToDomain(),
-		Order:     order.ToDomain(m.Order),
+		Product:   *m.Product.ToDomain(),
+		Order:     *m.Order.ToDomain(),
 	}
 }
 
-func FromDomain(d domain.OrderProduct) Model {
-	return Model{
-		ProductId: d.ProductId,
-		OrderId:   d.OrderId,
-		Product:   *model.FromDomainProduct(&d.Product),
-		Order:     order.FromDomain(d.Order),
+func (m *Model) FromDomain(d *domain.OrderProduct) {
+	if d == nil {
+		return
 	}
+	m.ProductId = d.ProductId
+	m.OrderId = d.OrderId
+	m.Product.FromDomain(&d.Product)
+	m.Order.FromDomain(&d.Order)
 }

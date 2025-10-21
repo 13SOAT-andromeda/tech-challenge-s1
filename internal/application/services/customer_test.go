@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"reflect"
 	"testing"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
@@ -23,7 +22,7 @@ func TestCustomerService_Create_Success(t *testing.T) {
 		Document: "12345678900",
 		Type:     "individual",
 		Contact:  "11999999999",
-		Address: domain.Address{
+		Address: &domain.Address{
 			Address:       "Rua Teste",
 			AddressNumber: "123",
 			City:          "São Paulo",
@@ -33,9 +32,10 @@ func TestCustomerService_Create_Success(t *testing.T) {
 		},
 	}
 
-	mockModel := customer.FromDomain(inputCustomer)
-	mockRepo.On("Create", mock.Anything, mock.AnythingOfType(reflect.TypeOf(&customer.Model{}).String())).
-		Return(mockModel, nil)
+	var mockModel customer.Model
+	mockModel.FromDomain(&inputCustomer)
+	mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*customer.Model")).
+		Return(&mockModel, nil)
 
 	result, err := service.Create(ctx, inputCustomer)
 
@@ -59,7 +59,7 @@ func TestCustomerService_Create_RepositoryError(t *testing.T) {
 
 	expectedError := errors.New("database connection error")
 
-	mockRepo.On("Create", ctx, mock.AnythingOfType("*model.CustomerModel")).Return(nil, expectedError)
+	mockRepo.On("Create", ctx, mock.AnythingOfType("*customer.Model")).Return(nil, expectedError)
 
 	result, err := service.Create(ctx, inputCustomer)
 
@@ -81,9 +81,10 @@ func TestCustomerService_GetByID_Success(t *testing.T) {
 		Email: "gedan@example.com",
 	}
 
-	customerRepositoryResponse := customer.FromDomain(expectedCustomer)
+	var customerRepositoryResponse customer.Model
+	customerRepositoryResponse.FromDomain(&expectedCustomer)
 
-	mockRepo.On("FindByID", ctx, customerID).Return(customerRepositoryResponse, nil)
+	mockRepo.On("FindByID", ctx, customerID).Return(&customerRepositoryResponse, nil)
 
 	result, err := service.GetByID(ctx, customerID)
 

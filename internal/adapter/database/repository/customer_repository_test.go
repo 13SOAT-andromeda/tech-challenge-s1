@@ -45,7 +45,7 @@ func TestCustomerRepository_FindByEmail(t *testing.T) {
 			Document: "12345678900",
 			Type:     "CPF",
 			Contact:  "11999999999",
-			Address: address.Model{
+			Address: &address.Model{
 				City:          "New York",
 				Country:       "US",
 				Address:       "Teste",
@@ -167,6 +167,14 @@ func TestBaseRepository_Create(t *testing.T) {
 			Document: "12345678900",
 			Type:     "CPF",
 			Contact:  "11999999999",
+			Address: &address.Model{
+				City:          "New York",
+				Country:       "US",
+				Address:       "Teste",
+				Neighborhood:  "New York",
+				ZipCode:       "12345",
+				AddressNumber: "12345",
+			},
 		}
 
 		expectedSQL := `INSERT INTO "Customer" ("created_at","updated_at","deleted_at","name","email","document","type","contact","address","address_number","neighborhood","city","country","zip_code") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING "id"`
@@ -205,6 +213,14 @@ func TestBaseRepository_Create(t *testing.T) {
 			Document: "12345678900",
 			Type:     "CPF",
 			Contact:  "11999999999",
+			Address: &address.Model{
+				City:          "New York",
+				Country:       "US",
+				Address:       "Teste",
+				Neighborhood:  "New York",
+				ZipCode:       "12345",
+				AddressNumber: "12345",
+			},
 		}
 		expectedSQL := `INSERT INTO "Customer" ("created_at","updated_at","deleted_at","name","email","document","type","contact","address","address_number","neighborhood","city","country","zip_code") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING "id"`
 

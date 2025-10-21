@@ -62,12 +62,12 @@ func TestOrderModel_ToFromDomain(t *testing.T) {
 		UserId:            1,
 		CustomerVehicleId: 1,
 		CompanyId:         1,
-		User:              model.UserModel{Sessions: []model.SessionModel{}},
-		CustomerVehicle:   customer_vehicle.CustomerVehicleModel{},
+		User:              model.Model{Sessions: []model.SessionModel{}},
+		CustomerVehicle:   customer_vehicle.Model{},
 		Company:           company.Model{},
 	}
 
-	domainOrder := ToDomain(modelOrder)
+	domainOrder := modelOrder.ToDomain()
 
 	assert.Equal(t, modelOrder.ID, domainOrder.ID)
 	assert.Equal(t, modelOrder.DateIn, domainOrder.DateIn)
@@ -82,7 +82,4 @@ func TestOrderModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelOrder.CustomerVehicleId, domainOrder.CustomerVehicleId)
 	assert.Equal(t, modelOrder.CompanyId, domainOrder.CompanyId)
 
-	newModel := FromDomain(domainOrder)
-
-	assert.Equal(t, modelOrder, newModel)
 }

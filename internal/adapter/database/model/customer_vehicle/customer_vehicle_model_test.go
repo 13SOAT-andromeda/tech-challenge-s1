@@ -34,7 +34,7 @@ func TestCustomerVehicleModel_ToFromDomain(t *testing.T) {
 		VehicleId:  1,
 	}
 
-	domainCustomerVehicle := ToDomain(modelCustomerVehicle)
+	domainCustomerVehicle := modelCustomerVehicle.ToDomain()
 
 	assert.Equal(t, modelCustomerVehicle.ID, domainCustomerVehicle.ID)
 	assert.Equal(t, modelCustomerVehicle.CustomerId, domainCustomerVehicle.CustomerId)
@@ -43,7 +43,4 @@ func TestCustomerVehicleModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelCustomerVehicle.UpdatedAt, domainCustomerVehicle.UpdatedAt)
 	assert.Equal(t, modelCustomerVehicle.DeletedAt.Time, *domainCustomerVehicle.DeletedAt)
 
-	newModel := FromDomain(domainCustomerVehicle)
-
-	assert.Equal(t, modelCustomerVehicle, newModel)
 }

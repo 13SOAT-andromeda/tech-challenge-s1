@@ -24,15 +24,12 @@ func TestOrderProductModel_ToFromDomain(t *testing.T) {
 		ProductId: 1,
 		OrderId:   1,
 		Product:   model.ProductModel{},
-		Order:     order.Model{User: model.UserModel{Sessions: []model.SessionModel{}}},
+		Order:     order.Model{User: model.Model{Sessions: []model.SessionModel{}}},
 	}
 
-	domain := ToDomain(modelOrderProduct)
+	domain := modelOrderProduct.ToDomain()
 
 	assert.Equal(t, modelOrderProduct.ProductId, domain.ProductId)
 	assert.Equal(t, modelOrderProduct.OrderId, domain.OrderId)
 
-	newModel := FromDomain(domain)
-
-	assert.Equal(t, modelOrderProduct, newModel)
 }

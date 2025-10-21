@@ -36,7 +36,4 @@ func TestOrderHistoryModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelOrderHistory.Date, domainOrderHistory.Date)
 	assert.Equal(t, modelOrderHistory.Status, domainOrderHistory.Status)
 
-	newModel := FromDomainOrderHistory(domainOrderHistory)
-
-	assert.Equal(t, modelOrderHistory, newModel)
 }

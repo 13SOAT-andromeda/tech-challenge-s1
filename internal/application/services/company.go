@@ -17,15 +17,16 @@ func NewCompanyService(repo ports.CompanyRepository) *CompanyService {
 }
 
 func (s *CompanyService) Create(ctx context.Context, c domain.Company) (*domain.Company, error) {
-	model := company.FromDomain(c)
+	var model company.Model
+	model.FromDomain(&c)
 
 	response, err := s.repo.Create(ctx, &model)
 	if err != nil {
 		return nil, err
 	}
 
-	result := company.ToDomain(*response)
-	return &result, nil
+	result := response.ToDomain()
+	return result, nil
 }
 
 func (s *CompanyService) GetByID(ctx context.Context, id uint) (*domain.Company, error) {
@@ -34,12 +35,13 @@ func (s *CompanyService) GetByID(ctx context.Context, id uint) (*domain.Company,
 		return nil, err
 	}
 
-	result := company.ToDomain(*response)
-	return &result, nil
+	result := response.ToDomain()
+	return result, nil
 }
 
 func (s *CompanyService) UpdateByID(ctx context.Context, id uint, c domain.Company) error {
-	model := company.FromDomain(c)
+	var model company.Model
+	model.FromDomain(&c)
 
 	err := s.repo.Update(ctx, &model)
 	if err != nil {
@@ -59,6 +61,6 @@ func (s *CompanyService) DeleteByID(ctx context.Context, id uint) (*domain.Compa
 		return nil, err
 	}
 
-	result := company.ToDomain(*response)
-	return &result, nil
+	result := response.ToDomain()
+	return result, nil
 }

@@ -19,22 +19,23 @@ func (Model) TableName() string {
 	return "Order_Service"
 }
 
-func ToDomain(m Model) domain.OrderService {
-	return domain.OrderService{
+func (m *Model) ToDomain() *domain.OrderService {
+	return &domain.OrderService{
 		ServiceId: m.ServiceId,
 		OrderId:   m.OrderId,
 		Price:     m.Price,
-		Service:   *(&m.Service).ToDomain(),
-		Order:     order.ToDomain(m.Order),
+		Service:   *m.Service.ToDomain(),
+		Order:     *m.Order.ToDomain(),
 	}
 }
 
-func FromDomain(d domain.OrderService) Model {
-	return Model{
-		ServiceId: d.ServiceId,
-		OrderId:   d.OrderId,
-		Price:     d.Price,
-		Service:   *model.FromDomainService(&d.Service),
-		Order:     order.FromDomain(d.Order),
+func (m *Model) FromDomain(d *domain.OrderService) {
+	if d == nil {
+		return
 	}
+	m.ServiceId = d.ServiceId
+	m.OrderId = d.OrderId
+	m.Price = d.Price
+	m.Service.FromDomain(&d.Service)
+	m.Order.FromDomain(&d.Order)
 }

@@ -46,9 +46,13 @@ func (m *Model) ToDomain() *domain.User {
 }
 
 func (m *Model) FromDomain(d *domain.User) {
+	if d == nil {
+		return
+	}
+
 	sessions := make([]SessionModel, len(d.Sessions))
 	for i, session := range d.Sessions {
-		sessions[i] = *FromDomainSession(&session)
+		sessions[i].FromDomain(&session)
 	}
 
 	m.ID = d.ID

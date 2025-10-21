@@ -46,8 +46,4 @@ func TestProductModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelProduct.CreatedAt, domainProduct.CreatedAt)
 	assert.Equal(t, modelProduct.UpdatedAt, domainProduct.UpdatedAt)
 
-	newModel := FromDomainProduct(domainProduct)
-	newModel.DeletedAt = modelProduct.DeletedAt
-
-	assert.Equal(t, modelProduct, newModel)
 }

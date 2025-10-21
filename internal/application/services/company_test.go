@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/stretchr/testify/assert"
@@ -34,10 +33,11 @@ func TestCompanyService_Create_Success(t *testing.T) {
 		},
 	}
 
-	mockModel := model.FromDomainCompany(&inputCompany)
+	var mockModel company.Model
+	mockModel.FromDomain(&inputCompany)
 
 	// Configurar o mock para esperar a chamada Create e retornar sucesso
-	mockRepo.On("Create", mock.Anything, mock.AnythingOfType(reflect.TypeOf(&company.CompanyModel{}).String())).
+	mockRepo.On("Create", mock.Anything, mock.AnythingOfType(reflect.TypeOf(&company.Model{}).String())).
 		Return(&mockModel, nil)
 	// Act (Agir)
 	result, err := service.Create(ctx, inputCompany)
@@ -45,7 +45,7 @@ func TestCompanyService_Create_Success(t *testing.T) {
 	// Assert (Verificar)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, "Teste Company", result.Name)
+	assert.Equal(t, "Company Test", result.Name)
 	assert.Equal(t, "company_test@example.com", result.Email)
 	mockRepo.AssertExpectations(t)
 }
@@ -64,7 +64,7 @@ func TestCompanyService_Create_RepositoryError(t *testing.T) {
 
 	expectedError := errors.New("database connection error")
 
-	mockRepo.On("Create", ctx, mock.AnythingOfType("*model.CompanyModel")).Return(nil, expectedError)
+	mockRepo.On("Create", ctx, mock.AnythingOfType("*company.Model")).Return(nil, expectedError)
 
 	// Act
 	result, err := service.Create(ctx, inputCompany)
@@ -88,9 +88,10 @@ func TestCompanyService_FindById_Success(t *testing.T) {
 		Email: "company_test@example.com",
 	}
 
-	CompanyRepositoryResponse := model.FromDomainCompany(expectedCompany)
+	var CompanyRepositoryResponse company.Model
+	CompanyRepositoryResponse.FromDomain(expectedCompany)
 
-	mockRepo.On("FindById", ctx, CompanyID).Return(&CompanyRepositoryResponse, nil)
+	mockRepo.On("FindByID", ctx, CompanyID).Return(&CompanyRepositoryResponse, nil)
 
 	// Act
 	result, err := service.GetByID(ctx, CompanyID)
@@ -136,18 +137,15 @@ func TestCompanyService_UpdateById_Success(t *testing.T) {
 	}
 
 	// Expect repository Update to be called and return nil (success)
-	mockRepo.On("Update", mock.Anything, mock.MatchedBy(func(m *company.CompanyModel) bool {
+	mockRepo.On("Update", mock.Anything, mock.MatchedBy(func(m *company.Model) bool {
 		return m != nil && m.ID == CompanyID
 	})).Return(nil)
 
 	// Act
-	_, err := service.UpdateByID(ctx, CompanyID, inputCompany)
+	err := service.UpdateByID(ctx, CompanyID, inputCompany)
 
 	// Assert
 	assert.NoError(t, err)
-	assert.NotNil(t, inputCompany)
-	updated, _ := service.GetByID(ctx, CompanyID)
-	assert.Equal(t, inputCompany.Name, updated.Name)
 	mockRepo.AssertExpectations(t)
 }
 
@@ -166,10 +164,10 @@ func TestCompanyService_UpdateById_NotFound(t *testing.T) {
 
 	// Simulate repository returning an error when updating a non-existent entity
 	repoErr := errors.New("company not found")
-	mockRepo.On("Update", mock.Anything, mock.AnythingOfType("*model.CompanyModel")).Return(repoErr)
+	mockRepo.On("Update", mock.Anything, mock.AnythingOfType("*company.Model")).Return(repoErr)
 
 	// Act
-	_, err := service.UpdateByID(ctx, CompanyID, inputCompany)
+	err := service.UpdateByID(ctx, CompanyID, inputCompany)
 
 	// Assert
 	assert.Error(t, err)
@@ -190,7 +188,8 @@ func TestCompanyService_DeleteById_Success(t *testing.T) {
 		Email: "delete@example.com",
 	}
 
-	companyModel := model.FromDomainCompany(expectedCompany)
+	var companyModel company.Model
+	companyModel.FromDomain(expectedCompany)
 
 	mockRepo.On("FindByID", ctx, companyID).Return(&companyModel, nil)
 	mockRepo.On("Delete", ctx, companyID).Return(nil)

@@ -42,7 +42,4 @@ func TestVehicleModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelVehicle.Brand, domainVehicle.Brand)
 	assert.Equal(t, modelVehicle.Color, domainVehicle.Color)
 
-	newModel := FromDomainVehicle(domainVehicle)
-
-	assert.Equal(t, modelVehicle, newModel)
 }

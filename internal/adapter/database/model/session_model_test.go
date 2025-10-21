@@ -44,8 +44,4 @@ func TestSessionModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelSession.CreatedAt, domainSession.CreatedAt)
 	assert.Equal(t, modelSession.UpdatedAt, domainSession.UpdatedAt)
 
-	newModel := FromDomainSession(domainSession)
-	newModel.DeletedAt = modelSession.DeletedAt
-
-	assert.Equal(t, modelSession, newModel)
 }

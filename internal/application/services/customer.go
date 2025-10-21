@@ -17,16 +17,17 @@ func NewCustomerService(repo ports.CustomerRepository) *CustomerService {
 }
 
 func (s *CustomerService) Create(ctx context.Context, c domain.Customer) (*domain.Customer, error) {
-	model := customer.FromDomain(c)
+	var model customer.Model
+	model.FromDomain(&c)
 
 	response, err := s.repo.Create(ctx, &model)
 	if err != nil {
 		return nil, err
 	}
 
-	result := customer.ToDomain(*response)
+	result := response.ToDomain()
 
-	return &result, nil
+	return result, nil
 }
 
 func (s *CustomerService) GetAll(ctx context.Context) ([]domain.Customer, error) {
@@ -40,7 +41,7 @@ func (s *CustomerService) GetAll(ctx context.Context) ([]domain.Customer, error)
 	domainCustomers := make([]domain.Customer, 0, len(customerModels))
 
 	for _, customerModel := range customerModels {
-		domainCustomers = append(domainCustomers, customer.ToDomain(customerModel))
+		domainCustomers = append(domainCustomers, *customerModel.ToDomain())
 	}
 
 	return domainCustomers, nil
@@ -52,7 +53,7 @@ func (s *CustomerService) GetByID(ctx context.Context, id uint) (*domain.Custome
 	if err != nil {
 		return nil, err
 	}
-	result := customer.ToDomain(*response)
+	result := response.ToDomain()
 
-	return &result, nil
+	return result, nil
 }
