@@ -8,6 +8,18 @@ import (
 	"gorm.io/gorm"
 )
 
+func TestProductTableName(t *testing.T) {
+	assert.Equal(t, "Product", ProductModel{}.TableName())
+}
+
+func TestNilProductToDomain(t *testing.T) {
+	assert.Nil(t, (*ProductModel)(nil).ToDomain())
+}
+
+func TestNilProductFromDomain(t *testing.T) {
+	assert.Nil(t, FromDomainProduct(nil))
+}
+
 func TestProductModelInitialization(t *testing.T) {
 	p := ProductModel{
 		Name:     "Product A",

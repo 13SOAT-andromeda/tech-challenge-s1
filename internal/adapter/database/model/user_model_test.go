@@ -6,6 +6,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestUserTableName(t *testing.T) {
+	user := &UserModel{}
+	assert.Equal(t, "Users", user.TableName())
+}
+
 func TestUserModelInitialization(t *testing.T) {
 	u := UserModel{
 		Name:    "User A",

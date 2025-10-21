@@ -8,6 +8,18 @@ import (
 	"gorm.io/gorm"
 )
 
+func TestServiceTableName(t *testing.T) {
+	assert.Equal(t, "Service", ServiceModel{}.TableName())
+}
+
+func TestNilServiceToDomain(t *testing.T) {
+	assert.Nil(t, (*ServiceModel)(nil).ToDomain())
+}
+
+func TestNilServiceFromDomain(t *testing.T) {
+	assert.Nil(t, FromDomainService(nil))
+}
+
 func TestServiceModelInitialization(t *testing.T) {
 	defaultPrice := 100.0
 	s := ServiceModel{

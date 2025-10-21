@@ -8,6 +8,18 @@ import (
 	"gorm.io/gorm"
 )
 
+func TestServiceCategoryTableName(t *testing.T) {
+	assert.Equal(t, "Service_Category", ServiceCategoryModel{}.TableName())
+}
+
+func TestNilServiceCategoryToDomain(t *testing.T) {
+	assert.Nil(t, (*ServiceCategoryModel)(nil).ToDomain())
+}
+
+func TestNilServiceCategoryFromDomain(t *testing.T) {
+	assert.Nil(t, FromDomainServiceCategory(nil))
+}
+
 func TestServiceCategoryModelInitialization(t *testing.T) {
 	sc := ServiceCategoryModel{
 		Name: "Category A",

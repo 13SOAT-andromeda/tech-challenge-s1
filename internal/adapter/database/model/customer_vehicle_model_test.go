@@ -8,6 +8,18 @@ import (
 	"gorm.io/gorm"
 )
 
+func TestCustomerVehicleTableName(t *testing.T) {
+	assert.Equal(t, "Customer_Vehicle", CustomerVehicleModel{}.TableName())
+}
+
+func TestNilCustomerVehicleToDomain(t *testing.T) {
+	assert.Nil(t, (*CustomerVehicleModel)(nil).ToDomain())
+}
+
+func TestNilCustomerVehicleFromDomain(t *testing.T) {
+	assert.Nil(t, FromDomainCustomerVehicle(nil))
+}
+
 func TestCustomerVehicleModelInitialization(t *testing.T) {
 	cv := CustomerVehicleModel{
 		CustomerId: 1,

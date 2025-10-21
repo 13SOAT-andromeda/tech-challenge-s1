@@ -7,6 +7,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestOrderHistoryTableName(t *testing.T) {
+	assert.Equal(t, "Order_History", OrderHistoryModel{}.TableName())
+}
+
+func TestNilOrderHistoryToDomain(t *testing.T) {
+	assert.Nil(t, (*OrderHistoryModel)(nil).ToDomain())
+}
+
+func TestNilOrderHistoryFromDomain(t *testing.T) {
+	assert.Nil(t, FromDomainOrderHistory(nil))
+}
+
 func TestOrderHistoryModelInitialization(t *testing.T) {
 	now := time.Now()
 	oh := OrderHistoryModel{

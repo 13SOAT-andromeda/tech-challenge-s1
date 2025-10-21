@@ -8,6 +8,18 @@ import (
 	"gorm.io/gorm"
 )
 
+func TestSessionTableName(t *testing.T) {
+	assert.Equal(t, "Session", SessionModel{}.TableName())
+}
+
+func TestNilSessionToDomain(t *testing.T) {
+	assert.Nil(t, (*SessionModel)(nil).ToDomain())
+}
+
+func TestNilSessionFromDomain(t *testing.T) {
+	assert.Nil(t, FromDomainSession(nil))
+}
+
 func TestSessionModelInitialization(t *testing.T) {
 	refreshToken := "some-refresh-token"
 	s := SessionModel{

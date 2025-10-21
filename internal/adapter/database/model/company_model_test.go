@@ -6,6 +6,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestCompanyTableName(t *testing.T) {
+	assert.Equal(t, "Company", CompanyModel{}.TableName())
+}
+
+func TestNilCompanyToDomain(t *testing.T) {
+	assert.Nil(t, (*CompanyModel)(nil).ToDomain())
+}
+
+func TestNilCompanyFromDomain(t *testing.T) {
+	assert.Nil(t, FromDomainCompany(nil))
+}
+
 func TestCompanyModelInitialization(t *testing.T) {
 	c := CompanyModel{
 		Name:     "Company Name",

@@ -6,6 +6,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestOrderServiceTableName(t *testing.T) {
+	assert.Equal(t, "Order_Service", OrderServiceModel{}.TableName())
+}
+
+func TestNilOrderServiceToDomain(t *testing.T) {
+	assert.Nil(t, (*OrderServiceModel)(nil).ToDomain())
+}
+
+func TestNilOrderServiceFromDomain(t *testing.T) {
+	assert.Nil(t, FromDomainOrderService(nil))
+}
+
 func TestOrderServiceModelInitialization(t *testing.T) {
 	os := OrderServiceModel{
 		ServiceId: 1,

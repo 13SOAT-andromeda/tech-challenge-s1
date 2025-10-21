@@ -6,6 +6,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestVehicleTableName(t *testing.T) {
+	assert.Equal(t, "Vehicle", VehicleModel{}.TableName())
+}
+
+func TestNilVehicleToDomain(t *testing.T) {
+	assert.Nil(t, (*VehicleModel)(nil).ToDomain())
+}
+
+func TestNilVehicleFromDomain(t *testing.T) {
+	assert.Nil(t, FromDomainVehicle(nil))
+}
+
 func TestVehicleModelInitialization(t *testing.T) {
 	v := VehicleModel{
 		Plate: "ABC-1234",

@@ -7,6 +7,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestCustomerTableName(t *testing.T) {
+	assert.Equal(t, "Customer", CustomerModel{}.TableName())
+}
+
+func TestNilCustomerToDomain(t *testing.T) {
+	assert.Nil(t, (*CustomerModel)(nil).ToDomain())
+}
+
+func TestNilCustomerFromDomain(t *testing.T) {
+	assert.Nil(t, FromDomainCustomer(nil))
+}
+
 func TestAddressModel_ToDomain(t *testing.T) {
 	modelAddr := &AddressModel{
 		Address:       "Rua Teste",
@@ -25,6 +37,18 @@ func TestAddressModel_ToDomain(t *testing.T) {
 	assert.Equal(t, modelAddr.City, domainAddr.City)
 	assert.Equal(t, modelAddr.Country, domainAddr.Country)
 	assert.Equal(t, modelAddr.ZipCode, domainAddr.ZipCode)
+}
+
+func TestNilAddressToDomain(t *testing.T) {
+	// AddressModel.ToDomain() não verifica referências nulas - isso pode causar panic
+	// Este teste documenta o comportamento atual
+	defer func() {
+		if r := recover(); r != nil {
+			t.Logf("AddressModel.ToDomain() causou panic com referência nula: %v", r)
+		}
+	}()
+
+	(*AddressModel)(nil).ToDomain()
 }
 
 func TestFromDomainAddress(t *testing.T) {

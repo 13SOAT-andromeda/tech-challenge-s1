@@ -6,6 +6,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestOrderProductTableName(t *testing.T) {
+	assert.Equal(t, "Order_Product", OrderProductModel{}.TableName())
+}
+
+func TestNilOrderProductToDomain(t *testing.T) {
+	assert.Nil(t, (*OrderProductModel)(nil).ToDomain())
+}
+
+func TestNilOrderProductFromDomain(t *testing.T) {
+	assert.Nil(t, FromDomainOrderProduct(nil))
+}
+
 func TestOrderProductModelInitialization(t *testing.T) {
 	op := OrderProductModel{
 		ProductId: 1,

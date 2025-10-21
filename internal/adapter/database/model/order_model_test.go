@@ -7,6 +7,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestOrderTableName(t *testing.T) {
+	assert.Equal(t, "Order", OrderModel{}.TableName())
+}
+
+func TestNilOrderToDomain(t *testing.T) {
+	assert.Nil(t, (*OrderModel)(nil).ToDomain())
+}
+
+func TestNilOrderFromDomain(t *testing.T) {
+	assert.Nil(t, FromDomainOrder(nil))
+}
+
 func TestOrderModelInitialization(t *testing.T) {
 	now := time.Now()
 	vehicleKm := 10000.5
