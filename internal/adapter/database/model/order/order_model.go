@@ -5,7 +5,7 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
+	customerVehicle "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
 
@@ -22,17 +22,17 @@ type Model struct {
 	UserId            uint
 	CustomerVehicleId uint
 	CompanyId         uint
-	User              model.UserModel                       `gorm:"foreignKey:UserId;references:ID"`
-	CustomerVehicle   customer_vehicle.CustomerVehicleModel `gorm:"foreignKey:CustomerVehicleId;references:ID"`
-	Company           company.Model                         `gorm:"foreignKey:CompanyId;references:ID"`
+	User              model.Model           `gorm:"foreignKey:UserId;references:ID"`
+	CustomerVehicle   customerVehicle.Model `gorm:"foreignKey:CustomerVehicleId;references:ID"`
+	Company           company.Model         `gorm:"foreignKey:CompanyId;references:ID"`
 }
 
-func (Model) TableName() string {
+func (*Model) TableName() string {
 	return "Order"
 }
 
-func ToDomain(m Model) domain.Order {
-	return domain.Order{
+func (m *Model) ToDomain() *domain.Order {
+	return &domain.Order{
 		ID:                m.ID,
 		DateIn:            m.DateIn,
 		DateOut:           m.DateOut,
@@ -45,28 +45,27 @@ func ToDomain(m Model) domain.Order {
 		UserId:            m.UserId,
 		CustomerVehicleId: m.CustomerVehicleId,
 		CompanyId:         m.CompanyId,
-		User:              *(&m.User).ToDomain(),
-		CustomerVehicle:   *(&m.CustomerVehicle).ToDomain(),
-		Company:           company.ToDomain(m.Company),
+		User:              *m.User.ToDomain(),
+		CustomerVehicle:   *m.CustomerVehicle.ToDomain(),
+		Company:           *m.Company.ToDomain(),
 	}
 }
 
-func FromDomain(d domain.Order) Model {
-	return Model{
-		ID:                d.ID,
-		DateIn:            d.DateIn,
-		DateOut:           d.DateOut,
-		Number:            d.Number,
-		Status:            d.Status,
-		VehicleKilometers: d.VehicleKilometers,
-		Note:              d.Note,
-		DiagnosticNote:    d.DiagnosticNote,
-		Price:             d.Price,
-		UserId:            d.UserId,
-		CustomerVehicleId: d.CustomerVehicleId,
-		CompanyId:         d.CompanyId,
-		User:              *model.FromDomainUser(&d.User),
-		CustomerVehicle:   *customer_vehicle.FromDomainCustomerVehicle(&d.CustomerVehicle),
-		Company:           company.FromDomain(d.Company),
-	}
+func (m *Model) FromDomain(d *domain.Order) {
+
+	m.ID = d.ID
+	m.DateIn = d.DateIn
+	m.DateOut = d.DateOut
+	m.Number = d.Number
+	m.Status = d.Status
+	m.VehicleKilometers = d.VehicleKilometers
+	m.Note = d.Note
+	m.DiagnosticNote = d.DiagnosticNote
+	m.Price = d.Price
+	m.UserId = d.UserId
+	m.CustomerVehicleId = d.CustomerVehicleId
+	m.CompanyId = d.CompanyId
+	m.User.FromDomain(&d.User)
+	m.CustomerVehicle.FromDomain(&d.CustomerVehicle)
+	m.Company.FromDomain(&d.Company)
 }

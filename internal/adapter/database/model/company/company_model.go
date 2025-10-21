@@ -10,32 +10,47 @@ type Model struct {
 	gorm.Model
 	Name     string `gorm:"not null"`
 	Email    string
-	Document string        `gorm:"unique"`
-	Contact  string        `gorm:"not null"`
-	Address  address.Model `gorm:"embedded"`
+	Document string         `gorm:"unique"`
+	Contact  string         `gorm:"not null"`
+	Address  *address.Model `gorm:"embedded"`
 }
 
-func (Model) TableName() string {
+func (*Model) TableName() string {
 	return "Company"
 }
 
-func ToDomain(c Model) domain.Company {
-	return domain.Company{
-		ID:       c.ID,
-		Name:     c.Name,
-		Email:    c.Email,
-		Document: c.Document,
-		Contact:  c.Contact,
-		Address:  address.ToDomain(c.Address),
+func (m *Model) ToDomain() *domain.Company {
+	var addressDomain *domain.Address
+	if m.Address != nil {
+		addressDomain = m.Address.ToDomain()
+	} else {
+		addressDomain = nil
+	}
+
+	return &domain.Company{
+		ID:       m.ID,
+		Name:     m.Name,
+		Email:    m.Email,
+		Document: m.Document,
+		Contact:  m.Contact,
+		Address:  addressDomain,
 	}
 }
 
-func FromDomain(d domain.Company) Model {
-	return Model{
-		Name:     d.Name,
-		Email:    d.Email,
-		Document: d.Document,
-		Contact:  d.Contact,
-		Address:  address.FromDomain(d.Address),
+func (m *Model) FromDomain(d *domain.Company) {
+	if d == nil {
+		return
 	}
+
+	m.ID = d.ID
+	m.Name = d.Name
+	m.Email = d.Email
+	m.Document = d.Document
+	m.Contact = d.Contact
+
+	if m.Address == nil {
+		m.Address = &address.Model{}
+	}
+
+	m.Address.FromDomain(d.Address)
 }

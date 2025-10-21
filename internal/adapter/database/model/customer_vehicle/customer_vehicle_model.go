@@ -18,18 +18,18 @@ type Model struct {
 	Customer customer.Model     `gorm:"foreignKey:CustomerId;references:ID"`
 }
 
-func (Model) TableName() string {
+func (*Model) TableName() string {
 	return "Customer_Vehicle"
 }
 
-func ToDomain(m Model) domain.CustomerVehicle {
+func (m *Model) ToDomain() *domain.CustomerVehicle {
 	var deletedAt *time.Time
 
 	if m.DeletedAt.Valid {
 		deletedAt = &m.DeletedAt.Time
 	}
 
-	return domain.CustomerVehicle{
+	return &domain.CustomerVehicle{
 		ID:         m.ID,
 		CreatedAt:  m.CreatedAt,
 		UpdatedAt:  m.UpdatedAt,
@@ -39,24 +39,20 @@ func ToDomain(m Model) domain.CustomerVehicle {
 	}
 }
 
-func FromDomain(domainEntity domain.CustomerVehicle) Model {
+func (m *Model) FromDomain(d *domain.CustomerVehicle) {
 	var deletedAt gorm.DeletedAt
 
-	if domainEntity.DeletedAt != nil {
+	if d.DeletedAt != nil {
 		deletedAt = gorm.DeletedAt{
-			Time:  *domainEntity.DeletedAt,
+			Time:  *d.DeletedAt,
 			Valid: true,
 		}
 	}
 
-	return Model{
-		Model: gorm.Model{
-			ID:        domainEntity.ID,
-			CreatedAt: domainEntity.CreatedAt,
-			UpdatedAt: domainEntity.UpdatedAt,
-			DeletedAt: deletedAt,
-		},
-		CustomerId: domainEntity.CustomerId,
-		VehicleId:  domainEntity.VehicleId,
-	}
+	m.ID = d.ID
+	m.CreatedAt = d.CreatedAt
+	m.UpdatedAt = d.UpdatedAt
+	m.DeletedAt = deletedAt
+	m.CustomerId = d.CustomerId
+	m.VehicleId = d.VehicleId
 }
