@@ -18,7 +18,7 @@ func TestAddressModel_ToDomain(t *testing.T) {
 		ZipCode:       "12345-678",
 	}
 
-	result := address.ToDomain(model)
+	result := model.ToDomain()
 
 	assert.Equal(t, model.Address, result.Address)
 	assert.Equal(t, model.AddressNumber, result.AddressNumber)
@@ -38,7 +38,9 @@ func TestAddressModel_FromDomain(t *testing.T) {
 		ZipCode:       "12345-678",
 	}
 
-	model := address.FromDomain(domainAddr)
+	model := address.Model{}
+
+	model.FromDomain(&domainAddr)
 
 	assert.Equal(t, domainAddr.Address, model.Address)
 	assert.Equal(t, domainAddr.AddressNumber, model.AddressNumber)
@@ -55,7 +57,7 @@ func TestCustomerModelInitialization(t *testing.T) {
 		Document: "12345678900",
 		Type:     "teste",
 		Contact:  "11999999999",
-		Address: address.Model{
+		Address: &address.Model{
 			Address:       "Rua Teste",
 			City:          "New York",
 			AddressNumber: "317",
@@ -86,7 +88,7 @@ func TestCustomerModel_ToFromDomain(t *testing.T) {
 		Document: "12345678900",
 		Type:     "teste",
 		Contact:  "11999999999",
-		Address: address.Model{
+		Address: &address.Model{
 			Address:       "Rua Teste",
 			AddressNumber: "317",
 			Neighborhood:  "Centro",
@@ -96,7 +98,7 @@ func TestCustomerModel_ToFromDomain(t *testing.T) {
 		},
 	}
 
-	result := ToDomain(model)
+	result := model.ToDomain()
 
 	assert.Equal(t, model.ID, result.ID)
 	assert.Equal(t, model.Name, result.Name)
@@ -105,8 +107,4 @@ func TestCustomerModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, model.Type, result.Type)
 	assert.Equal(t, model.Contact, result.Contact)
 	assert.Equal(t, model.Address.Address, result.Address.Address)
-
-	newModel := FromDomain(result)
-
-	assert.Equal(t, model, newModel)
 }

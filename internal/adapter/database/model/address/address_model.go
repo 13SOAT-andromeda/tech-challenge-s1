@@ -11,24 +11,26 @@ type Model struct {
 	ZipCode       string
 }
 
-func ToDomain(a Model) domain.Address {
-	return domain.Address{
-		Address:       a.Address,
-		AddressNumber: a.AddressNumber,
-		Neighborhood:  a.Neighborhood,
-		City:          a.City,
-		Country:       a.Country,
-		ZipCode:       a.ZipCode,
+func (m *Model) ToDomain() *domain.Address {
+	return &domain.Address{
+		Address:       m.Address,
+		AddressNumber: m.AddressNumber,
+		Neighborhood:  m.Neighborhood,
+		City:          m.City,
+		Country:       m.Country,
+		ZipCode:       m.ZipCode,
 	}
 }
 
-func FromDomain(a domain.Address) Model {
-	return Model{
-		Address:       a.Address,
-		AddressNumber: a.AddressNumber,
-		Neighborhood:  a.Neighborhood,
-		City:          a.City,
-		Country:       a.Country,
-		ZipCode:       a.ZipCode,
+func (m *Model) FromDomain(d *domain.Address) {
+	if d == nil {
+		return
 	}
+
+	m.Address = d.Address
+	m.AddressNumber = d.AddressNumber
+	m.Neighborhood = d.Neighborhood
+	m.City = d.City
+	m.Country = d.Country
+	m.ZipCode = d.ZipCode
 }
