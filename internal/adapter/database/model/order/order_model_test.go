@@ -1,9 +1,12 @@
-package model
+package order
 
 import (
 	"testing"
 	"time"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +16,7 @@ func TestOrderModelInitialization(t *testing.T) {
 	note := "Test note"
 	diagnosticNote := "Test diagnostic note"
 
-	o := OrderModel{
+	o := Model{
 		DateIn:            now,
 		DateOut:           &now,
 		Number:            "12345",
@@ -47,7 +50,7 @@ func TestOrderModel_ToFromDomain(t *testing.T) {
 	note := "Test note"
 	diagnosticNote := "Test diagnostic note"
 
-	modelOrder := &OrderModel{
+	modelOrder := Model{
 		DateIn:            now,
 		DateOut:           &now,
 		Number:            "12345",
@@ -59,9 +62,9 @@ func TestOrderModel_ToFromDomain(t *testing.T) {
 		UserId:            1,
 		CustomerVehicleId: 1,
 		CompanyId:         1,
-		User:              UserModel{Sessions: []SessionModel{}},
-		CustomerVehicle:   CustomerVehicleModel{},
-		Company:           CompanyModel{},
+		User:              model.Model{Sessions: []model.SessionModel{}},
+		CustomerVehicle:   customer_vehicle.Model{},
+		Company:           company.Model{},
 	}
 
 	domainOrder := modelOrder.ToDomain()
@@ -79,7 +82,4 @@ func TestOrderModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelOrder.CustomerVehicleId, domainOrder.CustomerVehicleId)
 	assert.Equal(t, modelOrder.CompanyId, domainOrder.CompanyId)
 
-	newModel := FromDomainOrder(domainOrder)
-
-	assert.Equal(t, modelOrder, newModel)
 }

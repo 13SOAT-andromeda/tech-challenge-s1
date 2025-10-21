@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"time"
+
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
 
 type OrderHistoryModel struct {
@@ -26,13 +27,11 @@ func (m *OrderHistoryModel) ToDomain() *domain.OrderHistory {
 	}
 }
 
-func FromDomainOrderHistory(d *domain.OrderHistory) *OrderHistoryModel {
+func (m *OrderHistoryModel) FromDomain(d *domain.OrderHistory) {
 	if d == nil {
-		return nil
+		return
 	}
-	return &OrderHistoryModel{
-		OrderId: d.OrderId,
-		Date:    d.Date,
-		Status:  d.Status,
-	}
+	m.OrderId = d.OrderId
+	m.Date = d.Date
+	m.Status = d.Status
 }

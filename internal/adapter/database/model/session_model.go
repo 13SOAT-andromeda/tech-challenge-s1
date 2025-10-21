@@ -28,17 +28,13 @@ func (m *SessionModel) ToDomain() *domain.Session {
 	}
 }
 
-func FromDomainSession(d *domain.Session) *SessionModel {
+func (m *SessionModel) FromDomain(d *domain.Session) {
 	if d == nil {
-		return nil
+		return
 	}
-	return &SessionModel{
-		Model: gorm.Model{
-			ID:        d.ID,
-			CreatedAt: d.CreatedAt,
-			UpdatedAt: d.UpdatedAt,
-		},
-		UserID:       d.UserID,
-		RefreshToken: d.RefreshToken,
-	}
+	m.ID = d.ID
+	m.CreatedAt = d.CreatedAt
+	m.UpdatedAt = d.UpdatedAt
+	m.UserID = d.UserID
+	m.RefreshToken = d.RefreshToken
 }

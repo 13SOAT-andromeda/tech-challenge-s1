@@ -26,16 +26,12 @@ func (m *ServiceCategoryModel) ToDomain() *domain.ServiceCategory {
 	}
 }
 
-func FromDomainServiceCategory(d *domain.ServiceCategory) *ServiceCategoryModel {
+func (m *ServiceCategoryModel) FromDomain(d *domain.ServiceCategory) {
 	if d == nil {
-		return nil
+		return
 	}
-	return &ServiceCategoryModel{
-		Model: gorm.Model{
-			ID:        d.ID,
-			CreatedAt: d.CreatedAt,
-			UpdatedAt: d.UpdatedAt,
-		},
-		Name: d.Name,
-	}
+	m.ID = d.ID
+	m.CreatedAt = d.CreatedAt
+	m.UpdatedAt = d.UpdatedAt
+	m.Name = d.Name
 }

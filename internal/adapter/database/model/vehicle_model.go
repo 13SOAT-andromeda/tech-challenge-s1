@@ -29,16 +29,14 @@ func (m *VehicleModel) ToDomain() *domain.VehicleModel {
 	}
 }
 
-func FromDomainVehicle(d *domain.VehicleModel) *VehicleModel {
+func (m *VehicleModel) FromDomain(d *domain.VehicleModel) {
 	if d == nil {
-		return nil
+		return
 	}
-	return &VehicleModel{
-		ID:    d.ID,
-		Plate: d.Plate,
-		Model: d.Model,
-		Year:  d.Year,
-		Brand: d.Brand,
-		Color: d.Color,
-	}
+	m.ID = d.ID
+	m.Plate = d.Plate
+	m.Model = d.Model
+	m.Year = d.Year
+	m.Brand = d.Brand
+	m.Color = d.Color
 }

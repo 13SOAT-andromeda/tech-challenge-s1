@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserModel struct {
+type Model struct {
 	gorm.Model
 	Name     string `gorm:"not null"`
 	Email    string `gorm:"not null; unique"`
@@ -17,11 +17,11 @@ type UserModel struct {
 	Sessions []SessionModel `gorm:"foreignKey:UserId;references:ID"`
 }
 
-func (UserModel) TableName() string {
+func (*Model) TableName() string {
 	return "User"
 }
 
-func (m *UserModel) ToDomain() *domain.User {
+func (m *Model) ToDomain() *domain.User {
 	if m == nil {
 		return nil
 	}
@@ -45,28 +45,22 @@ func (m *UserModel) ToDomain() *domain.User {
 	}
 }
 
-func FromDomainUser(d *domain.User) *UserModel {
+func (m *Model) FromDomain(d *domain.User) {
 	if d == nil {
-		return nil
+		return
 	}
 
 	sessions := make([]SessionModel, len(d.Sessions))
 	for i, session := range d.Sessions {
-		sessions[i] = *FromDomainSession(&session)
+		sessions[i].FromDomain(&session)
 	}
 
-	return &UserModel{
-		Model: gorm.Model{
-			ID:        d.ID,
-			CreatedAt: d.CreatedAt,
-			UpdatedAt: d.UpdatedAt,
-		},
-		Name:     d.Name,
-		Email:    d.Email,
-		Contact:  d.Contact,
-		Address:  d.Address,
-		Password: d.Password,
-		Role:     d.Role,
-		Sessions: sessions,
-	}
+	m.ID = d.ID
+	m.Name = d.Name
+	m.Email = d.Email
+	m.Contact = d.Contact
+	m.Address = d.Address
+	m.Password = d.Password
+	m.Role = d.Role
+	m.Sessions = sessions
 }

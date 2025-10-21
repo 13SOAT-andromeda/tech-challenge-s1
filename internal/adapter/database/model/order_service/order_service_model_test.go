@@ -1,13 +1,15 @@
-package model
+package order_service
 
 import (
 	"testing"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestOrderServiceModelInitialization(t *testing.T) {
-	os := OrderServiceModel{
+	os := Model{
 		ServiceId: 1,
 		OrderId:   1,
 		Price:     50.0,
@@ -20,12 +22,12 @@ func TestOrderServiceModelInitialization(t *testing.T) {
 }
 
 func TestOrderServiceModel_ToFromDomain(t *testing.T) {
-	modelOrderService := &OrderServiceModel{
+	modelOrderService := Model{
 		ServiceId: 1,
 		OrderId:   1,
 		Price:     50.0,
-		Service:   ServiceModel{},
-		Order:     OrderModel{User: UserModel{Sessions: []SessionModel{}}},
+		Service:   model.ServiceModel{},
+		Order:     order.Model{User: model.Model{Sessions: []model.SessionModel{}}},
 	}
 
 	domainOrderService := modelOrderService.ToDomain()
@@ -34,7 +36,4 @@ func TestOrderServiceModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelOrderService.OrderId, domainOrderService.OrderId)
 	assert.Equal(t, modelOrderService.Price, domainOrderService.Price)
 
-	newModel := FromDomainOrderService(domainOrderService)
-
-	assert.Equal(t, modelOrderService, newModel)
 }

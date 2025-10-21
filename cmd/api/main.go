@@ -6,7 +6,8 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/repository"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
@@ -18,19 +19,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
-
 	ctx := context.Background()
-
 	db, err := database.Init(ctx, *cfg.Database)
-
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
-
 	log.Printf("Connecting to database")
 
 	err = db.AutoMigrate(
-		&model.CustomerModel{},
+		&customer.Model{},
+		&company.Model{},
 	)
 
 	if err != nil {
@@ -40,12 +38,15 @@ func main() {
 	dbase := db.GetDB()
 
 	customerRepository := repository.NewCustomerRepository(dbase)
+	companyRepository := repository.NewCompanyRepository(dbase)
 
 	customerService := services.NewCustomerService(customerRepository)
+	companyService := services.NewCompanyService(companyRepository)
 
 	customerHandler := handlers.NewCustomerHandler(customerService)
+	companyHandler := handlers.NewCompanyHandler(companyService)
 
-	router := http.NewRouter(*cfg, *customerHandler)
+	router := http.NewRouter(*cfg, *customerHandler, *companyHandler)
 	log.Printf("Starting HTTP server on port %s", cfg.Http.Port)
 
 	if err = router.Server(":" + cfg.Http.Port); err != nil {

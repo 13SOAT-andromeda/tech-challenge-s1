@@ -30,18 +30,14 @@ func (m *ProductModel) ToDomain() *domain.Product {
 	}
 }
 
-func FromDomainProduct(d *domain.Product) *ProductModel {
+func (m *ProductModel) FromDomain(d *domain.Product) {
 	if d == nil {
-		return nil
+		return
 	}
-	return &ProductModel{
-		Model: gorm.Model{
-			ID:        d.ID,
-			CreatedAt: d.CreatedAt,
-			UpdatedAt: d.UpdatedAt,
-		},
-		Name:     d.Name,
-		Quantity: d.Quantity,
-		Price:    d.Price,
-	}
+	m.ID = d.ID
+	m.CreatedAt = d.CreatedAt
+	m.UpdatedAt = d.UpdatedAt
+	m.Name = d.Name
+	m.Quantity = d.Quantity
+	m.Price = d.Price
 }
