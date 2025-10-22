@@ -10,7 +10,7 @@ import (
 
 func TestServiceModelInitialization(t *testing.T) {
 	defaultPrice := 100.0
-	s := ServiceModel{
+	s := Model{
 		Name:         "Service A",
 		DefaultPrice: &defaultPrice,
 		CategoryId:   1,
@@ -29,7 +29,7 @@ func TestServiceModel_ToFromDomain(t *testing.T) {
 	deletedAt := now.Add(time.Hour * 1)
 	defaultPrice := 100.0
 
-	modelService := &ServiceModel{
+	modelService := &Model{
 		Model: gorm.Model{
 			ID:        1,
 			CreatedAt: now,
