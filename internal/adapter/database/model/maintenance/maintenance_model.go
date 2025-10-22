@@ -1,7 +1,7 @@
 package maintenance
 
 import (
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/maintenance_category"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance_category"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"gorm.io/gorm"
 )
