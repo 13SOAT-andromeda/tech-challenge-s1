@@ -1,8 +1,8 @@
 package order_service
 
 import (
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/service"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
 
@@ -11,8 +11,8 @@ type Model struct {
 	OrderId   uint
 	Price     float64 `gorm:"not null"`
 
-	Service service.ServiceModel `gorm:"foreignkey:ServiceId;references:ID"`
-	Order   order.Model          `gorm:"foreignkey:OrderId;references:ID"`
+	Service maintenance.Model `gorm:"foreignkey:ServiceId;references:ID"`
+	Order   order.Model       `gorm:"foreignkey:OrderId;references:ID"`
 }
 
 func (Model) TableName() string {

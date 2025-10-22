@@ -1,4 +1,4 @@
-package service_category
+package maintenance_category
 
 import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
@@ -11,15 +11,15 @@ type Model struct {
 }
 
 func (*Model) TableName() string {
-	return "Service_Category"
+	return "Maintenance_Category"
 }
 
-func (m *Model) ToDomain() *domain.ServiceCategory {
+func (m *Model) ToDomain() *domain.MaintenanceCategory {
 	if m == nil {
 		return nil
 	}
 
-	return &domain.ServiceCategory{
+	return &domain.MaintenanceCategory{
 		ID:        m.ID,
 		Name:      m.Name,
 		CreatedAt: m.CreatedAt,
@@ -27,7 +27,7 @@ func (m *Model) ToDomain() *domain.ServiceCategory {
 	}
 }
 
-func (m *Model) FromDomain(d *domain.ServiceCategory) {
+func (m *Model) FromDomain(d *domain.MaintenanceCategory) {
 	if d == nil {
 		return
 	}

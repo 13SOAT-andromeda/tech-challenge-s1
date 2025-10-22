@@ -1,4 +1,4 @@
-package service_category
+package maintenance_category
 
 import (
 	"testing"

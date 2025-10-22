@@ -1,4 +1,4 @@
-package service
+package maintenance
 
 import (
 	"testing"

@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/service"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,7 +27,7 @@ func TestOrderServiceModel_ToFromDomain(t *testing.T) {
 		ServiceId: 1,
 		OrderId:   1,
 		Price:     50.0,
-		Service:   service.ServiceModel{},
+		Service:   maintenance.Model{},
 		Order:     order.Model{User: model.Model{Sessions: []model.SessionModel{}}},
 	}
 

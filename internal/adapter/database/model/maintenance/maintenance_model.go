@@ -1,7 +1,7 @@
-package service
+package maintenance
 
 import (
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/service_category"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/maintenance_category"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"gorm.io/gorm"
 )
@@ -13,7 +13,7 @@ type Model struct {
 	CategoryId   uint
 	Number       string `gorm:"not null"`
 
-	ServiceCategory *service_category.Model `gorm:"foreignKey:CategoryId;references:ID"`
+	ServiceCategory *maintenance_category.Model `gorm:"foreignKey:CategoryId;references:ID"`
 }
 
 func (Model) TableName() string {
@@ -21,7 +21,7 @@ func (Model) TableName() string {
 }
 
 func (m *Model) ToDomain() *domain.Service {
-	var zeroServiceCategory service_category.Model
+	var zeroServiceCategory maintenance_category.Model
 	if m == nil {
 		return nil
 	}
@@ -30,14 +30,14 @@ func (m *Model) ToDomain() *domain.Service {
 	}
 
 	return &domain.Service{
-		ID:              m.ID,
-		Name:            m.Name,
-		DefaultPrice:    m.DefaultPrice,
-		CategoryId:      m.CategoryId,
-		Number:          m.Number,
-		ServiceCategory: *m.ServiceCategory.ToDomain(),
-		CreatedAt:       m.CreatedAt,
-		UpdatedAt:       m.UpdatedAt,
+		ID:                  m.ID,
+		Name:                m.Name,
+		DefaultPrice:        m.DefaultPrice,
+		CategoryId:          m.CategoryId,
+		Number:              m.Number,
+		MaintenanceCategory: *m.ServiceCategory.ToDomain(),
+		CreatedAt:           m.CreatedAt,
+		UpdatedAt:           m.UpdatedAt,
 	}
 }
 
@@ -55,8 +55,8 @@ func (m *Model) FromDomain(d *domain.Service) {
 	m.Number = d.Number
 
 	if m.ServiceCategory == nil {
-		m.ServiceCategory = &service_category.Model{}
+		m.ServiceCategory = &maintenance_category.Model{}
 	}
 
-	m.ServiceCategory.FromDomain(&d.ServiceCategory)
+	m.ServiceCategory.FromDomain(&d.MaintenanceCategory)
 }

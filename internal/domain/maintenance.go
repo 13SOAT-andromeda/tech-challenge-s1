@@ -14,5 +14,5 @@ type Service struct {
 	CategoryId   uint
 	Number       string
 
-	ServiceCategory ServiceCategory
+	MaintenanceCategory MaintenanceCategory
 }
