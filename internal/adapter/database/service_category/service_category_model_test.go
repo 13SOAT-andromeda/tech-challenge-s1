@@ -1,4 +1,4 @@
-package model
+package service_category
 
 import (
 	"testing"
