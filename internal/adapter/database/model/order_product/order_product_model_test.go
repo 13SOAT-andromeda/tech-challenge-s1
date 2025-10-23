@@ -5,6 +5,7 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +24,7 @@ func TestOrderProductModel_ToFromDomain(t *testing.T) {
 	modelOrderProduct := Model{
 		ProductId: 1,
 		OrderId:   1,
-		Product:   model.ProductModel{},
+		Product:   product.ProductModel{},
 		Order:     order.Model{User: model.Model{Sessions: []model.SessionModel{}}},
 	}
 

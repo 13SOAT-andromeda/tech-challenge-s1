@@ -1,4 +1,4 @@
-package model
+package product
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ import (
 )
 
 func TestProductModelInitialization(t *testing.T) {
-	p := ProductModel{
+	p := Model{
 		Name:     "Product A",
 		Quantity: 10,
 		Price:    1000, // R$ 10.00
@@ -25,7 +25,7 @@ func TestProductModel_ToFromDomain(t *testing.T) {
 	now := time.Now()
 	deletedAt := now.Add(time.Hour * 1)
 
-	modelProduct := &ProductModel{
+	modelProduct := &Model{
 		Model: gorm.Model{
 			ID:        1,
 			CreatedAt: now,

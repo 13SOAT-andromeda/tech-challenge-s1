@@ -9,6 +9,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/repository"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
@@ -31,6 +32,7 @@ func main() {
 		&customer.Model{},
 		&company.Model{},
 		&maintenance.Model{},
+		&product.Model{},
 	)
 
 	if err != nil {
@@ -42,16 +44,19 @@ func main() {
 	customerRepository := repository.NewCustomerRepository(dbase)
 	companyRepository := repository.NewCompanyRepository(dbase)
 	maintenanceRepository := repository.NewMaintenenceRepository(dbase)
+	productRepository := repository.NewProductRepository(dbase)
 
 	customerService := services.NewCustomerService(customerRepository)
 	companyService := services.NewCompanyService(companyRepository)
 	maintenanceService := services.NewMaintenanceService(maintenanceRepository)
+	productService := services.NewProductService(productRepository)
 
 	customerHandler := handlers.NewCustomerHandler(customerService)
 	companyHandler := handlers.NewCompanyHandler(companyService)
 	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceService)
+	productHandler := handlers.NewProductHandler(productService)
 
-	router := http.NewRouter(*cfg, *customerHandler, *companyHandler, *maintenanceHandler)
+	router := http.NewRouter(*cfg, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler)
 	log.Printf("Starting HTTP server on port %s", cfg.Http.Port)
 
 	if err = router.Server(":" + cfg.Http.Port); err != nil {
