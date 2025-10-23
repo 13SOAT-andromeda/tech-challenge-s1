@@ -37,11 +37,10 @@ func (h *MaintenanceHandler) CreateMaintenance(ctx *gin.Context) {
 	c := domain.Maintenance{
 		Name:         json.Name,
 		DefaultPrice: json.DefaultPrice,
-		CategoryId:   json.CategoryId,
 		Number:       json.Number,
-		MaintenanceCategory: domain.MaintenanceCategory{
-			CreatedAt: json.CreatedAt,
-			UpdatedAt: json.UpdatedAt,
+		MaintenanceCategory: &domain.MaintenanceCategory{
+			ID:   json.CategoryId,
+			Name: json.MaintenanceCategory,
 		},
 	}
 
@@ -83,15 +82,12 @@ func (h *MaintenanceHandler) UpdateMaintenance(ctx *gin.Context) {
 	}
 
 	c := domain.Maintenance{
-		ID:           uint(idUint),
 		Name:         json.Name,
 		DefaultPrice: json.DefaultPrice,
-		CategoryId:   json.CategoryId,
 		Number:       json.Number,
-		MaintenanceCategory: domain.MaintenanceCategory{
-			ID:        uint(idUint),
-			CreatedAt: json.CreatedAt,
-			UpdatedAt: json.UpdatedAt,
+		MaintenanceCategory: &domain.MaintenanceCategory{
+			ID:   json.CategoryId,
+			Name: json.MaintenanceCategory,
 		},
 	}
 
