@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
@@ -18,13 +17,9 @@ func NewMaintenanceHandler(service ports.MaintenanceService) *MaintenanceHandler
 }
 
 type createMaintenanceRequest struct {
-	Name                string    `json:"name" binding:"required"`
-	DefaultPrice        *float64  `json:"default_price" binding:"required"`
-	CategoryId          uint      `json:"category_id" binding:"required"`
-	Number              string    `json:"number" binding:"required"`
-	MaintenanceCategory string    `json:"maintenanceCategory" binding:"required"`
-	CreatedAt           time.Time `json:"created_at" binding:"required"`
-	UpdatedAt           time.Time `json:"updated_at" binding:"required"`
+	Name         string   `json:"name" binding:"required"`
+	DefaultPrice *float64 `json:"default_price" binding:"required"`
+	Number       string   `json:"number" binding:"required"`
 }
 
 func (h *MaintenanceHandler) CreateMaintenance(ctx *gin.Context) {
@@ -38,10 +33,6 @@ func (h *MaintenanceHandler) CreateMaintenance(ctx *gin.Context) {
 		Name:         json.Name,
 		DefaultPrice: json.DefaultPrice,
 		Number:       json.Number,
-		MaintenanceCategory: &domain.MaintenanceCategory{
-			ID:   json.CategoryId,
-			Name: json.MaintenanceCategory,
-		},
 	}
 
 	if _, err := h.service.Create(ctx.Request.Context(), c); err != nil {
@@ -82,13 +73,10 @@ func (h *MaintenanceHandler) UpdateMaintenance(ctx *gin.Context) {
 	}
 
 	c := domain.Maintenance{
+		ID:           uint(idUint),
 		Name:         json.Name,
 		DefaultPrice: json.DefaultPrice,
 		Number:       json.Number,
-		MaintenanceCategory: &domain.MaintenanceCategory{
-			ID:   json.CategoryId,
-			Name: json.MaintenanceCategory,
-		},
 	}
 
 	if err := h.service.UpdateByID(ctx.Request.Context(), uint(idUint), c); err != nil {
