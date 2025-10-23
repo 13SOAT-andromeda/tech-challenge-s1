@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type Service struct {
+type Maintenance struct {
 	ID           uint
 	CreatedAt    time.Time
 	UpdatedAt    time.Time

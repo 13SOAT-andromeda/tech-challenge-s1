@@ -12,11 +12,11 @@ type MaintenanceService struct {
 	repo ports.MaintenanceRepository
 }
 
-func NewService(repo ports.MaintenanceRepository) *MaintenanceService {
+func NewMaintenanceervice(repo ports.MaintenanceRepository) *MaintenanceService {
 	return &MaintenanceService{repo: repo}
 }
 
-func (s *MaintenanceService) Create(ctx context.Context, c domain.Service) (*domain.Service, error) {
+func (s *MaintenanceService) Create(ctx context.Context, c domain.Maintenance) (*domain.Maintenance, error) {
 	var model maintenance.Model
 	model.FromDomain(&c)
 
@@ -29,7 +29,7 @@ func (s *MaintenanceService) Create(ctx context.Context, c domain.Service) (*dom
 	return result, nil
 }
 
-func (s *MaintenanceService) GetByID(ctx context.Context, id uint) (*domain.Service, error) {
+func (s *MaintenanceService) GetByID(ctx context.Context, id uint) (*domain.Maintenance, error) {
 	response, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (s *MaintenanceService) GetByID(ctx context.Context, id uint) (*domain.Serv
 	return result, nil
 }
 
-func (s *MaintenanceService) UpdateByID(ctx context.Context, id uint, c domain.Service) error {
+func (s *MaintenanceService) UpdateByID(ctx context.Context, id uint, c domain.Maintenance) error {
 	var model maintenance.Model
 	model.FromDomain(&c)
 
@@ -51,7 +51,7 @@ func (s *MaintenanceService) UpdateByID(ctx context.Context, id uint, c domain.S
 	return nil
 }
 
-func (s *MaintenanceService) DeleteByID(ctx context.Context, id uint) (*domain.Service, error) {
+func (s *MaintenanceService) DeleteByID(ctx context.Context, id uint) (*domain.Maintenance, error) {
 	response, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err

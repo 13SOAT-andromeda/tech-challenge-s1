@@ -20,7 +20,7 @@ func (Model) TableName() string {
 	return "Service"
 }
 
-func (m *Model) ToDomain() *domain.Service {
+func (m *Model) ToDomain() *domain.Maintenance {
 	var zeroServiceCategory maintenance_category.Model
 	if m == nil {
 		return nil
@@ -29,7 +29,7 @@ func (m *Model) ToDomain() *domain.Service {
 		m.ServiceCategory = &zeroServiceCategory
 	}
 
-	return &domain.Service{
+	return &domain.Maintenance{
 		ID:                  m.ID,
 		Name:                m.Name,
 		DefaultPrice:        m.DefaultPrice,
@@ -41,7 +41,7 @@ func (m *Model) ToDomain() *domain.Service {
 	}
 }
 
-func (m *Model) FromDomain(d *domain.Service) {
+func (m *Model) FromDomain(d *domain.Maintenance) {
 	if d == nil {
 		return
 	}

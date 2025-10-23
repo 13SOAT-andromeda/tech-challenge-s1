@@ -11,14 +11,14 @@ import (
 func TestServiceModelInitialization(t *testing.T) {
 	defaultPrice := 100.0
 	s := Model{
-		Name:         "Service A",
+		Name:         "Maintenance A",
 		DefaultPrice: &defaultPrice,
 		CategoryId:   1,
 		Number:       "S123",
 	}
 
 	assert.NotNil(t, s)
-	assert.Equal(t, "Service A", s.Name)
+	assert.Equal(t, "Maintenance A", s.Name)
 	assert.Equal(t, &defaultPrice, s.DefaultPrice)
 	assert.Equal(t, uint(1), s.CategoryId)
 	assert.Equal(t, "S123", s.Number)

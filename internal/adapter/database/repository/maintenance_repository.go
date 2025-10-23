@@ -10,7 +10,7 @@ type maintenanceRepository struct {
 	*BaseRepository[maintenance.Model]
 }
 
-func NewServiceRepository(db *gorm.DB) ports.MaintenanceRepository {
+func NewMaintenenceRepository(db *gorm.DB) ports.MaintenanceRepository {
 	return &maintenanceRepository{
 		BaseRepository: NewBaseRepository[maintenance.Model](db),
 	}
