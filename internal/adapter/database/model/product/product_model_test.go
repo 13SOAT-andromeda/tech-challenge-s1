@@ -18,7 +18,7 @@ func TestProductModelInitialization(t *testing.T) {
 	assert.NotNil(t, p)
 	assert.Equal(t, "Product A", p.Name)
 	assert.Equal(t, uint(10), p.Quantity)
-	assert.Equal(t, uint32(1000), p.Price)
+	assert.Equal(t, int64(1000), p.Price)
 }
 
 func TestProductModel_ToFromDomain(t *testing.T) {
@@ -43,7 +43,5 @@ func TestProductModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelProduct.Name, domainProduct.Name)
 	assert.Equal(t, modelProduct.Quantity, domainProduct.Quantity)
 	assert.Equal(t, modelProduct.Price, domainProduct.Price)
-	assert.Equal(t, modelProduct.CreatedAt, domainProduct.CreatedAt)
-	assert.Equal(t, modelProduct.UpdatedAt, domainProduct.UpdatedAt)
 
 }

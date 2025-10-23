@@ -24,7 +24,7 @@ func TestOrderProductModel_ToFromDomain(t *testing.T) {
 	modelOrderProduct := Model{
 		ProductId: 1,
 		OrderId:   1,
-		Product:   product.ProductModel{},
+		Product:   product.Model{},
 		Order:     order.Model{User: model.Model{Sessions: []model.SessionModel{}}},
 	}
 

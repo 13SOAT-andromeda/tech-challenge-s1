@@ -9,7 +9,7 @@ import (
 
 type ProductRepository interface {
 	Repository[product.Model]
-	FindByName(ctx context.Context, email string) (*product.Model, error)
+	FindByName(ctx context.Context, name string) (*product.Model, error)
 }
 
 type ProductService interface {
