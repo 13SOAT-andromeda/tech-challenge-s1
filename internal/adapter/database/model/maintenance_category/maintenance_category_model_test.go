@@ -35,7 +35,4 @@ func TestServiceCategoryModel_ToFromDomain(t *testing.T) {
 
 	assert.Equal(t, modelServiceCategory.ID, domainServiceCategory.ID)
 	assert.Equal(t, modelServiceCategory.Name, domainServiceCategory.Name)
-	assert.Equal(t, modelServiceCategory.CreatedAt, domainServiceCategory.CreatedAt)
-	assert.Equal(t, modelServiceCategory.UpdatedAt, domainServiceCategory.UpdatedAt)
-
 }

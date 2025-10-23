@@ -12,7 +12,7 @@ type MaintenanceService struct {
 	repo ports.MaintenanceRepository
 }
 
-func NewMaintenanceervice(repo ports.MaintenanceRepository) *MaintenanceService {
+func NewMaintenanceService(repo ports.MaintenanceRepository) *MaintenanceService {
 	return &MaintenanceService{repo: repo}
 }
 

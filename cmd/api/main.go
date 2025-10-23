@@ -45,7 +45,7 @@ func main() {
 
 	customerService := services.NewCustomerService(customerRepository)
 	companyService := services.NewCompanyService(companyRepository)
-	maintenanceService := services.NewMaintenanceervice(maintenanceRepository)
+	maintenanceService := services.NewMaintenanceService(maintenanceRepository)
 
 	customerHandler := handlers.NewCustomerHandler(customerService)
 	companyHandler := handlers.NewCompanyHandler(companyService)

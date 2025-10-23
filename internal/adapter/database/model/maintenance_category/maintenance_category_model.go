@@ -20,10 +20,8 @@ func (m *Model) ToDomain() *domain.MaintenanceCategory {
 	}
 
 	return &domain.MaintenanceCategory{
-		ID:        m.ID,
-		Name:      m.Name,
-		CreatedAt: m.CreatedAt,
-		UpdatedAt: m.UpdatedAt,
+		ID:   m.ID,
+		Name: m.Name,
 	}
 }
 
@@ -33,7 +31,5 @@ func (m *Model) FromDomain(d *domain.MaintenanceCategory) {
 	}
 
 	m.ID = d.ID
-	m.CreatedAt = d.CreatedAt
-	m.UpdatedAt = d.UpdatedAt
 	m.Name = d.Name
 }

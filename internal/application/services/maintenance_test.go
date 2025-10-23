@@ -16,13 +16,12 @@ func float64Ptr(v float64) *float64 { return &v }
 func TestMaintenanceService_Create_Success(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockMaintenanceRepository)
-	service := NewService(mockRepo)
+	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	inputService := domain.Maintenance{
 		Name:         "Maintenance Test",
 		DefaultPrice: float64Ptr(150.0),
-		CategoryId:   2,
 		Number:       "SVC1001",
 	}
 
@@ -51,13 +50,12 @@ func TestMaintenanceService_Create_Success(t *testing.T) {
 func TestMaintenanceService_Create_RepositoryError(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockMaintenanceRepository)
-	service := NewService(mockRepo)
+	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	inputService := domain.Maintenance{
 		Name:         "Maintenance Test",
 		DefaultPrice: float64Ptr(150.0),
-		CategoryId:   2,
 		Number:       "SVC1001",
 	}
 
@@ -77,13 +75,13 @@ func TestMaintenanceService_Create_RepositoryError(t *testing.T) {
 func TestMaintenanceService_FindByID_Success(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockMaintenanceRepository)
-	service := NewService(mockRepo)
+	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	serviceID := uint(1)
 	expectedService := &maintenance.Model{
 		Model:  gorm.Model{ID: serviceID},
-		Name:   "Service Test",
+		Name:   "Maintenance Test",
 		Number: "SVC1001",
 	}
 
@@ -105,7 +103,7 @@ func TestMaintenanceService_FindByID_Success(t *testing.T) {
 func TestMaintenanceService_FindByID_NotFound(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockMaintenanceRepository)
-	service := NewService(mockRepo)
+	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	serviceID := uint(1)
@@ -126,7 +124,7 @@ func TestMaintenanceService_FindByID_NotFound(t *testing.T) {
 func TestMaintenanceService_UpdateByID_Success(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockMaintenanceRepository)
-	service := NewService(mockRepo)
+	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	serviceID := uint(1)
@@ -134,7 +132,6 @@ func TestMaintenanceService_UpdateByID_Success(t *testing.T) {
 		ID:           serviceID,
 		Name:         "Updated Maintenance",
 		DefaultPrice: float64Ptr(200.0),
-		CategoryId:   3,
 		Number:       "SVC2002",
 	}
 
@@ -156,7 +153,7 @@ func TestMaintenanceService_UpdateByID_Success(t *testing.T) {
 func TestMaintenanceService_UpdateByID_NotFound(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockMaintenanceRepository)
-	service := NewService(mockRepo)
+	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	serviceID := uint(1)
@@ -164,7 +161,6 @@ func TestMaintenanceService_UpdateByID_NotFound(t *testing.T) {
 		ID:           serviceID,
 		Name:         "Updated Maintenance",
 		DefaultPrice: float64Ptr(200.0),
-		CategoryId:   3,
 		Number:       "SVC2002",
 	}
 
@@ -186,13 +182,13 @@ func TestMaintenanceService_UpdateByID_NotFound(t *testing.T) {
 func TestMaintenanceService_DeleteByID_Success(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockMaintenanceRepository)
-	service := NewService(mockRepo)
+	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	serviceID := uint(1)
 	existingService := &maintenance.Model{
 		Model:  gorm.Model{ID: serviceID},
-		Name:   "Service to Delete",
+		Name:   "Maintenance to Delete",
 		Number: "SVC3003",
 	}
 
@@ -218,7 +214,7 @@ func TestMaintenanceService_DeleteByID_Success(t *testing.T) {
 func TestMaintenanceService_DeleteByID_NotFound(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockMaintenanceRepository)
-	service := NewService(mockRepo)
+	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	serviceID := uint(1)

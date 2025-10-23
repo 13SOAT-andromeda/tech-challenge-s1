@@ -1,18 +1,9 @@
 package domain
 
-import (
-	"time"
-)
-
 type Maintenance struct {
-	ID           uint
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	DeletedAt    *time.Time
-	Name         string
-	DefaultPrice *float64
-	CategoryId   uint
-	Number       string
-
-	MaintenanceCategory MaintenanceCategory
+	ID                  uint                 `json:"id"`
+	Name                string               `json:"name"`
+	DefaultPrice        *float64             `json:"default_price"`
+	Number              string               `json:"number"`
+	MaintenanceCategory *MaintenanceCategory `json:"maintenance_category"`
 }

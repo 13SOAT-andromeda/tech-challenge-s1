@@ -13,31 +13,27 @@ type Model struct {
 	CategoryId   uint
 	Number       string `gorm:"not null"`
 
-	ServiceCategory *maintenance_category.Model `gorm:"foreignKey:CategoryId;references:ID"`
+	MaintenanceCategory *maintenance_category.Model `gorm:"foreignKey:CategoryId;references:ID"`
 }
 
 func (Model) TableName() string {
-	return "Service"
+	return "Maintenance"
 }
 
 func (m *Model) ToDomain() *domain.Maintenance {
-	var zeroServiceCategory maintenance_category.Model
-	if m == nil {
-		return nil
-	}
-	if m.ServiceCategory == nil {
-		m.ServiceCategory = &zeroServiceCategory
+	var maintenanceCategoryDomain *domain.MaintenanceCategory
+	if m.MaintenanceCategory != nil {
+		maintenanceCategoryDomain = m.MaintenanceCategory.ToDomain()
+	} else {
+		maintenanceCategoryDomain = nil
 	}
 
 	return &domain.Maintenance{
 		ID:                  m.ID,
 		Name:                m.Name,
 		DefaultPrice:        m.DefaultPrice,
-		CategoryId:          m.CategoryId,
 		Number:              m.Number,
-		MaintenanceCategory: *m.ServiceCategory.ToDomain(),
-		CreatedAt:           m.CreatedAt,
-		UpdatedAt:           m.UpdatedAt,
+		MaintenanceCategory: maintenanceCategoryDomain,
 	}
 }
 
@@ -47,16 +43,13 @@ func (m *Model) FromDomain(d *domain.Maintenance) {
 	}
 
 	m.ID = d.ID
-	m.CreatedAt = d.CreatedAt
-	m.UpdatedAt = d.UpdatedAt
 	m.Name = d.Name
 	m.DefaultPrice = d.DefaultPrice
-	m.CategoryId = d.CategoryId
 	m.Number = d.Number
 
-	if m.ServiceCategory == nil {
-		m.ServiceCategory = &maintenance_category.Model{}
+	if m.MaintenanceCategory == nil {
+		m.MaintenanceCategory = &maintenance_category.Model{}
 	}
 
-	m.ServiceCategory.FromDomain(&d.MaintenanceCategory)
+	m.MaintenanceCategory.FromDomain(d.MaintenanceCategory)
 }
