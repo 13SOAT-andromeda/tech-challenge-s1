@@ -23,7 +23,7 @@ func (m *MockCustomerRepository) FindByID(ctx context.Context, id uint) (*custom
 	return args.Get(0).(*customer.Model), args.Error(1)
 }
 
-func (m *MockCustomerRepository) FindAll(ctx context.Context) ([]customer.Model, error) {
+func (m *MockCustomerRepository) FindAll(ctx context.Context, includeDeleted bool) ([]customer.Model, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -59,6 +59,14 @@ func (m *MockCustomerRepository) FindByEmail(ctx context.Context, email string) 
 	return args.Get(0).(*customer.Model), args.Error(1)
 }
 
+func (m *MockCustomerRepository) FindByDocument(ctx context.Context, document string) (*customer.Model, error) {
+	args := m.Called(ctx, document)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*customer.Model), args.Error(1)
+}
+
 type MockCompanyRepository struct {
 	mock.Mock
 }
@@ -73,7 +81,7 @@ func (m *MockCompanyRepository) FindByID(ctx context.Context, id uint) (*company
 	return args.Get(0).(*company.Model), args.Error(1)
 }
 
-func (m *MockCompanyRepository) FindAll(ctx context.Context) ([]company.Model, error) {
+func (m *MockCompanyRepository) FindAll(ctx context.Context, includeDeleted bool) ([]company.Model, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

@@ -37,6 +37,8 @@ func NewRouter(
 			customerGroup.GET("", customerHandler.GetAllCustomers)
 			customerGroup.POST("", customerHandler.CreateCustomer)
 			customerGroup.GET("/:id", customerHandler.GetCustomerByID)
+			customerGroup.DELETE("/:id", customerHandler.DeleteCustomer)
+			customerGroup.PUT("/:id", customerHandler.UpdateCustomer)
 		}
 	}
 

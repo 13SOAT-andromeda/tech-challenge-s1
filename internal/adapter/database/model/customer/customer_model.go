@@ -1,6 +1,8 @@
 package customer
 
 import (
+	"time"
+
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/address"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"gorm.io/gorm"
@@ -28,14 +30,23 @@ func (m *Model) ToDomain() *domain.Customer {
 		addressDomain = nil
 	}
 
+	var deletedAt *time.Time
+
+	if m.DeletedAt.Valid {
+		deletedAt = &m.DeletedAt.Time
+	}
+
 	return &domain.Customer{
-		ID:       m.ID,
-		Name:     m.Name,
-		Email:    m.Email,
-		Document: m.Document,
-		Type:     m.Type,
-		Contact:  m.Contact,
-		Address:  addressDomain,
+		ID:        m.ID,
+		Name:      m.Name,
+		Email:     m.Email,
+		Document:  m.Document,
+		Type:      m.Type,
+		Contact:   m.Contact,
+		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
+		DeletedAt: deletedAt,
+		Address:   addressDomain,
 	}
 }
 

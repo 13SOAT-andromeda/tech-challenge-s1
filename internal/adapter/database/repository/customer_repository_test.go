@@ -303,7 +303,7 @@ func TestBaseRepository_FindAll(t *testing.T) {
 			`SELECT * FROM "Customer"`)).
 			WillReturnRows(rows)
 
-		Customer, err := repo.FindAll(ctx)
+		Customer, err := repo.FindAll(ctx, false)
 
 		assert.NoError(t, err)
 		assert.Len(t, Customer, 2)
@@ -319,7 +319,7 @@ func TestBaseRepository_FindAll(t *testing.T) {
 			`SELECT * FROM "Customer"`)).
 			WillReturnRows(rows)
 
-		Customer, err := repo.FindAll(ctx)
+		Customer, err := repo.FindAll(ctx, false)
 
 		assert.NoError(t, err)
 		assert.Len(t, Customer, 0)
@@ -331,7 +331,7 @@ func TestBaseRepository_FindAll(t *testing.T) {
 			`SELECT * FROM "Customer"`)).
 			WillReturnError(sql.ErrConnDone)
 
-		Customer, err := repo.FindAll(ctx)
+		Customer, err := repo.FindAll(ctx, false)
 
 		assert.Error(t, err)
 		assert.Nil(t, Customer)

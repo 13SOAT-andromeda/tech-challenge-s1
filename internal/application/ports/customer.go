@@ -10,10 +10,16 @@ import (
 type CustomerRepository interface {
 	Repository[customer.Model]
 	FindByEmail(ctx context.Context, email string) (*customer.Model, error)
+	FindByDocument(ctx context.Context, document string) (*customer.Model, error)
 }
 
 type CustomerService interface {
 	Create(ctx context.Context, c domain.Customer) (*domain.Customer, error)
 	GetAll(ctx context.Context) ([]domain.Customer, error)
 	GetByID(ctx context.Context, id uint) (*domain.Customer, error)
+	UpdateByID(ctx context.Context, id uint, c domain.Customer) error
+	DeleteByID(ctx context.Context, id uint) (*domain.Customer, error)
+}
+
+type CustomerUseCase interface {
 }

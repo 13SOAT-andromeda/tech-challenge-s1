@@ -1,11 +1,15 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type CustomerHandler struct {
@@ -20,7 +24,7 @@ type createCustomerRequest struct {
 	Name          string `json:"name" binding:"required"`
 	Email         string `json:"email" binding:"required,email"`
 	Document      string `json:"document" binding:"required"`
-	Type          string `json:"type" binding:"required,oneof=individual company"`
+	Type          string `json:"type" binding:"required,oneof=administrator mechanic attendant"`
 	Contact       string `json:"contact" binding:"required"`
 	Address       string `json:"address" binding:"required"`
 	AddressNumber string `json:"address_number" binding:"required"`
@@ -31,9 +35,23 @@ type createCustomerRequest struct {
 }
 
 func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
+
 	var json createCustomerRequest
+
 	if err := ctx.ShouldBindJSON(&json); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+
+		if validationErrors, ok := err.(validator.ValidationErrors); ok {
+			for _, fieldError := range validationErrors {
+				if fieldError.Field() == "Type" && fieldError.Tag() == "oneof" {
+					response.RespondError(ctx, http.StatusBadRequest, "type must be one of: administrator, mechanic, attendant'")
+
+					return
+				}
+			}
+		}
+
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+
 		return
 	}
 
@@ -54,20 +72,21 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 	}
 
 	if _, err := h.service.Create(ctx, c); err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(201, gin.H{"message": "Customer created successfully"})
+	response.RespondCreated[any](ctx, nil, "Customer created successfully")
 }
 
 func (h *CustomerHandler) GetAllCustomers(ctx *gin.Context) {
 	customers, err := h.service.GetAll(ctx)
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+
 		return
 	}
-	ctx.JSON(200, customers)
+	response.RespondSuccess[[]domain.Customer](ctx, customers, "")
 }
 
 func (h *CustomerHandler) GetCustomerByID(ctx *gin.Context) {
@@ -75,19 +94,100 @@ func (h *CustomerHandler) GetCustomerByID(ctx *gin.Context) {
 
 	var id uint
 	if _, err := fmt.Sscanf(customerID, "%d", &id); err != nil {
-		ctx.JSON(400, gin.H{"error": "Invalid customer ID"})
+		response.RespondError(ctx, http.StatusBadRequest, "Invalid customer ID")
 		return
 	}
 
 	customer, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	if customer == nil {
-		ctx.JSON(404, gin.H{"error": "Customer not found"})
+		response.RespondError(ctx, http.StatusNotFound, "Customer not found")
 		return
 	}
-	ctx.JSON(200, customer)
+
+	response.RespondSuccess[domain.Customer](ctx, *customer, "")
+}
+
+func (h *CustomerHandler) DeleteCustomer(ctx *gin.Context) {
+	customerId := ctx.Param("id")
+
+	var id uint
+	if _, err := fmt.Sscanf(customerId, "%d", &id); err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, "Invalid customer ID")
+		return
+	}
+
+	customer, err := h.service.DeleteByID(ctx, id)
+
+	if err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if customer == nil {
+		response.RespondError(ctx, http.StatusNotFound, "Customer not found")
+		return
+	}
+
+	response.RespondSuccess[domain.Customer](ctx, *customer, "")
+}
+
+func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
+	customerId := ctx.Param("id")
+
+	var id uint
+	if _, err := fmt.Sscanf(customerId, "%d", &id); err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, "Invalid customer ID")
+
+		return
+	}
+
+	var json createCustomerRequest
+
+	if err := ctx.ShouldBindJSON(&json); err != nil {
+
+		var validationErrors validator.ValidationErrors
+		if errors.As(err, &validationErrors) {
+			for _, fieldError := range validationErrors {
+				if fieldError.Field() == "Type" && fieldError.Tag() == "oneof" {
+					response.RespondError(ctx, http.StatusBadRequest, "type must be one of: administrator, mechanic, attendant")
+
+					return
+				}
+			}
+		}
+
+		if err != nil {
+			response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	c := domain.Customer{
+		ID:       id,
+		Name:     json.Name,
+		Email:    json.Email,
+		Document: json.Document,
+		Type:     json.Type,
+		Contact:  json.Contact,
+		Address: &domain.Address{
+			Address:       json.Address,
+			AddressNumber: json.AddressNumber,
+			City:          json.City,
+			Neighborhood:  json.Neighborhood,
+			Country:       json.Country,
+			ZipCode:       json.ZipCode,
+		},
+	}
+
+	if err := h.service.UpdateByID(ctx, id, c); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess[any](ctx, nil, "Customer updated successfully")
 }
