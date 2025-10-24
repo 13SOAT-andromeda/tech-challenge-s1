@@ -19,6 +19,7 @@ func NewRouter(
 	customerHandler handlers.CustomerHandler,
 	companyHandler handlers.CompanyHandler,
 	maintenanceHandler handlers.MaintenanceHandler,
+	productHandler handlers.ProductHandler,
 ) *Router {
 	if config.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -32,33 +33,36 @@ func NewRouter(
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), cors.New(corsConfig))
 
+	customerGroup := router.Group("/customers")
 	{
-		customerGroup := router.Group("/customers")
-		{
-			customerGroup.GET("", customerHandler.GetAllCustomers)
-			customerGroup.POST("", customerHandler.CreateCustomer)
-			customerGroup.GET("/:id", customerHandler.GetCustomerByID)
-		}
+		customerGroup.GET("", customerHandler.GetAllCustomers)
+		customerGroup.POST("", customerHandler.CreateCustomer)
+		customerGroup.GET("/:id", customerHandler.GetCustomerByID)
+
 	}
 
+	companyGroup := router.Group("/companies")
 	{
-		companyGroup := router.Group("/companies")
-		{
-			companyGroup.POST("", companyHandler.CreateCompany)
-			companyGroup.GET("/:id", companyHandler.GetCompanyByID)
-			companyGroup.PUT("/:id", companyHandler.UpdateCompany)
-			companyGroup.DELETE("/:id", companyHandler.DeleteCompany)
-		}
+		companyGroup.POST("", companyHandler.CreateCompany)
+		companyGroup.GET("/:id", companyHandler.GetCompanyByID)
+		companyGroup.PUT("/:id", companyHandler.UpdateCompany)
+		companyGroup.DELETE("/:id", companyHandler.DeleteCompany)
 	}
 
+	maintenances := router.Group("/maintenances")
 	{
-		companyGroup := router.Group("/maintenances")
-		{
-			companyGroup.POST("", maintenanceHandler.CreateMaintenance)
-			companyGroup.GET("/:id", maintenanceHandler.GetMaintenanceByID)
-			companyGroup.PUT("/:id", maintenanceHandler.UpdateMaintenance)
-			companyGroup.DELETE("/:id", maintenanceHandler.DeleteMaintenance)
-		}
+		maintenances.POST("", maintenanceHandler.CreateMaintenance)
+		maintenances.GET("/:id", maintenanceHandler.GetMaintenanceByID)
+		maintenances.PUT("/:id", maintenanceHandler.UpdateMaintenance)
+		maintenances.DELETE("/:id", maintenanceHandler.DeleteMaintenance)
+	}
+
+	productGroup := router.Group("/products")
+	{
+		productGroup.POST("", productHandler.CreateProduct)
+		productGroup.GET("", productHandler.GetAllProducts)
+		productGroup.GET("/:id", productHandler.GetProductByID)
+		productGroup.DELETE("/:id", productHandler.DeleteProduct)
 	}
 
 	router.GET("/health", func(c *gin.Context) {

@@ -1,13 +1,12 @@
 package domain
 
-import "time"
-
 type Product struct {
-	ID        uint
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
-	Name      string
-	Quantity  uint
-	Price     uint32
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	Quantity uint   `json:"quantity"`
+	Price    int64  `json:"price"`
+}
+
+type ProductName struct {
+	Name string `json:"name"`
 }

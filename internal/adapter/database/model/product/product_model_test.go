@@ -1,4 +1,4 @@
-package model
+package product
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ import (
 )
 
 func TestProductModelInitialization(t *testing.T) {
-	p := ProductModel{
+	p := Model{
 		Name:     "Product A",
 		Quantity: 10,
 		Price:    1000, // R$ 10.00
@@ -18,14 +18,14 @@ func TestProductModelInitialization(t *testing.T) {
 	assert.NotNil(t, p)
 	assert.Equal(t, "Product A", p.Name)
 	assert.Equal(t, uint(10), p.Quantity)
-	assert.Equal(t, uint32(1000), p.Price)
+	assert.Equal(t, int64(1000), p.Price)
 }
 
 func TestProductModel_ToFromDomain(t *testing.T) {
 	now := time.Now()
 	deletedAt := now.Add(time.Hour * 1)
 
-	modelProduct := &ProductModel{
+	modelProduct := &Model{
 		Model: gorm.Model{
 			ID:        1,
 			CreatedAt: now,
@@ -43,7 +43,5 @@ func TestProductModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelProduct.Name, domainProduct.Name)
 	assert.Equal(t, modelProduct.Quantity, domainProduct.Quantity)
 	assert.Equal(t, modelProduct.Price, domainProduct.Price)
-	assert.Equal(t, modelProduct.CreatedAt, domainProduct.CreatedAt)
-	assert.Equal(t, modelProduct.UpdatedAt, domainProduct.UpdatedAt)
 
 }
