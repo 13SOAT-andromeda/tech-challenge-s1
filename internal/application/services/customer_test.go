@@ -282,3 +282,71 @@ func TestCustomerService_UpdateByID_UpdateFails(t *testing.T) {
 	assert.Contains(t, err.Error(), "Failed to update customer")
 	mockRepo.AssertExpectations(t)
 }
+
+func TestCustomerService_DeleteByID_Success(t *testing.T) {
+	mockRepo := new(MockCustomerRepository)
+	service := NewCustomerService(mockRepo)
+
+	ctx := context.Background()
+	customerID := uint(1)
+	expectedCustomer := &domain.Customer{
+		ID:    customerID,
+		Name:  "John Doe",
+		Email: "john@example.com",
+	}
+
+	var customerModel customer.Model
+	customerModel.FromDomain(expectedCustomer)
+
+	mockRepo.On("FindByID", ctx, customerID).Return(&customerModel, nil)
+	mockRepo.On("Delete", ctx, customerID).Return(nil)
+
+	result, err := service.DeleteByID(ctx, customerID)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, expectedCustomer.Name, result.Name)
+	assert.Equal(t, expectedCustomer.Email, result.Email)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_DeleteByID_NotFound(t *testing.T) {
+	mockRepo := new(MockCustomerRepository)
+	service := NewCustomerService(mockRepo)
+
+	ctx := context.Background()
+	customerID := uint(999)
+
+	mockRepo.On("FindByID", ctx, customerID).Return(nil, errors.New("customer not found"))
+
+	result, err := service.DeleteByID(ctx, customerID)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_DeleteByID_DeleteError(t *testing.T) {
+	mockRepo := new(MockCustomerRepository)
+	service := NewCustomerService(mockRepo)
+
+	ctx := context.Background()
+	customerID := uint(1)
+	expectedCustomer := &domain.Customer{
+		ID:    customerID,
+		Name:  "John Doe",
+		Email: "john@example.com",
+	}
+
+	var customerModel customer.Model
+	customerModel.FromDomain(expectedCustomer)
+
+	mockRepo.On("FindByID", ctx, customerID).Return(&customerModel, nil)
+	mockRepo.On("Delete", ctx, customerID).Return(errors.New("delete error"))
+
+	result, err := service.DeleteByID(ctx, customerID)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	mockRepo.AssertExpectations(t)
+}
