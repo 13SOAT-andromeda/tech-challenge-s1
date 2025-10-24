@@ -18,6 +18,7 @@ func NewRouter(
 	config config.Config,
 	customerHandler handlers.CustomerHandler,
 	companyHandler handlers.CompanyHandler,
+	maintenanceHandler handlers.MaintenanceHandler,
 ) *Router {
 	if config.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -47,6 +48,16 @@ func NewRouter(
 			companyGroup.GET("/:id", companyHandler.GetCompanyByID)
 			companyGroup.PUT("/:id", companyHandler.UpdateCompany)
 			companyGroup.DELETE("/:id", companyHandler.DeleteCompany)
+		}
+	}
+
+	{
+		companyGroup := router.Group("/maintenances")
+		{
+			companyGroup.POST("", maintenanceHandler.CreateMaintenance)
+			companyGroup.GET("/:id", maintenanceHandler.GetMaintenanceByID)
+			companyGroup.PUT("/:id", maintenanceHandler.UpdateMaintenance)
+			companyGroup.DELETE("/:id", maintenanceHandler.DeleteMaintenance)
 		}
 	}
 

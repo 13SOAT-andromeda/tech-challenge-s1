@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
@@ -43,7 +42,6 @@ func (h *CompanyHandler) CreateCompany(ctx *gin.Context) {
 		Document: json.Document,
 		Contact:  json.Contact,
 		Address: &domain.Address{
-			Address:       json.Address,
 			AddressNumber: json.AddressNumber,
 			City:          json.City,
 			Neighborhood:  json.Neighborhood,
@@ -64,7 +62,7 @@ func (h *CompanyHandler) GetCompanyByID(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	idUint, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "ID inválido"})
+		ctx.JSON(400, gin.H{"error": "ID invalid"})
 		return
 	}
 	company, err := h.service.GetByID(ctx.Request.Context(), uint(idUint))
@@ -124,5 +122,5 @@ func (h *CompanyHandler) DeleteCompany(ctx *gin.Context) {
 		ctx.JSON(500, gin.H{"error": "Failed to delete company"})
 		return
 	}
-	ctx.JSON(200, gin.H{"message": fmt.Sprintf("Company with ID %d deleted successfully", idUint)})
+	ctx.JSON(200, gin.H{"message": "Company deleted successfully"})
 }

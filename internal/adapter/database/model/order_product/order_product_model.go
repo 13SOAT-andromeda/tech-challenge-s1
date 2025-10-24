@@ -13,7 +13,7 @@ type Model struct {
 	Order     order.Model        `gorm:"foreignkey:OrderId;references:Id"`
 }
 
-func (Model) TableName() string {
+func (*Model) TableName() string {
 	return "Order_Product"
 }
 
