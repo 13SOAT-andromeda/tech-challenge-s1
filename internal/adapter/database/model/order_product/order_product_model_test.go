@@ -3,9 +3,9 @@ package order_product
 import (
 	"testing"
 
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,7 +25,7 @@ func TestOrderProductModel_ToFromDomain(t *testing.T) {
 		ProductId: 1,
 		OrderId:   1,
 		Product:   product.Model{},
-		Order:     order.Model{User: model.Model{Sessions: []model.SessionModel{}}},
+		Order:     order.Model{User: user.Model{}},
 	}
 
 	domain := modelOrderProduct.ToDomain()
