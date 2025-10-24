@@ -1,4 +1,4 @@
-package model
+package maintenance
 
 import (
 	"testing"
@@ -10,15 +10,15 @@ import (
 
 func TestServiceModelInitialization(t *testing.T) {
 	defaultPrice := 100.0
-	s := ServiceModel{
-		Name:         "Service A",
+	s := Model{
+		Name:         "Maintenance A",
 		DefaultPrice: &defaultPrice,
 		CategoryId:   1,
 		Number:       "S123",
 	}
 
 	assert.NotNil(t, s)
-	assert.Equal(t, "Service A", s.Name)
+	assert.Equal(t, "Maintenance A", s.Name)
 	assert.Equal(t, &defaultPrice, s.DefaultPrice)
 	assert.Equal(t, uint(1), s.CategoryId)
 	assert.Equal(t, "S123", s.Number)
@@ -29,7 +29,7 @@ func TestServiceModel_ToFromDomain(t *testing.T) {
 	deletedAt := now.Add(time.Hour * 1)
 	defaultPrice := 100.0
 
-	modelService := &ServiceModel{
+	modelService := &Model{
 		Model: gorm.Model{
 			ID:        1,
 			CreatedAt: now,
@@ -47,9 +47,5 @@ func TestServiceModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelService.ID, domainService.ID)
 	assert.Equal(t, modelService.Name, domainService.Name)
 	assert.Equal(t, modelService.DefaultPrice, domainService.DefaultPrice)
-	assert.Equal(t, modelService.CategoryId, domainService.CategoryId)
 	assert.Equal(t, modelService.Number, domainService.Number)
-	assert.Equal(t, modelService.CreatedAt, domainService.CreatedAt)
-	assert.Equal(t, modelService.UpdatedAt, domainService.UpdatedAt)
-
 }

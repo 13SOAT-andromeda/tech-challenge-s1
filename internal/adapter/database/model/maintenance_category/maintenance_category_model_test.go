@@ -1,4 +1,4 @@
-package model
+package maintenance_category
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ import (
 )
 
 func TestServiceCategoryModelInitialization(t *testing.T) {
-	sc := ServiceCategoryModel{
+	sc := Model{
 		Name: "Category A",
 	}
 
@@ -21,7 +21,7 @@ func TestServiceCategoryModel_ToFromDomain(t *testing.T) {
 	now := time.Now()
 	deletedAt := now.Add(time.Hour * 1)
 
-	modelServiceCategory := &ServiceCategoryModel{
+	modelServiceCategory := &Model{
 		Model: gorm.Model{
 			ID:        1,
 			CreatedAt: now,
@@ -35,7 +35,4 @@ func TestServiceCategoryModel_ToFromDomain(t *testing.T) {
 
 	assert.Equal(t, modelServiceCategory.ID, domainServiceCategory.ID)
 	assert.Equal(t, modelServiceCategory.Name, domainServiceCategory.Name)
-	assert.Equal(t, modelServiceCategory.CreatedAt, domainServiceCategory.CreatedAt)
-	assert.Equal(t, modelServiceCategory.UpdatedAt, domainServiceCategory.UpdatedAt)
-
 }

@@ -18,6 +18,8 @@ func NewRouter(
 	config config.Config,
 	customerHandler handlers.CustomerHandler,
 	companyHandler handlers.CompanyHandler,
+	maintenanceHandler handlers.MaintenanceHandler,
+	productHandler handlers.ProductHandler,
 ) *Router {
 	if config.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -42,14 +44,28 @@ func NewRouter(
 		}
 	}
 
+	companyGroup := router.Group("/companies")
 	{
-		companyGroup := router.Group("/companies")
-		{
-			companyGroup.POST("", companyHandler.CreateCompany)
-			companyGroup.GET("/:id", companyHandler.GetCompanyByID)
-			companyGroup.PUT("/:id", companyHandler.UpdateCompany)
-			companyGroup.DELETE("/:id", companyHandler.DeleteCompany)
-		}
+		companyGroup.POST("", companyHandler.CreateCompany)
+		companyGroup.GET("/:id", companyHandler.GetCompanyByID)
+		companyGroup.PUT("/:id", companyHandler.UpdateCompany)
+		companyGroup.DELETE("/:id", companyHandler.DeleteCompany)
+	}
+
+	maintenances := router.Group("/maintenances")
+	{
+		maintenances.POST("", maintenanceHandler.CreateMaintenance)
+		maintenances.GET("/:id", maintenanceHandler.GetMaintenanceByID)
+		maintenances.PUT("/:id", maintenanceHandler.UpdateMaintenance)
+		maintenances.DELETE("/:id", maintenanceHandler.DeleteMaintenance)
+	}
+
+	productGroup := router.Group("/products")
+	{
+		productGroup.POST("", productHandler.CreateProduct)
+		productGroup.GET("", productHandler.GetAllProducts)
+		productGroup.GET("/:id", productHandler.GetProductByID)
+		productGroup.DELETE("/:id", productHandler.DeleteProduct)
 	}
 
 	router.GET("/health", func(c *gin.Context) {
