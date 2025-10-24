@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
@@ -123,5 +122,5 @@ func (h *CompanyHandler) DeleteCompany(ctx *gin.Context) {
 		ctx.JSON(500, gin.H{"error": "Failed to delete company"})
 		return
 	}
-	ctx.JSON(200, gin.H{"message": fmt.Sprintf("Company deleted successfully", idUint)})
+	ctx.JSON(200, gin.H{"message": "Company deleted successfully"})
 }

@@ -13,7 +13,7 @@ type Model struct {
 	Number       string `gorm:"not null"`
 }
 
-func (Model) TableName() string {
+func (*Model) TableName() string {
 	return "Maintenance"
 }
 
