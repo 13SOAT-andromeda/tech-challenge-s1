@@ -7,6 +7,11 @@ import (
 )
 
 func ValidateCpf(cpf string) bool {
+
+	if cpf == "" {
+		return false
+	}
+
 	re := regexp.MustCompile(`\D`)
 	cpf = re.ReplaceAllString(cpf, "")
 

@@ -28,7 +28,7 @@ func (r *BaseRepository[T]) FindAll(ctx context.Context, includeDeleted bool) ([
 	db := r.db.WithContext(ctx)
 
 	if includeDeleted {
-		db.Unscoped()
+		db = db.Unscoped()
 	}
 	err := db.Find(&entities).Error
 

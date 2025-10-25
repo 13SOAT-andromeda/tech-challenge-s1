@@ -8,6 +8,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -86,6 +87,36 @@ func (h *CustomerHandler) GetAllCustomers(ctx *gin.Context) {
 
 		return
 	}
+	response.RespondSuccess[[]domain.Customer](ctx, customers, "")
+}
+
+func (h *CustomerHandler) Search(ctx *gin.Context) {
+
+	filter := &filter.CustomerFilter{}
+
+	if doc := ctx.Query("document"); doc != "" {
+		filter.Document = &doc
+	}
+
+	if name := ctx.Query("name"); name != "" {
+		filter.Name = &name
+	}
+
+	if status := ctx.Query("status"); status != "" {
+		filter.Status = status == "true" || status == "1"
+	}
+
+	if email := ctx.Query("email"); email != "" {
+		filter.Email = &email
+	}
+
+	customers, err := h.service.Search(ctx, filter)
+
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	response.RespondSuccess[[]domain.Customer](ctx, customers, "")
 }
 

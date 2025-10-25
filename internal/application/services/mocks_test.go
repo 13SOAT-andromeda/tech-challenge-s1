@@ -8,6 +8,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -67,6 +68,14 @@ func (m *MockCustomerRepository) FindByDocument(ctx context.Context, document st
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*customer.Model), args.Error(1)
+}
+
+func (m *MockCustomerRepository) Search(ctx context.Context, filters filter.CustomerFilter) ([]customer.Model, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]customer.Model), args.Error(1)
 }
 
 type MockCompanyRepository struct {

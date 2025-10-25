@@ -36,11 +36,11 @@ func NewRouter(
 	{
 		customerGroup := router.Group("/customers")
 		{
-			customerGroup.GET("", customerHandler.GetAllCustomers)
-			customerGroup.POST("", customerHandler.CreateCustomer)
 			customerGroup.GET("/:id", customerHandler.GetCustomerByID)
-			customerGroup.DELETE("/:id", customerHandler.DeleteCustomer)
+			customerGroup.GET("", customerHandler.Search)
+			customerGroup.POST("", customerHandler.CreateCustomer)
 			customerGroup.PUT("/:id", customerHandler.UpdateCustomer)
+			customerGroup.DELETE("/:id", customerHandler.DeleteCustomer)
 		}
 	}
 

@@ -133,6 +133,38 @@ func TestCustomerService_GetByID_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+func TestCustomerService_Search_Success(t *testing.T) {
+	mockRepo := new(MockCustomerRepository)
+	service := NewCustomerService(mockRepo)
+
+	ctx := context.Background()
+
+	expectedCustomers := []customer.Model{
+		{
+			Name:  "Gedan Magalhaes",
+			Email: "gedan@example.com",
+		},
+		{
+			Name:  "Elen Magalhaes",
+			Email: "elen@example.com",
+		},
+	}
+
+	mockRepo.On("Search", ctx).Return(expectedCustomers, nil)
+
+	result, err := service.Search(ctx, nil)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, result, 2)
+	assert.Equal(t, "Gedan Magalhaes", result[0].Name)
+	assert.Equal(t, "gedan@example.com", result[0].Email)
+	assert.Equal(t, "Elen Magalhaes", result[1].Name)
+	assert.Equal(t, "elen@example.com", result[1].Email)
+
+	mockRepo.AssertExpectations(t)
+}
+
 func TestCustomerService_GetAll_Success(t *testing.T) {
 	mockRepo := new(MockCustomerRepository)
 	service := NewCustomerService(mockRepo)

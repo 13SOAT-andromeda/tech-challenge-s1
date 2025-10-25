@@ -8,6 +8,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/utils"
 	"gorm.io/gorm"
 )
@@ -79,6 +80,31 @@ func (s *customerService) UpdateByID(ctx context.Context, id uint, c domain.Cust
 func (s *customerService) GetAll(ctx context.Context) ([]domain.Customer, error) {
 
 	customerModels, err := s.repo.FindAll(ctx, true)
+
+	if err != nil {
+		return nil, err
+	}
+
+	domainCustomers := make([]domain.Customer, 0, len(customerModels))
+
+	for _, customerModel := range customerModels {
+		domainCustomers = append(domainCustomers, *customerModel.ToDomain())
+	}
+
+	return domainCustomers, nil
+}
+
+func (s *customerService) Search(ctx context.Context, customerFilter *filter.CustomerFilter) ([]domain.Customer, error) {
+
+	if customerFilter == nil {
+		customerFilter = &filter.CustomerFilter{}
+	}
+
+	if customerFilter.Document != nil && !utils.ValidateCpf(*customerFilter.Document) {
+		return nil, fmt.Errorf("document is invalid")
+	}
+
+	customerModels, err := s.repo.Search(ctx, *customerFilter)
 
 	if err != nil {
 		return nil, err
