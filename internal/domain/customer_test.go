@@ -7,13 +7,16 @@ import (
 )
 
 func TestCustomerInitialization(t *testing.T) {
+
 	c := Customer{
-		ID:       1,
-		Name:     "Gedan",
-		Email:    "gedan@example.com",
-		Document: "12345678900",
-		Type:     "teste",
-		Contact:  "11999999999",
+		ID:    1,
+		Name:  "Gedan",
+		Email: "gedan@example.com",
+		Document: &Document{
+			Number: "45653421898",
+		},
+		Type:    "teste",
+		Contact: "11999999999",
 		Address: &Address{
 			Address:       "Rua Teste",
 			City:          "New York",
@@ -27,7 +30,7 @@ func TestCustomerInitialization(t *testing.T) {
 	assert.NotNil(t, c)
 	assert.Equal(t, "Gedan", c.Name)
 	assert.Equal(t, "gedan@example.com", c.Email)
-	assert.Equal(t, "12345678900", c.Document)
+	assert.Equal(t, "45653421898", c.Document.GetDocumentNumber())
 	assert.Equal(t, "teste", c.Type)
 	assert.Equal(t, "11999999999", c.Contact)
 	assert.Equal(t, "Rua Teste", c.Address.Address)

@@ -9,7 +9,6 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/utils"
 	"gorm.io/gorm"
 )
 
@@ -23,11 +22,7 @@ func NewCustomerService(repo ports.CustomerRepository) *customerService {
 
 func (s *customerService) Create(ctx context.Context, c domain.Customer) (*domain.Customer, error) {
 
-	if !utils.ValidateCpf(c.Document) {
-		return nil, errors.New("Document is invalid")
-	}
-
-	existentCustomer, err := s.repo.FindByDocument(ctx, c.Document)
+	existentCustomer, err := s.repo.FindByDocument(ctx, c.Document.GetDocumentNumber())
 
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
@@ -56,13 +51,15 @@ func (s *customerService) UpdateByID(ctx context.Context, id uint, c domain.Cust
 	_, err := s.repo.FindByID(ctx, id)
 
 	if err != nil {
-		return fmt.Errorf("Customer with Id %d not found: %w", id, err)
+		return fmt.Errorf("Customer with Id %d not found or disabled", id)
 	}
 
-	if c.Document != "" {
-		other, err := s.repo.FindByDocument(ctx, c.Document)
+	doc := c.Document.GetDocumentNumber()
+
+	if doc != "" {
+		other, err := s.repo.FindByDocument(ctx, doc)
 		if err == nil && other.ID != id {
-			return fmt.Errorf("The customer cannot be updated. Document is invalid or already in use to another customer")
+			return fmt.Errorf("The customer cannot be updated. Number is invalid or already in use to another customer")
 		}
 	}
 
@@ -77,31 +74,10 @@ func (s *customerService) UpdateByID(ctx context.Context, id uint, c domain.Cust
 	return nil
 }
 
-func (s *customerService) GetAll(ctx context.Context) ([]domain.Customer, error) {
-
-	customerModels, err := s.repo.FindAll(ctx, true)
-
-	if err != nil {
-		return nil, err
-	}
-
-	domainCustomers := make([]domain.Customer, 0, len(customerModels))
-
-	for _, customerModel := range customerModels {
-		domainCustomers = append(domainCustomers, *customerModel.ToDomain())
-	}
-
-	return domainCustomers, nil
-}
-
 func (s *customerService) Search(ctx context.Context, customerFilter *filter.CustomerFilter) ([]domain.Customer, error) {
 
 	if customerFilter == nil {
 		customerFilter = &filter.CustomerFilter{}
-	}
-
-	if customerFilter.Document != nil && !utils.ValidateCpf(*customerFilter.Document) {
-		return nil, fmt.Errorf("document is invalid")
 	}
 
 	customerModels, err := s.repo.Search(ctx, *customerFilter)

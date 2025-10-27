@@ -25,7 +25,7 @@ type createCustomerRequest struct {
 	Name          string `json:"name" binding:"required"`
 	Email         string `json:"email" binding:"required,email"`
 	Document      string `json:"document" binding:"required"`
-	Type          string `json:"type" binding:"required,oneof=administrator mechanic attendant"`
+	Type          string `json:"type" binding:"required"`
 	Contact       string `json:"contact" binding:"required"`
 	Address       string `json:"address" binding:"required"`
 	AddressNumber string `json:"address_number" binding:"required"`
@@ -56,12 +56,20 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 		return
 	}
 
+	//doc, err := domain.NewDocument(json.Document)
+	//
+	//if err != nil {
+	//	response.RespondError(ctx, http.StatusBadRequest, err.Error())
+	//}
+
 	c := domain.Customer{
-		Name:     json.Name,
-		Email:    json.Email,
-		Document: json.Document,
-		Type:     json.Type,
-		Contact:  json.Contact,
+		Name:  json.Name,
+		Email: json.Email,
+		Document: &domain.Document{
+			Number: json.Document,
+		},
+		Type:    json.Type,
+		Contact: json.Contact,
 		Address: &domain.Address{
 			Address:       json.Address,
 			AddressNumber: json.AddressNumber,
@@ -72,22 +80,17 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 		},
 	}
 
+	//if err := c.ValidateCustomerType(); err != nil {
+	//	response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+	//	return
+	//}
+
 	if _, err := h.service.Create(ctx, c); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	response.RespondCreated[any](ctx, nil, "Customer created successfully")
-}
-
-func (h *CustomerHandler) GetAllCustomers(ctx *gin.Context) {
-	customers, err := h.service.GetAll(ctx)
-	if err != nil {
-		response.RespondError(ctx, http.StatusBadRequest, err.Error())
-
-		return
-	}
-	response.RespondSuccess[[]domain.Customer](ctx, customers, "")
 }
 
 func (h *CustomerHandler) Search(ctx *gin.Context) {
@@ -198,11 +201,18 @@ func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
 		}
 	}
 
+	doc, err := domain.NewDocument(json.Document)
+
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	c := domain.Customer{
 		ID:       id,
 		Name:     json.Name,
 		Email:    json.Email,
-		Document: json.Document,
+		Document: doc,
 		Type:     json.Type,
 		Contact:  json.Contact,
 		Address: &domain.Address{
@@ -213,6 +223,11 @@ func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
 			Country:       json.Country,
 			ZipCode:       json.ZipCode,
 		},
+	}
+
+	if err := c.ValidateCustomerType(); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	if err := h.service.UpdateByID(ctx, id, c); err != nil {

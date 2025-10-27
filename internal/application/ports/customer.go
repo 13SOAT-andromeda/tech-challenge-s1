@@ -18,7 +18,6 @@ type CustomerRepository interface {
 
 type CustomerService interface {
 	Create(ctx context.Context, c domain.Customer) (*domain.Customer, error)
-	GetAll(ctx context.Context) ([]domain.Customer, error)
 	Search(ctx context.Context, filter *filter.CustomerFilter) ([]domain.Customer, error)
 	GetByID(ctx context.Context, id uint) (*domain.Customer, error)
 	UpdateByID(ctx context.Context, id uint, c domain.Customer) error
