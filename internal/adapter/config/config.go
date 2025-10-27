@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Database *DataBaseConfig
 	Http     *HttpConfig
+	JWT      *JWTConfig
 	Env      string
 }
 
@@ -27,6 +28,12 @@ type DataBaseConfig struct {
 	Port     string
 	SSLMode  string
 	TimeZone string
+}
+
+type JWTConfig struct {
+	Secret            string
+	AccessTokenExpiry string
+	RefreshTokenExpiry string
 }
 
 func getEnv(key, defaultValue string) string {
@@ -63,9 +70,16 @@ func Init() (*Config, error) {
 		Url:            getEnv("HTTP_URL", "http://localhost"),
 	}
 
+	jwt := &JWTConfig{
+		Secret:             getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-in-production"),
+		AccessTokenExpiry:  getEnv("JWT_ACCESS_TOKEN_EXPIRY", "15m"),
+		RefreshTokenExpiry: getEnv("JWT_REFRESH_TOKEN_EXPIRY", "7d"),
+	}
+
 	return &Config{
 		Database: database,
 		Http:     http,
+		JWT:      jwt,
 		Env:      getEnv("ENV", "development"),
 	}, nil
 }

@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
@@ -15,6 +17,8 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecase/session"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/jwt"
 )
 
 func main() {
@@ -35,6 +39,7 @@ func main() {
 		&maintenance.Model{},
 		&product.Model{},
 		&user.Model{},
+		&model.SessionModel{},
 	)
 
 	if err != nil {
@@ -48,12 +53,14 @@ func main() {
 	maintenanceRepository := repository.NewMaintenenceRepository(dbase)
 	productRepository := repository.NewProductRepository(dbase)
 	userRepository := repository.NewUserRepository(dbase)
+	sessionRepository := repository.NewSessionRepository(dbase)
 
 	customerService := services.NewCustomerService(customerRepository)
 	companyService := services.NewCompanyService(companyRepository)
 	maintenanceService := services.NewMaintenanceService(maintenanceRepository)
 	productService := services.NewProductService(productRepository)
 	userService := services.NewUserService(userRepository)
+	sessionService := services.NewSessionService(sessionRepository)
 
 	customerHandler := handlers.NewCustomerHandler(customerService)
 	companyHandler := handlers.NewCompanyHandler(companyService)
@@ -61,7 +68,26 @@ func main() {
 	productHandler := handlers.NewProductHandler(productService)
 	userHandler := handlers.NewUserHandler(userService)
 
-	router := http.NewRouter(*cfg, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler)
+	// JWT Service
+	accessExpiry, _ := time.ParseDuration(cfg.JWT.AccessTokenExpiry)
+	refreshExpiry, _ := time.ParseDuration(cfg.JWT.RefreshTokenExpiry)
+	jwtService := jwt.NewService(cfg.JWT.Secret, accessExpiry, refreshExpiry)
+
+	// Session UseCases
+	loginUseCase := session.NewLoginUseCase(userService, sessionService, jwtService, cfg)
+	validateUseCase := session.NewValidateUseCase(userService, jwtService)
+	refreshUseCase := session.NewRefreshUseCase(userService, sessionService, jwtService, cfg)
+	logoutUseCase := session.NewLogoutUseCase(sessionService)
+
+	// Session Handler
+	sessionHandler := handlers.NewSessionHandler(
+		loginUseCase,
+		validateUseCase,
+		refreshUseCase,
+		logoutUseCase,
+	)
+
+	router := http.NewRouter(*cfg, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *sessionHandler)
 	log.Printf("Starting HTTP server on port %s", cfg.Http.Port)
 
 	if err = router.Server(":" + cfg.Http.Port); err != nil {
