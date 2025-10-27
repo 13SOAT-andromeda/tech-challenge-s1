@@ -16,13 +16,14 @@ type UserSearch struct {
 type UserRepository interface {
 	Repository[user.Model]
 	Search(ctx context.Context, params UserSearch) []user.Model
-	Exists(ctx context.Context, id uint, email string) (bool, error)
+	GetByEmail(ctx context.Context, email string) (*user.Model, error)
 }
 
 type UserService interface {
 	Create(ctx context.Context, u domain.User) (*domain.User, error)
 	GetAll(ctx context.Context) ([]domain.User, error)
 	GetByID(ctx context.Context, id uint) (*domain.User, error)
+	GetByEmail(ctx context.Context, email string) (*domain.User, error)
 	Search(ctx context.Context, params map[string]interface{}) (*[]domain.User, error)
 	Update(ctx context.Context, u domain.User) (*domain.User, error)
 	Delete(ctx context.Context, id uint) error

@@ -37,17 +37,17 @@ func (u *userRepository) Search(ctx context.Context, params ports.UserSearch) []
 	return users
 }
 
-func (u *userRepository) Exists(ctx context.Context, id uint, email string) (bool, error) {
+func (u *userRepository) GetByEmail(ctx context.Context, email string) (*user.Model, error) {
 	user := user.Model{}
-	err := u.db.Where("id <> ? AND email = ?", id, email).First(&user).Error
+	err := u.db.Where("email = ?", email).First(&user).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, nil
+			return nil, nil
 		}
-		return false, err
+		return nil, err
 	}
-	return true, nil
+	return &user, nil
 }
 
 func (u *userRepository) Delete(ctx context.Context, id uint) error {
