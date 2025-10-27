@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
@@ -122,15 +122,16 @@ func (h *CustomerHandler) Search(ctx *gin.Context) {
 }
 
 func (h *CustomerHandler) GetCustomerByID(ctx *gin.Context) {
-	customerID := ctx.Param("id")
+	customerIdStr := ctx.Param("id")
 
-	var id uint
-	if _, err := fmt.Sscanf(customerID, "%d", &id); err != nil {
+	customerId, err := strconv.ParseUint(customerIdStr, 10, 64)
+
+	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, "Invalid customer ID")
 		return
 	}
 
-	customer, err := h.service.GetByID(ctx, id)
+	customer, err := h.service.GetByID(ctx, uint(customerId))
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -145,15 +146,16 @@ func (h *CustomerHandler) GetCustomerByID(ctx *gin.Context) {
 }
 
 func (h *CustomerHandler) DeleteCustomer(ctx *gin.Context) {
-	customerId := ctx.Param("id")
+	customerIdStr := ctx.Param("id")
 
-	var id uint
-	if _, err := fmt.Sscanf(customerId, "%d", &id); err != nil {
+	customerId, err := strconv.ParseUint(customerIdStr, 10, 64)
+
+	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, "Invalid customer ID")
 		return
 	}
 
-	customer, err := h.service.DeleteByID(ctx, id)
+	customer, err := h.service.DeleteByID(ctx, uint(customerId))
 
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
@@ -169,12 +171,12 @@ func (h *CustomerHandler) DeleteCustomer(ctx *gin.Context) {
 }
 
 func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
-	customerId := ctx.Param("id")
+	customerIdStr := ctx.Param("id")
 
-	var id uint
-	if _, err := fmt.Sscanf(customerId, "%d", &id); err != nil {
+	customerId, err := strconv.ParseUint(customerIdStr, 10, 64)
+
+	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, "Invalid customer ID")
-
 		return
 	}
 
@@ -207,7 +209,7 @@ func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
 	}
 
 	c := domain.Customer{
-		ID:       id,
+		ID:       uint(customerId),
 		Name:     json.Name,
 		Email:    json.Email,
 		Document: doc,
@@ -228,7 +230,7 @@ func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.service.UpdateByID(ctx, id, c); err != nil {
+	if err := h.service.UpdateByID(ctx, uint(customerId), c); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
