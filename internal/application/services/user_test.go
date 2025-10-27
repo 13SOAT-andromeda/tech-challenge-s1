@@ -8,29 +8,16 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 // MockHasher é um mock para o hasher do Password
-type MockHasher struct {
-	mock.Mock
-}
-
-func (m *MockHasher) Generate(password []byte, cost int) ([]byte, error) {
-	args := m.Called(password, cost)
-	return args.Get(0).([]byte), args.Error(1)
-}
-
-func (m *MockHasher) Compare(hashedPassword []byte, password []byte) error {
-	args := m.Called(hashedPassword, password)
-	return args.Error(0)
-}
-
 func TestUserService_Create_Success(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockUserRepository)
-	mockHasher := new(MockHasher)
+	mockHasher := new(encryption.MockHasher)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -62,8 +49,8 @@ func TestUserService_Create_Success(t *testing.T) {
 	mockModel.FromDomain(&inputUser)
 
 	// Configurar o mock
-	mockRepo.On("Exists", ctx, uint(0), "joao@test.com").Return(false, nil)
 	mockRepo.On("Create", ctx, mock.AnythingOfType("*user.Model")).Return(&mockModel, nil)
+	mockRepo.On("GetByEmail", ctx, inputUser.Email).Return(nil, nil)
 
 	// Act
 	result, err := service.Create(ctx, inputUser)
@@ -86,7 +73,7 @@ func TestUserService_Create_EmailAlreadyExists(t *testing.T) {
 
 	ctx := context.Background()
 
-	password, err := domain.NewPassword("TestPass123!", &MockHasher{})
+	password, err := domain.NewPassword("TestPass123!", &encryption.MockHasher{})
 	assert.NoError(t, err)
 
 	inputUser := domain.User{
@@ -98,8 +85,11 @@ func TestUserService_Create_EmailAlreadyExists(t *testing.T) {
 		Active:   true,
 	}
 
+	mockModel := user.Model{}
+	mockModel.FromDomain(&inputUser)
+
 	// Configurar o mock para retornar que o email já existe
-	mockRepo.On("Exists", ctx, uint(0), "joao@test.com").Return(true, nil)
+	mockRepo.On("GetByEmail", ctx, inputUser.Email).Return(&mockModel, nil)
 
 	// Act
 	result, err := service.Create(ctx, inputUser)
@@ -114,7 +104,7 @@ func TestUserService_Create_EmailAlreadyExists(t *testing.T) {
 func TestUserService_Create_RepositoryError(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockUserRepository)
-	mockHasher := new(MockHasher)
+	mockHasher := new(encryption.MockHasher)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -137,8 +127,8 @@ func TestUserService_Create_RepositoryError(t *testing.T) {
 	expectedError := errors.New("database connection error")
 
 	// Configurar o mock
-	mockRepo.On("Exists", ctx, uint(0), "joao@test.com").Return(false, nil)
 	mockRepo.On("Create", ctx, mock.AnythingOfType("*user.Model")).Return(nil, expectedError)
+	mockRepo.On("GetByEmail", ctx, inputUser.Email).Return(nil, nil)
 
 	// Act
 	result, err := service.Create(ctx, inputUser)
@@ -410,26 +400,37 @@ func TestUserService_Update_EmailAlreadyExists(t *testing.T) {
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
-	userID := uint(1)
+	userID := uint(2)
 
 	existingUser := &user.Model{
-		ID:     1,
-		Name:   "João Silva",
-		Email:  "joao@test.com",
+		ID:       1,
+		Name:     "João Silva",
+		Email:    "new@test.com",
+		Role:     "admin",
+		Password: "hashed_password",
+		Active:   true,
+	}
+
+	oldDataUser := &user.Model{
+		ID:       userID,
+		Name:     "João Silva",
+		Email:    "old@test.com",
+		Role:     "admin",
+		Password: "hashed_password",
+		Active:   true,
+	}
+
+	updatedUser := domain.User{
+		ID:     userID,
+		Name:   "João Silva Santos",
+		Email:  "new@test.com",
 		Role:   "admin",
 		Active: true,
 	}
 
-	updatedUser := domain.User{
-		ID:    userID,
-		Name:  "João Silva Santos",
-		Email: "novo@test.com",
-		Role:  "admin",
-	}
-
 	// Configurar o mock
-	mockRepo.On("FindByID", ctx, userID).Return(existingUser, nil)
-	mockRepo.On("Exists", ctx, userID, "novo@test.com").Return(true, nil)
+	mockRepo.On("FindByID", ctx, userID).Return(oldDataUser, nil)
+	mockRepo.On("GetByEmail", ctx, updatedUser.Email).Return(existingUser, nil)
 
 	// Act
 	result, err := service.Update(ctx, updatedUser)
@@ -457,7 +458,7 @@ func TestUserService_Update_PasswordUpdateNotAllowed(t *testing.T) {
 		Active: true,
 	}
 
-	password, err := domain.NewPassword("NewPass123!", &MockHasher{})
+	password, err := domain.NewPassword("NewPass123!", &encryption.MockHasher{})
 	assert.NoError(t, err)
 
 	updatedUser := domain.User{
@@ -524,7 +525,7 @@ func TestUserService_Delete_RepositoryError(t *testing.T) {
 func TestUserService_Create_WithNilAddress(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockUserRepository)
-	mockHasher := new(MockHasher)
+	mockHasher := new(encryption.MockHasher)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -549,7 +550,7 @@ func TestUserService_Create_WithNilAddress(t *testing.T) {
 	mockModel.FromDomain(&inputUser)
 
 	// Configurar o mock
-	mockRepo.On("Exists", ctx, uint(0), "joao@test.com").Return(false, nil)
+	mockRepo.On("GetByEmail", ctx, "joao@test.com").Return(nil, nil)
 	mockRepo.On("Create", ctx, mock.AnythingOfType("*user.Model")).Return(&mockModel, nil)
 
 	// Act
