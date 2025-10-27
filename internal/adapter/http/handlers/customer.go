@@ -56,20 +56,18 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 		return
 	}
 
-	//doc, err := domain.NewDocument(json.Document)
-	//
-	//if err != nil {
-	//	response.RespondError(ctx, http.StatusBadRequest, err.Error())
-	//}
+	doc, err := domain.NewDocument(json.Document)
+
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+	}
 
 	c := domain.Customer{
-		Name:  json.Name,
-		Email: json.Email,
-		Document: &domain.Document{
-			Number: json.Document,
-		},
-		Type:    json.Type,
-		Contact: json.Contact,
+		Name:     json.Name,
+		Email:    json.Email,
+		Document: doc,
+		Type:     json.Type,
+		Contact:  json.Contact,
 		Address: &domain.Address{
 			Address:       json.Address,
 			AddressNumber: json.AddressNumber,
@@ -80,10 +78,10 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 		},
 	}
 
-	//if err := c.ValidateCustomerType(); err != nil {
-	//	response.RespondError(ctx, http.StatusInternalServerError, err.Error())
-	//	return
-	//}
+	if err := c.ValidateCustomerType(); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 	if _, err := h.service.Create(ctx, c); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())

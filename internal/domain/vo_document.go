@@ -27,7 +27,9 @@ func NewDocument(document string) (*Document, error) {
 		Number: document,
 	}
 
-	if !doc.ValidateCpf() {
+	isValid := doc.ValidateCpf()
+
+	if !isValid {
 		return nil, errors.New("Document number is invalid")
 	}
 
