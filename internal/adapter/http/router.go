@@ -20,6 +20,7 @@ func NewRouter(
 	companyHandler handlers.CompanyHandler,
 	maintenanceHandler handlers.MaintenanceHandler,
 	productHandler handlers.ProductHandler,
+	userHandler handlers.UserHandler,
 ) *Router {
 	if config.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -66,6 +67,16 @@ func NewRouter(
 		productGroup.GET("", productHandler.GetAllProducts)
 		productGroup.GET("/:id", productHandler.GetProductByID)
 		productGroup.DELETE("/:id", productHandler.DeleteProduct)
+	}
+
+	userGroup := router.Group("/user")
+	{
+		userGroup.GET("", userHandler.GetAll)
+		userGroup.POST("", userHandler.Create)
+		userGroup.GET("/:id", userHandler.GetByID)
+		userGroup.GET("/search", userHandler.Search)
+		userGroup.PUT("/:id", userHandler.Update)
+		userGroup.DELETE("/:id", userHandler.Delete)
 	}
 
 	router.GET("/health", func(c *gin.Context) {

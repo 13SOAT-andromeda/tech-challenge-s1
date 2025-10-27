@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -62,7 +62,7 @@ func TestOrderModel_ToFromDomain(t *testing.T) {
 		UserId:            1,
 		CustomerVehicleId: 1,
 		CompanyId:         1,
-		User:              model.Model{Sessions: []model.SessionModel{}},
+		User:              user.Model{},
 		CustomerVehicle:   customer_vehicle.Model{},
 		Company:           company.Model{},
 	}

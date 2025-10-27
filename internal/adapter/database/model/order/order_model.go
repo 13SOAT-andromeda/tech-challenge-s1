@@ -3,9 +3,9 @@ package order
 import (
 	"time"
 
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	customerVehicle "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
 
@@ -22,7 +22,7 @@ type Model struct {
 	UserId            uint
 	CustomerVehicleId uint
 	CompanyId         uint
-	User              model.Model           `gorm:"foreignKey:UserId;references:ID"`
+	User              user.Model            `gorm:"foreignKey:UserId;references:ID"`
 	CustomerVehicle   customerVehicle.Model `gorm:"foreignKey:CustomerVehicleId;references:ID"`
 	Company           company.Model         `gorm:"foreignKey:CompanyId;references:ID"`
 }
