@@ -1,20 +1,12 @@
 package domain
 
-import (
-	"time"
-)
-
 type User struct {
-	ID        uint
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
-	Name      string
-	Email     string
-	Contact   string
-	Address   string
-	Password  string
-	Role      string
-
-	Sessions []Session
+	ID       uint      `json:"id"`
+	Name     string    `json:"name"`
+	Email    string    `json:"email"`
+	Contact  string    `json:"contact"`
+	Address  *Address  `json:"address"`
+	Password *Password `json:"-"`
+	Role     string    `json:"role"`
+	Active   bool      `json:"active"`
 }
