@@ -27,6 +27,8 @@ func NewDocument(document string) (*Document, error) {
 		Number: document,
 	}
 
+	doc.NormalizeDocument()
+
 	isValid := doc.ValidateCpf()
 
 	if !isValid {
@@ -36,9 +38,14 @@ func NewDocument(document string) (*Document, error) {
 	return doc, nil
 }
 
-func (d *Document) NormalizeDocument(document string) string {
+func (d *Document) NormalizeDocument() string {
 	re := regexp.MustCompile(`\D`)
-	return re.ReplaceAllString(document, "")
+
+	normalizedDocument := re.ReplaceAllString(d.Number, "")
+
+	d.Number = normalizedDocument
+
+	return d.Number
 }
 
 func (d *Document) ValidateCpf() bool {
@@ -47,7 +54,7 @@ func (d *Document) ValidateCpf() bool {
 		return false
 	}
 
-	cpf := d.NormalizeDocument(d.Number)
+	cpf := d.NormalizeDocument()
 
 	if len(cpf) != 11 {
 		return false

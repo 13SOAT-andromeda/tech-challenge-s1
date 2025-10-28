@@ -48,7 +48,7 @@ func (s *customerService) Create(ctx context.Context, c domain.Customer) (*domai
 
 func (s *customerService) UpdateByID(ctx context.Context, id uint, c domain.Customer) error {
 
-	_, err := s.repo.FindByID(ctx, id)
+	existentCustomer, err := s.repo.FindByID(ctx, id)
 
 	if err != nil {
 		return fmt.Errorf("Customer with Id %d not found or disabled", id)
@@ -66,6 +66,8 @@ func (s *customerService) UpdateByID(ctx context.Context, id uint, c domain.Cust
 	var model customer.Model
 
 	model.FromDomain(&c)
+	model.CreatedAt = existentCustomer.CreatedAt
+	model.DeletedAt = existentCustomer.DeletedAt
 
 	if err := s.repo.Update(ctx, &model); err != nil {
 		return fmt.Errorf("Failed to update customer: %w", err)
