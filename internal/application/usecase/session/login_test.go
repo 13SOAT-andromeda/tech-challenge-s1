@@ -52,6 +52,9 @@ func (m *MockUserService) Delete(ctx context.Context, id uint) error {
 
 func (m *MockUserService) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	args := m.Called(ctx, email)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*domain.User), args.Error(1)
 }
 
@@ -140,8 +143,6 @@ func TestLoginUseCase_Execute_Success(t *testing.T) {
 	user.Password, _ = domain.NewPassword("Password123!", mockHasher)
 	user.Password.Hash()
 
-	users := []domain.User{*user}
-
 	// Mock session
 	session := &domain.Session{
 		ID:           1,
@@ -152,12 +153,12 @@ func TestLoginUseCase_Execute_Success(t *testing.T) {
 	}
 
 	// Setup mocks
-	userService.On("Search", mock.Anything, map[string]interface{}{"email": "test@example.com"}).Return(&users, nil)
+	userService.On("GetByEmail", mock.Anything, user.Email).Return(user, nil)
 	sessionService.On("Create", mock.Anything, uint(1), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).Return(session, nil)
 
 	// Execute
 	input := LoginInput{
-		Email:    "test@example.com",
+		Email:    user.Email,
 		Password: "Password123!",
 	}
 
@@ -183,17 +184,14 @@ func TestLoginUseCase_Execute_UserNotFound(t *testing.T) {
 	config := &config.Config{
 		JWT: &config.JWTConfig{
 			AccessTokenExpiry:  "15m",
-			RefreshTokenExpiry: "7d",
+			RefreshTokenExpiry: "168h",
 		},
 	}
 
 	useCase := NewLoginUseCase(userService, sessionService, jwtService, config)
 
-	// Mock empty users list
-	users := []domain.User{}
-
 	// Setup mocks
-	userService.On("Search", mock.Anything, map[string]interface{}{"email": "test@example.com"}).Return(&users, nil)
+	userService.On("GetByEmail", mock.Anything, "test@example.com").Return(nil, nil)
 
 	// Execute
 	input := LoginInput{
@@ -239,10 +237,8 @@ func TestLoginUseCase_Execute_InvalidPassword(t *testing.T) {
 
 	user.Password, _ = domain.NewPassword("Correctpassword123>", hasher)
 
-	users := []domain.User{*user}
-
 	// Setup mocks
-	userService.On("Search", mock.Anything, map[string]interface{}{"email": "test@example.com"}).Return(&users, nil)
+	userService.On("GetByEmail", mock.Anything, user.Email).Return(user, nil)
 
 	// Execute
 	input := LoginInput{
@@ -288,10 +284,8 @@ func TestLoginUseCase_Execute_InactiveUser(t *testing.T) {
 	user.Password, _ = domain.NewPassword("Password123!", hasher)
 	user.Password.Hash()
 
-	users := []domain.User{*user}
-
 	// Setup mocks
-	userService.On("Search", mock.Anything, map[string]interface{}{"email": "test@example.com"}).Return(&users, nil)
+	userService.On("GetByEmail", mock.Anything, user.Email).Return(user, nil)
 
 	// Execute
 	input := LoginInput{
@@ -337,10 +331,8 @@ func TestLoginUseCase_Execute_SessionCreationError(t *testing.T) {
 	user.Password, _ = domain.NewPassword("Password123!", mockHasher)
 	user.Password.Hash()
 
-	users := []domain.User{*user}
-
 	// Setup mocks
-	userService.On("Search", mock.Anything, map[string]interface{}{"email": "test@example.com"}).Return(&users, nil)
+	userService.On("GetByEmail", mock.Anything, user.Email).Return(user, nil)
 	sessionService.On("Create", mock.Anything, uint(1), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).Return((*domain.Session)(nil), assert.AnError)
 
 	// Execute
