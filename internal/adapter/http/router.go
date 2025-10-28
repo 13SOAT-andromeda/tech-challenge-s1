@@ -20,6 +20,7 @@ func NewRouter(
 	companyHandler handlers.CompanyHandler,
 	maintenanceHandler handlers.MaintenanceHandler,
 	productHandler handlers.ProductHandler,
+	userHandler handlers.UserHandler,
 ) *Router {
 	if config.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -33,12 +34,15 @@ func NewRouter(
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), cors.New(corsConfig))
 
-	customerGroup := router.Group("/customers")
 	{
-		customerGroup.GET("", customerHandler.GetAllCustomers)
-		customerGroup.POST("", customerHandler.CreateCustomer)
-		customerGroup.GET("/:id", customerHandler.GetCustomerByID)
-
+		customerGroup := router.Group("/customers")
+		{
+			customerGroup.GET("/:id", customerHandler.GetCustomerByID)
+			customerGroup.GET("", customerHandler.Search)
+			customerGroup.POST("", customerHandler.CreateCustomer)
+			customerGroup.PUT("/:id", customerHandler.UpdateCustomer)
+			customerGroup.DELETE("/:id", customerHandler.DeleteCustomer)
+		}
 	}
 
 	companyGroup := router.Group("/companies")
@@ -63,6 +67,16 @@ func NewRouter(
 		productGroup.GET("", productHandler.GetAllProducts)
 		productGroup.GET("/:id", productHandler.GetProductByID)
 		productGroup.DELETE("/:id", productHandler.DeleteProduct)
+	}
+
+	userGroup := router.Group("/user")
+	{
+		userGroup.GET("", userHandler.GetAll)
+		userGroup.POST("", userHandler.Create)
+		userGroup.GET("/:id", userHandler.GetByID)
+		userGroup.GET("/search", userHandler.Search)
+		userGroup.PUT("/:id", userHandler.Update)
+		userGroup.DELETE("/:id", userHandler.Delete)
 	}
 
 	router.GET("/health", func(c *gin.Context) {

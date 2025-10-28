@@ -71,7 +71,7 @@ func (s *ProductService) GetById(ctx context.Context, id uint) (*domain.Product,
 }
 
 func (s *ProductService) GetAll(ctx context.Context) ([]domain.Product, error) {
-	records, err := s.repo.FindAll(ctx)
+	records, err := s.repo.FindAll(ctx, false)
 	if err != nil {
 		return nil, err
 	}

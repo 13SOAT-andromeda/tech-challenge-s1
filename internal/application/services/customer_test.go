@@ -17,11 +17,13 @@ func TestCustomerService_Create_Success(t *testing.T) {
 
 	ctx := context.Background()
 	inputCustomer := domain.Customer{
-		Name:     "Gedan Magalhaes",
-		Email:    "gedan@example.com",
-		Document: "12345678900",
-		Type:     "individual",
-		Contact:  "11999999999",
+		Name:  "Gedan Magalhaes",
+		Email: "gedan@example.com",
+		Document: &domain.Document{
+			Number: "293.034.620-50",
+		},
+		Type:    "individual",
+		Contact: "11999999999",
 		Address: &domain.Address{
 			Address:       "Rua Teste",
 			AddressNumber: "123",
@@ -34,6 +36,10 @@ func TestCustomerService_Create_Success(t *testing.T) {
 
 	var mockModel customer.Model
 	mockModel.FromDomain(&inputCustomer)
+
+	mockRepo.On("FindByDocument", mock.Anything, mock.AnythingOfType("string")).
+		Return(nil, nil)
+
 	mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*customer.Model")).
 		Return(&mockModel, nil)
 
@@ -55,9 +61,15 @@ func TestCustomerService_Create_RepositoryError(t *testing.T) {
 	inputCustomer := domain.Customer{
 		Name:  "João Silva",
 		Email: "gedan@example.com",
+		Document: &domain.Document{
+			Number: "293.034.620-50",
+		},
 	}
 
 	expectedError := errors.New("database connection error")
+
+	mockRepo.On("FindByDocument", mock.Anything, mock.AnythingOfType("string")).
+		Return(nil, nil)
 
 	mockRepo.On("Create", ctx, mock.AnythingOfType("*customer.Model")).Return(nil, expectedError)
 
@@ -95,7 +107,7 @@ func TestCustomerService_GetByID_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestCustomerService_GetAll_Success(t *testing.T) {
+func TestCustomerService_Search_Success(t *testing.T) {
 	mockRepo := new(MockCustomerRepository)
 	service := NewCustomerService(mockRepo)
 
@@ -112,9 +124,9 @@ func TestCustomerService_GetAll_Success(t *testing.T) {
 		},
 	}
 
-	mockRepo.On("FindAll", ctx).Return(expectedCustomers, nil)
+	mockRepo.On("Search", ctx).Return(expectedCustomers, nil)
 
-	result, err := service.GetAll(ctx)
+	result, err := service.Search(ctx, nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
@@ -137,6 +149,184 @@ func TestCustomerService_GetByID_NotFound(t *testing.T) {
 	mockRepo.On("FindByID", ctx, customerID).Return(nil, errors.New("customer not found"))
 
 	result, err := service.GetByID(ctx, customerID)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_UpdateByID_Success(t *testing.T) {
+	mockRepo := new(MockCustomerRepository)
+	service := NewCustomerService(mockRepo)
+	ctx := context.Background()
+
+	inputCustomer := domain.Customer{
+		ID:    1,
+		Name:  "Gedan Magalhaes",
+		Email: "gedan@example.com",
+		Document: &domain.Document{
+			Number: "293.034.620-50",
+		},
+	}
+	var mockModel customer.Model
+
+	mockModel.FromDomain(&inputCustomer)
+
+	mockRepo.On("FindByID", ctx, uint(1)).Return(&mockModel, nil)
+
+	mockRepo.On("FindByDocument", ctx, inputCustomer.Document.GetDocumentNumber()).Return(nil, errors.New("record not found"))
+
+	mockRepo.On("Update", ctx, mock.AnythingOfType("*customer.Model")).Return(nil)
+
+	err := service.UpdateByID(ctx, 1, inputCustomer)
+
+	assert.NoError(t, err)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_UpdateByID_CustomerNotFound(t *testing.T) {
+	mockRepo := new(MockCustomerRepository)
+	service := NewCustomerService(mockRepo)
+	ctx := context.Background()
+
+	inputCustomer := domain.Customer{Name: "Gedan"}
+
+	mockRepo.On("FindByID", ctx, uint(2)).Return(nil, errors.New("record not found"))
+
+	err := service.UpdateByID(ctx, 2, inputCustomer)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Customer with Id 2 not found")
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_UpdateByID_DocumentAlreadyInUse(t *testing.T) {
+	mockRepo := new(MockCustomerRepository)
+	service := NewCustomerService(mockRepo)
+	ctx := context.Background()
+
+	inputCustomer := domain.Customer{
+		ID:   3,
+		Name: "Gedan",
+		Document: &domain.Document{
+			Number: "293.034.620-50",
+		},
+	}
+	var mockModel customer.Model
+	mockModel.FromDomain(&inputCustomer)
+
+	mockRepo.On("FindByID", ctx, uint(3)).Return(&mockModel, nil)
+
+	anotherInputCustomer := domain.Customer{
+		ID:   4,
+		Name: "Gedan",
+		Document: &domain.Document{
+			Number: "293.034.620-50",
+		},
+	}
+	mockModel.FromDomain(&anotherInputCustomer)
+
+	mockRepo.On("FindByDocument", ctx, inputCustomer.Document.GetDocumentNumber()).Return(&mockModel, nil)
+
+	err := service.UpdateByID(ctx, 3, inputCustomer)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Number is invalid or already in use")
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_UpdateByID_UpdateFails(t *testing.T) {
+	mockRepo := new(MockCustomerRepository)
+	service := NewCustomerService(mockRepo)
+	ctx := context.Background()
+
+	inputCustomer := domain.Customer{
+		ID:   5,
+		Name: "Gedan",
+		Document: &domain.Document{
+			Number: "293.034.620-50",
+		},
+	}
+
+	var mockModel customer.Model
+
+	mockModel.FromDomain(&inputCustomer)
+
+	mockRepo.On("FindByID", ctx, uint(5)).Return(&mockModel, nil)
+
+	mockRepo.On("FindByDocument", ctx, inputCustomer.Document.GetDocumentNumber()).Return(nil, errors.New("record not found"))
+
+	mockRepo.On("Update", ctx, mock.AnythingOfType("*customer.Model")).Return(errors.New("db error"))
+
+	err := service.UpdateByID(ctx, 5, inputCustomer)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Failed to update customer")
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_DeleteByID_Success(t *testing.T) {
+	mockRepo := new(MockCustomerRepository)
+	service := NewCustomerService(mockRepo)
+
+	ctx := context.Background()
+	customerID := uint(1)
+	expectedCustomer := &domain.Customer{
+		ID:    customerID,
+		Name:  "John Doe",
+		Email: "john@example.com",
+	}
+
+	var customerModel customer.Model
+	customerModel.FromDomain(expectedCustomer)
+
+	mockRepo.On("FindByID", ctx, customerID).Return(&customerModel, nil)
+	mockRepo.On("Delete", ctx, customerID).Return(nil)
+
+	result, err := service.DeleteByID(ctx, customerID)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, expectedCustomer.Name, result.Name)
+	assert.Equal(t, expectedCustomer.Email, result.Email)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_DeleteByID_NotFound(t *testing.T) {
+	mockRepo := new(MockCustomerRepository)
+	service := NewCustomerService(mockRepo)
+
+	ctx := context.Background()
+	customerID := uint(999)
+
+	mockRepo.On("FindByID", ctx, customerID).Return(nil, errors.New("customer not found"))
+
+	result, err := service.DeleteByID(ctx, customerID)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_DeleteByID_DeleteError(t *testing.T) {
+	mockRepo := new(MockCustomerRepository)
+	service := NewCustomerService(mockRepo)
+
+	ctx := context.Background()
+	customerID := uint(1)
+	expectedCustomer := &domain.Customer{
+		ID:    customerID,
+		Name:  "John Doe",
+		Email: "john@example.com",
+	}
+
+	var customerModel customer.Model
+	customerModel.FromDomain(expectedCustomer)
+
+	mockRepo.On("FindByID", ctx, customerID).Return(&customerModel, nil)
+	mockRepo.On("Delete", ctx, customerID).Return(errors.New("delete error"))
+
+	result, err := service.DeleteByID(ctx, customerID)
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
