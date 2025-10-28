@@ -31,8 +31,8 @@ type DataBaseConfig struct {
 }
 
 type JWTConfig struct {
-	Secret            string
-	AccessTokenExpiry string
+	Secret             string
+	AccessTokenExpiry  string
 	RefreshTokenExpiry string
 }
 
@@ -73,7 +73,7 @@ func Init() (*Config, error) {
 	jwt := &JWTConfig{
 		Secret:             getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-in-production"),
 		AccessTokenExpiry:  getEnv("JWT_ACCESS_TOKEN_EXPIRY", "15m"),
-		RefreshTokenExpiry: getEnv("JWT_REFRESH_TOKEN_EXPIRY", "7d"),
+		RefreshTokenExpiry: getEnv("JWT_REFRESH_TOKEN_EXPIRY", "168h"),
 	}
 
 	return &Config{
