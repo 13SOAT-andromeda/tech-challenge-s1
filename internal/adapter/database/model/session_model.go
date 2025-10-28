@@ -12,7 +12,6 @@ type SessionModel struct {
 	UserID       uint `gorm:"not null"`
 	RefreshToken *string
 	ExpiresAt    time.Time `gorm:"not null"`
-	IsActive     bool      `gorm:"default:true"`
 }
 
 func (SessionModel) TableName() string {
@@ -34,7 +33,6 @@ func (m *SessionModel) ToDomain() *domain.Session {
 		UserID:       m.UserID,
 		RefreshToken: m.RefreshToken,
 		ExpiresAt:    m.ExpiresAt,
-		IsActive:     m.IsActive,
 		CreatedAt:    m.CreatedAt,
 		UpdatedAt:    m.UpdatedAt,
 		DeletedAt:    deletedAt,
@@ -51,7 +49,6 @@ func (m *SessionModel) FromDomain(d *domain.Session) {
 	m.UserID = d.UserID
 	m.RefreshToken = d.RefreshToken
 	m.ExpiresAt = d.ExpiresAt
-	m.IsActive = d.IsActive
 	if d.DeletedAt != nil {
 		m.DeletedAt = gorm.DeletedAt{Time: *d.DeletedAt, Valid: true}
 	}

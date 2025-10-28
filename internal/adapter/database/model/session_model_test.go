@@ -16,14 +16,12 @@ func TestSessionModelInitialization(t *testing.T) {
 		UserID:       1,
 		RefreshToken: &refreshToken,
 		ExpiresAt:    expiresAt,
-		IsActive:     true,
 	}
 
 	assert.NotNil(t, s)
 	assert.Equal(t, uint(1), s.UserID)
 	assert.Equal(t, &refreshToken, s.RefreshToken)
 	assert.Equal(t, expiresAt, s.ExpiresAt)
-	assert.True(t, s.IsActive)
 }
 
 func TestSessionModel_ToFromDomain(t *testing.T) {
@@ -42,7 +40,6 @@ func TestSessionModel_ToFromDomain(t *testing.T) {
 		UserID:       1,
 		RefreshToken: &refreshToken,
 		ExpiresAt:    expiresAt,
-		IsActive:     true,
 	}
 
 	domainSession := modelSession.ToDomain()
@@ -51,7 +48,6 @@ func TestSessionModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelSession.UserID, domainSession.UserID)
 	assert.Equal(t, modelSession.RefreshToken, domainSession.RefreshToken)
 	assert.Equal(t, modelSession.ExpiresAt, domainSession.ExpiresAt)
-	assert.Equal(t, modelSession.IsActive, domainSession.IsActive)
 	assert.Equal(t, modelSession.CreatedAt, domainSession.CreatedAt)
 	assert.Equal(t, modelSession.UpdatedAt, domainSession.UpdatedAt)
 	assert.Equal(t, deletedAt, *domainSession.DeletedAt)
@@ -64,7 +60,6 @@ func TestSessionModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelSession.UserID, newModelSession.UserID)
 	assert.Equal(t, modelSession.RefreshToken, newModelSession.RefreshToken)
 	assert.Equal(t, modelSession.ExpiresAt, newModelSession.ExpiresAt)
-	assert.Equal(t, modelSession.IsActive, newModelSession.IsActive)
 	assert.Equal(t, modelSession.CreatedAt, newModelSession.CreatedAt)
 	assert.Equal(t, modelSession.UpdatedAt, newModelSession.UpdatedAt)
 	assert.Equal(t, modelSession.DeletedAt.Time, newModelSession.DeletedAt.Time)
@@ -78,15 +73,13 @@ func TestSessionModel_ToDomain_NilModel(t *testing.T) {
 
 func TestSessionModel_FromDomain_NilDomain(t *testing.T) {
 	modelSession := &SessionModel{
-		UserID:   1,
-		IsActive: true,
+		UserID: 1,
 	}
 
 	modelSession.FromDomain(nil)
 
 	// Should not change the model
 	assert.Equal(t, uint(1), modelSession.UserID)
-	assert.True(t, modelSession.IsActive)
 }
 
 func TestSessionModel_EdgeCases(t *testing.T) {
@@ -95,13 +88,11 @@ func TestSessionModel_EdgeCases(t *testing.T) {
 			UserID:       1,
 			RefreshToken: nil,
 			ExpiresAt:    time.Now().Add(time.Hour),
-			IsActive:     true,
 		}
 
 		domainSession := modelSession.ToDomain()
 		assert.Nil(t, domainSession.RefreshToken)
 		assert.Equal(t, uint(1), domainSession.UserID)
-		assert.True(t, domainSession.IsActive)
 	})
 
 	t.Run("empty refresh token", func(t *testing.T) {
@@ -110,29 +101,26 @@ func TestSessionModel_EdgeCases(t *testing.T) {
 			UserID:       1,
 			RefreshToken: &emptyToken,
 			ExpiresAt:    time.Now().Add(time.Hour),
-			IsActive:     true,
 		}
 
 		domainSession := modelSession.ToDomain()
 		assert.Equal(t, "", *domainSession.RefreshToken)
 	})
 
-	t.Run("inactive session", func(t *testing.T) {
+	t.Run("just map basic fields", func(t *testing.T) {
 		modelSession := &SessionModel{
 			UserID:    1,
-			IsActive:  false,
 			ExpiresAt: time.Now().Add(time.Hour),
 		}
 
 		domainSession := modelSession.ToDomain()
-		assert.False(t, domainSession.IsActive)
+		assert.Equal(t, uint(1), domainSession.UserID)
 	})
 
 	t.Run("expired session", func(t *testing.T) {
 		expiredTime := time.Now().Add(-time.Hour)
 		modelSession := &SessionModel{
 			UserID:    1,
-			IsActive:  true,
 			ExpiresAt: expiredTime,
 		}
 

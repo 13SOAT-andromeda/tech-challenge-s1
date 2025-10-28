@@ -18,7 +18,6 @@ func TestNewSession(t *testing.T) {
 	assert.Equal(t, userID, session.UserID)
 	assert.Equal(t, refreshToken, *session.RefreshToken)
 	assert.Equal(t, expiresAt, session.ExpiresAt)
-	assert.True(t, session.IsActive)
 	assert.False(t, session.CreatedAt.IsZero())
 	assert.False(t, session.UpdatedAt.IsZero())
 }
@@ -58,47 +57,19 @@ func TestSession_IsExpired(t *testing.T) {
 	}
 }
 
-func TestSession_Deactivate(t *testing.T) {
-	now := time.Now()
-	session := &Session{
-		IsActive:  true,
-		UpdatedAt: now,
-	}
-
-	session.Deactivate()
-
-	assert.False(t, session.IsActive)
-	assert.True(t, session.UpdatedAt.After(now))
-}
-
 func TestSession_IsValid(t *testing.T) {
 	tests := []struct {
 		name      string
-		isActive  bool
 		expiresAt time.Time
 		expected  bool
 	}{
 		{
 			name:      "valid session",
-			isActive:  true,
 			expiresAt: time.Now().Add(time.Hour),
 			expected:  true,
 		},
 		{
-			name:      "inactive session",
-			isActive:  false,
-			expiresAt: time.Now().Add(time.Hour),
-			expected:  false,
-		},
-		{
 			name:      "expired session",
-			isActive:  true,
-			expiresAt: time.Now().Add(-time.Hour),
-			expected:  false,
-		},
-		{
-			name:      "inactive and expired session",
-			isActive:  false,
 			expiresAt: time.Now().Add(-time.Hour),
 			expected:  false,
 		},
@@ -107,7 +78,6 @@ func TestSession_IsValid(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			session := &Session{
-				IsActive:  tt.isActive,
 				ExpiresAt: tt.expiresAt,
 			}
 
@@ -122,7 +92,6 @@ func TestSession_EdgeCases(t *testing.T) {
 		session := &Session{
 			UserID:       1,
 			RefreshToken: nil,
-			IsActive:     true,
 			ExpiresAt:    time.Now().Add(time.Hour),
 		}
 
@@ -135,7 +104,6 @@ func TestSession_EdgeCases(t *testing.T) {
 		session := &Session{
 			UserID:       1,
 			RefreshToken: &emptyToken,
-			IsActive:     true,
 			ExpiresAt:    time.Now().Add(time.Hour),
 		}
 
@@ -146,7 +114,6 @@ func TestSession_EdgeCases(t *testing.T) {
 	t.Run("zero time values", func(t *testing.T) {
 		session := &Session{
 			UserID:    1,
-			IsActive:  true,
 			ExpiresAt: time.Time{},
 		}
 
