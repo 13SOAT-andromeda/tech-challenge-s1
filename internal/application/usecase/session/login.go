@@ -32,31 +32,16 @@ func NewLoginUseCase(
 }
 
 func (uc *loginUseCase) Execute(ctx context.Context, input LoginInput) (*LoginOutput, error) {
-	// Find user by email
-	users, err := uc.userService.Search(ctx, map[string]interface{}{
-		"email": input.Email,
-	})
-	if err != nil {
+	user, err := uc.userService.GetByEmail(ctx, input.Email)
+
+	if err != nil || user == nil {
 		return nil, services.ErrUserNotFound
 	}
 
-	if len(*users) == 0 {
+	if err := user.Password.Compare(input.Password); err != nil || !user.Active {
 		return nil, services.ErrUserNotFound
 	}
 
-	user := (*users)[0]
-
-	// Verify password
-	if err := user.Password.Compare(input.Password); err != nil {
-		return nil, services.ErrUserNotFound
-	}
-
-	// Check if user is active
-	if !user.Active {
-		return nil, services.ErrUserNotFound
-	}
-
-	// Generate tokens
 	accessToken, err := uc.jwtService.GenerateAccessToken(user.ID, user.Email, user.Role)
 	if err != nil {
 		return nil, err
@@ -67,10 +52,8 @@ func (uc *loginUseCase) Execute(ctx context.Context, input LoginInput) (*LoginOu
 		return nil, err
 	}
 
-	// Calculate expiry time
 	accessExpiry, _ := time.ParseDuration(uc.config.JWT.AccessTokenExpiry)
 
-	// Create session
 	refreshExpiry, _ := time.ParseDuration(uc.config.JWT.RefreshTokenExpiry)
 	sessionExpiresAt := time.Now().Add(refreshExpiry)
 
@@ -79,7 +62,6 @@ func (uc *loginUseCase) Execute(ctx context.Context, input LoginInput) (*LoginOu
 		return nil, err
 	}
 
-	// Prepare response
 	userOutput := UserOutput{
 		ID:      user.ID,
 		Name:    user.Name,
@@ -93,7 +75,6 @@ func (uc *loginUseCase) Execute(ctx context.Context, input LoginInput) (*LoginOu
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresIn:    int64(accessExpiry.Seconds()),
-		TokenType:    "Bearer",
 		User:         userOutput,
 	}
 
