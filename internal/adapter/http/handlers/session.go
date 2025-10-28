@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecase/session"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/session"
 	"github.com/gin-gonic/gin"
 )
 

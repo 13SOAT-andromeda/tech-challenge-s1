@@ -17,7 +17,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecase/session"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/session"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/jwt"
 )
 
