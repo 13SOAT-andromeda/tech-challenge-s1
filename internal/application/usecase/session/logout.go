@@ -20,17 +20,9 @@ func NewLogoutUseCase(
 }
 
 func (uc *logoutUseCase) Execute(ctx context.Context, input LogoutInput) (*LogoutOutput, error) {
-	// Find session
-	session, err := uc.sessionService.GetByRefreshToken(ctx, input.RefreshToken)
-	if err != nil {
+	// Delete session by refresh token
+	if err := uc.sessionService.DeleteByRefreshToken(ctx, input.RefreshToken); err != nil {
 		return nil, services.ErrSessionInvalid
-	}
-
-	// Deactivate session
-	session.Deactivate()
-	_, err = uc.sessionService.Update(ctx, session)
-	if err != nil {
-		return nil, err
 	}
 
 	output := &LogoutOutput{

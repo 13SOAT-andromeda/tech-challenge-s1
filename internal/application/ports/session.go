@@ -14,6 +14,8 @@ type SessionRepository interface {
 	Update(ctx context.Context, session *domain.Session) (*domain.Session, error)
 	Delete(ctx context.Context, sessionID uint) error
 	DeleteByUserID(ctx context.Context, userID uint) error
+	DeleteByRefreshToken(ctx context.Context, refreshToken string) error
+	DeleteExpiredSessions(ctx context.Context) error
 }
 
 type SessionService interface {
@@ -24,4 +26,6 @@ type SessionService interface {
 	Delete(ctx context.Context, sessionID uint) error
 	DeleteByUserID(ctx context.Context, userID uint) error
 	Validate(ctx context.Context, refreshToken string) (*domain.Session, error)
+	DeleteByRefreshToken(ctx context.Context, refreshToken string) error
+	DeleteExpiredSessions(ctx context.Context) error
 }

@@ -16,7 +16,6 @@ func NewSessionService(repo ports.SessionRepository) *SessionService {
 	return &SessionService{repo: repo}
 }
 
-// Create creates a new session for a user
 func (s *SessionService) Create(ctx context.Context, userID uint, refreshToken string, expiresAt time.Time) (*domain.Session, error) {
 	if userID == 0 {
 		return nil, ErrSessionUserIDInvalid
@@ -34,7 +33,6 @@ func (s *SessionService) Create(ctx context.Context, userID uint, refreshToken s
 	return s.repo.Create(ctx, session)
 }
 
-// GetByRefreshToken retrieves a session by its refresh token
 func (s *SessionService) GetByRefreshToken(ctx context.Context, refreshToken string) (*domain.Session, error) {
 	if refreshToken == "" {
 		return nil, ErrSessionRefreshTokenEmpty
@@ -43,7 +41,6 @@ func (s *SessionService) GetByRefreshToken(ctx context.Context, refreshToken str
 	return s.repo.FindByRefreshToken(ctx, refreshToken)
 }
 
-// GetByUserID retrieves all sessions for a user
 func (s *SessionService) GetByUserID(ctx context.Context, userID uint) ([]*domain.Session, error) {
 	if userID == 0 {
 		return nil, ErrSessionUserIDInvalid
@@ -52,7 +49,6 @@ func (s *SessionService) GetByUserID(ctx context.Context, userID uint) ([]*domai
 	return s.repo.FindByUserID(ctx, userID)
 }
 
-// Update updates an existing session
 func (s *SessionService) Update(ctx context.Context, session *domain.Session) (*domain.Session, error) {
 	if session == nil {
 		return nil, ErrSessionNil
@@ -65,7 +61,6 @@ func (s *SessionService) Update(ctx context.Context, session *domain.Session) (*
 	return s.repo.Update(ctx, session)
 }
 
-// Delete deletes a specific session
 func (s *SessionService) Delete(ctx context.Context, sessionID uint) error {
 	if sessionID == 0 {
 		return ErrSessionIDInvalid
@@ -74,7 +69,6 @@ func (s *SessionService) Delete(ctx context.Context, sessionID uint) error {
 	return s.repo.Delete(ctx, sessionID)
 }
 
-// DeleteByUserID deletes all sessions for a user
 func (s *SessionService) DeleteByUserID(ctx context.Context, userID uint) error {
 	if userID == 0 {
 		return ErrSessionUserIDInvalid
@@ -83,7 +77,6 @@ func (s *SessionService) DeleteByUserID(ctx context.Context, userID uint) error 
 	return s.repo.DeleteByUserID(ctx, userID)
 }
 
-// Validate validates a session by refresh token and checks if it's still valid
 func (s *SessionService) Validate(ctx context.Context, refreshToken string) (*domain.Session, error) {
 	session, err := s.GetByRefreshToken(ctx, refreshToken)
 	if err != nil {
@@ -95,4 +88,15 @@ func (s *SessionService) Validate(ctx context.Context, refreshToken string) (*do
 	}
 
 	return session, nil
+}
+
+func (s *SessionService) DeleteByRefreshToken(ctx context.Context, refreshToken string) error {
+	if refreshToken == "" {
+		return ErrSessionRefreshTokenEmpty
+	}
+	return s.repo.DeleteByRefreshToken(ctx, refreshToken)
+}
+
+func (s *SessionService) DeleteExpiredSessions(ctx context.Context) error {
+	return s.repo.DeleteExpiredSessions(ctx)
 }

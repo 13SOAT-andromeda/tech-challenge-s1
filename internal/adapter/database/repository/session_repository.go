@@ -33,7 +33,7 @@ func (r *SessionRepository) FindByRefreshToken(ctx context.Context, refreshToken
 	var sessionModel model.SessionModel
 
 	err := r.db.WithContext(ctx).
-		Where("refresh_token = ? AND is_active = ?", refreshToken, true).
+		Where("refresh_token = ?", refreshToken).
 		First(&sessionModel).Error
 
 	if err != nil {
@@ -50,7 +50,7 @@ func (r *SessionRepository) FindByUserID(ctx context.Context, userID uint) ([]*d
 	var sessionModels []model.SessionModel
 
 	err := r.db.WithContext(ctx).
-		Where("user_id = ? AND is_active = ?", userID, true).
+		Where("user_id = ?", userID).
 		Find(&sessionModels).Error
 
 	if err != nil {
@@ -79,9 +79,8 @@ func (r *SessionRepository) Update(ctx context.Context, session *domain.Session)
 
 func (r *SessionRepository) Delete(ctx context.Context, sessionID uint) error {
 	err := r.db.WithContext(ctx).
-		Model(&model.SessionModel{}).
 		Where("id = ?", sessionID).
-		Update("is_active", false).Error
+		Delete(&model.SessionModel{}).Error
 
 	if err != nil {
 		return err
@@ -92,9 +91,32 @@ func (r *SessionRepository) Delete(ctx context.Context, sessionID uint) error {
 
 func (r *SessionRepository) DeleteByUserID(ctx context.Context, userID uint) error {
 	err := r.db.WithContext(ctx).
-		Model(&model.SessionModel{}).
 		Where("user_id = ?", userID).
-		Update("is_active", false).Error
+		Delete(&model.SessionModel{}).Error
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *SessionRepository) DeleteByRefreshToken(ctx context.Context, refreshToken string) error {
+	err := r.db.WithContext(ctx).
+		Where("refresh_token = ?", refreshToken).
+		Delete(&model.SessionModel{}).Error
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
+	err := r.db.WithContext(ctx).
+		Where("expires_at < ?", gorm.Expr("NOW()")).
+		Delete(&model.SessionModel{}).Error
 
 	if err != nil {
 		return err
