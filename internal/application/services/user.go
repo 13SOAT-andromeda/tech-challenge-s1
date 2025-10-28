@@ -51,7 +51,7 @@ func (s *UserService) Create(ctx context.Context, u domain.User) (*domain.User, 
 
 func (s *UserService) GetAll(ctx context.Context) ([]domain.User, error) {
 
-	users, err := s.repo.FindAll(ctx)
+	users, err := s.repo.FindAll(ctx, false)
 
 	if err != nil {
 		return nil, err

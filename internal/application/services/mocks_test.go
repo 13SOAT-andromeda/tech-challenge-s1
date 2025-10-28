@@ -8,6 +8,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -25,7 +26,7 @@ func (m *MockCustomerRepository) FindByID(ctx context.Context, id uint) (*custom
 	return args.Get(0).(*customer.Model), args.Error(1)
 }
 
-func (m *MockCustomerRepository) FindAll(ctx context.Context) ([]customer.Model, error) {
+func (m *MockCustomerRepository) FindAll(ctx context.Context, includeDeleted bool) ([]customer.Model, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -61,6 +62,22 @@ func (m *MockCustomerRepository) FindByEmail(ctx context.Context, email string) 
 	return args.Get(0).(*customer.Model), args.Error(1)
 }
 
+func (m *MockCustomerRepository) FindByDocument(ctx context.Context, document string) (*customer.Model, error) {
+	args := m.Called(ctx, document)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*customer.Model), args.Error(1)
+}
+
+func (m *MockCustomerRepository) Search(ctx context.Context, filters filter.CustomerFilter) ([]customer.Model, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]customer.Model), args.Error(1)
+}
+
 type MockCompanyRepository struct {
 	mock.Mock
 }
@@ -75,7 +92,7 @@ func (m *MockCompanyRepository) FindByID(ctx context.Context, id uint) (*company
 	return args.Get(0).(*company.Model), args.Error(1)
 }
 
-func (m *MockCompanyRepository) FindAll(ctx context.Context) ([]company.Model, error) {
+func (m *MockCompanyRepository) FindAll(ctx context.Context, includeDeleted bool) ([]company.Model, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -109,7 +126,7 @@ type MockMaintenanceRepository struct {
 
 var _ ports.MaintenanceRepository = (*MockMaintenanceRepository)(nil)
 
-func (m *MockMaintenanceRepository) FindAll(ctx context.Context) ([]maintenance.Model, error) {
+func (m *MockMaintenanceRepository) FindAll(ctx context.Context, includeDeleted bool) ([]maintenance.Model, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -166,7 +183,7 @@ func (m *MockProductRepository) FindByID(ctx context.Context, id uint) (*product
 	return args.Get(0).(*product.Model), args.Error(1)
 }
 
-func (m *MockProductRepository) FindAll(ctx context.Context) ([]product.Model, error) {
+func (m *MockProductRepository) FindAll(ctx context.Context, includeDeleted bool) ([]product.Model, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

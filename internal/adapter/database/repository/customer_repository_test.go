@@ -8,6 +8,7 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/address"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/document"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -40,11 +41,13 @@ func TestCustomerRepository_FindByEmail(t *testing.T) {
 
 	t.Run("success - customer found", func(t *testing.T) {
 		expectedCustomer := customer.Model{
-			Email:    "test@example.com",
-			Name:     "Test User",
-			Document: "12345678900",
-			Type:     "CPF",
-			Contact:  "11999999999",
+			Email: "test@example.com",
+			Name:  "Test User",
+			Document: document.Model{
+				Document: "12345678900",
+			},
+			Type:    "CPF",
+			Contact: "11999999999",
 			Address: &address.Model{
 				City:          "New York",
 				Country:       "US",
@@ -60,7 +63,7 @@ func TestCustomerRepository_FindByEmail(t *testing.T) {
 				expectedCustomer.ID,
 				expectedCustomer.Name,
 				expectedCustomer.Email,
-				expectedCustomer.Document,
+				expectedCustomer.Document.Document,
 				expectedCustomer.Type,
 				expectedCustomer.Contact,
 				expectedCustomer.Address.Address,
@@ -112,17 +115,19 @@ func TestBaseRepository_FindByID(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		expectedCustomer := domain.Customer{
-			ID:       1,
-			Email:    "test@example.com",
-			Name:     "Test User",
-			Document: "12345678900",
-			Type:     "CPF",
-			Contact:  "11999999999",
+			ID:    1,
+			Email: "test@example.com",
+			Name:  "Test User",
+			Document: &domain.Document{
+				Number: "12345678900",
+			},
+			Type:    "CPF",
+			Contact: "11999999999",
 		}
 
 		rows := sqlmock.NewRows([]string{"id", "name", "email", "document", "type", "contact"}).
 			AddRow(expectedCustomer.ID, expectedCustomer.Name, expectedCustomer.Email,
-				expectedCustomer.Document, expectedCustomer.Type, expectedCustomer.Contact)
+				expectedCustomer.Document.GetDocumentNumber(), expectedCustomer.Type, expectedCustomer.Contact)
 
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`SELECT * FROM "Customer" WHERE "Customer"."id" = $1 AND "Customer"."deleted_at" IS NULL ORDER BY "Customer"."id" LIMIT $2`)).
@@ -162,11 +167,13 @@ func TestBaseRepository_Create(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		customer := &customer.Model{
-			Email:    "new@example.com",
-			Name:     "New User",
-			Document: "12345678900",
-			Type:     "CPF",
-			Contact:  "11999999999",
+			Email: "new@example.com",
+			Name:  "New User",
+			Document: document.Model{
+				Document: "12345678900",
+			},
+			Type:    "CPF",
+			Contact: "11999999999",
 			Address: &address.Model{
 				City:          "New York",
 				Country:       "US",
@@ -186,7 +193,7 @@ func TestBaseRepository_Create(t *testing.T) {
 				sqlmock.AnyArg(),
 				customer.Name,
 				customer.Email,
-				customer.Document,
+				customer.Document.Document,
 				customer.Type,
 				customer.Contact,
 				customer.Address.Address,
@@ -208,11 +215,13 @@ func TestBaseRepository_Create(t *testing.T) {
 
 	t.Run("error - database error", func(t *testing.T) {
 		customer := &customer.Model{
-			Email:    "error@example.com",
-			Name:     "Error User",
-			Document: "12345678900",
-			Type:     "CPF",
-			Contact:  "11999999999",
+			Email: "error@example.com",
+			Name:  "Error User",
+			Document: document.Model{
+				Document: "12345678900",
+			},
+			Type:    "CPF",
+			Contact: "11999999999",
 			Address: &address.Model{
 				City:          "New York",
 				Country:       "US",
@@ -231,7 +240,7 @@ func TestBaseRepository_Create(t *testing.T) {
 				sqlmock.AnyArg(),
 				customer.Name,
 				customer.Email,
-				customer.Document,
+				customer.Document.Document,
 				customer.Type,
 				customer.Contact,
 				customer.Address.Address,
@@ -303,7 +312,7 @@ func TestBaseRepository_FindAll(t *testing.T) {
 			`SELECT * FROM "Customer"`)).
 			WillReturnRows(rows)
 
-		Customer, err := repo.FindAll(ctx)
+		Customer, err := repo.FindAll(ctx, false)
 
 		assert.NoError(t, err)
 		assert.Len(t, Customer, 2)
@@ -319,7 +328,7 @@ func TestBaseRepository_FindAll(t *testing.T) {
 			`SELECT * FROM "Customer"`)).
 			WillReturnRows(rows)
 
-		Customer, err := repo.FindAll(ctx)
+		Customer, err := repo.FindAll(ctx, false)
 
 		assert.NoError(t, err)
 		assert.Len(t, Customer, 0)
@@ -331,7 +340,7 @@ func TestBaseRepository_FindAll(t *testing.T) {
 			`SELECT * FROM "Customer"`)).
 			WillReturnError(sql.ErrConnDone)
 
-		Customer, err := repo.FindAll(ctx)
+		Customer, err := repo.FindAll(ctx, false)
 
 		assert.Error(t, err)
 		assert.Nil(t, Customer)

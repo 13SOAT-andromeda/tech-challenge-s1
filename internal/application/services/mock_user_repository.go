@@ -21,7 +21,7 @@ func (m *MockGenericRepository[T]) FindByID(ctx context.Context, id uint) (*T, e
 	return args.Get(0).(*T), args.Error(1)
 }
 
-func (m *MockGenericRepository[T]) FindAll(ctx context.Context) ([]T, error) {
+func (m *MockGenericRepository[T]) FindAll(ctx context.Context, includeDeleted bool) ([]T, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
