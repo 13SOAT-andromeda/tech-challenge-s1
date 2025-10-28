@@ -33,3 +33,4 @@ main
 # Editor/IDE
 .idea/
 .vscode/
+tmp
