@@ -23,9 +23,15 @@ func (r *BaseRepository[T]) FindByID(ctx context.Context, id uint) (*T, error) {
 	return &entity, nil
 }
 
-func (r *BaseRepository[T]) FindAll(ctx context.Context) ([]T, error) {
+func (r *BaseRepository[T]) FindAll(ctx context.Context, includeDeleted bool) ([]T, error) {
 	var entities []T
-	err := r.db.WithContext(ctx).Find(&entities).Error
+	db := r.db.WithContext(ctx)
+
+	if includeDeleted {
+		db = db.Unscoped()
+	}
+	err := db.Find(&entities).Error
+
 	return entities, err
 }
 

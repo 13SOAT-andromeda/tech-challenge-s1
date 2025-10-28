@@ -1,7 +1,10 @@
 package customer
 
 import (
+	"time"
+
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/address"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/document"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"gorm.io/gorm"
 )
@@ -10,7 +13,7 @@ type Model struct {
 	gorm.Model
 	Name     string `gorm:"not null"`
 	Email    string
-	Document string         `gorm:"unique"`
+	Document document.Model `gorm:"embedded;unique"`
 	Type     string         `gorm:"not null"`
 	Contact  string         `gorm:"not null"`
 	Address  *address.Model `gorm:"embedded"`
@@ -21,21 +24,34 @@ func (*Model) TableName() string {
 }
 
 func (m *Model) ToDomain() *domain.Customer {
+
+	documentDomain := domain.RestoreDocument(m.Document.Document)
+
 	var addressDomain *domain.Address
+
 	if m.Address != nil {
 		addressDomain = m.Address.ToDomain()
 	} else {
 		addressDomain = nil
 	}
 
+	var deletedAt *time.Time
+
+	if m.DeletedAt.Valid {
+		deletedAt = &m.DeletedAt.Time
+	}
+
 	return &domain.Customer{
-		ID:       m.ID,
-		Name:     m.Name,
-		Email:    m.Email,
-		Document: m.Document,
-		Type:     m.Type,
-		Contact:  m.Contact,
-		Address:  addressDomain,
+		ID:        m.ID,
+		Name:      m.Name,
+		Email:     m.Email,
+		Document:  &documentDomain,
+		Type:      m.Type,
+		Contact:   m.Contact,
+		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
+		DeletedAt: deletedAt,
+		Address:   addressDomain,
 	}
 }
 
@@ -47,9 +63,10 @@ func (m *Model) FromDomain(d *domain.Customer) {
 	m.ID = d.ID
 	m.Name = d.Name
 	m.Email = d.Email
-	m.Document = d.Document
 	m.Type = d.Type
 	m.Contact = d.Contact
+
+	m.Document.FromDomain(d.Document)
 
 	if m.Address == nil {
 		m.Address = &address.Model{}

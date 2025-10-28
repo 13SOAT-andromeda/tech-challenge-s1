@@ -54,9 +54,11 @@ func NewRouter(
 	{
 		customerGroup := protected.Group("/customers")
 		{
-			customerGroup.GET("", customerHandler.GetAllCustomers)
-			customerGroup.POST("", customerHandler.CreateCustomer)
 			customerGroup.GET("/:id", customerHandler.GetCustomerByID)
+			customerGroup.GET("", customerHandler.Search)
+			customerGroup.POST("", customerHandler.CreateCustomer)
+			customerGroup.PUT("/:id", customerHandler.UpdateCustomer)
+			customerGroup.DELETE("/:id", customerHandler.DeleteCustomer)
 		}
 
 		companyGroup := protected.Group("/companies")
