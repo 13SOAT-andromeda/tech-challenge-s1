@@ -98,6 +98,16 @@ func (m *MockSessionService) Validate(ctx context.Context, refreshToken string) 
 	return args.Get(0).(*domain.Session), args.Error(1)
 }
 
+func (m *MockSessionService) DeleteByRefreshToken(ctx context.Context, refreshToken string) error {
+	args := m.Called(ctx, refreshToken)
+	return args.Error(0)
+}
+
+func (m *MockSessionService) DeleteExpiredSessions(ctx context.Context) error {
+	args := m.Called(ctx)
+	return args.Error(0)
+}
+
 func TestNewLoginUseCase(t *testing.T) {
 	userService := &MockUserService{}
 	sessionService := &MockSessionService{}
@@ -149,7 +159,6 @@ func TestLoginUseCase_Execute_Success(t *testing.T) {
 		UserID:       1,
 		RefreshToken: stringPtr("refresh-token"),
 		ExpiresAt:    time.Now().Add(7 * 24 * time.Hour),
-		IsActive:     true,
 	}
 
 	// Setup mocks

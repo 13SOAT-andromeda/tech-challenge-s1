@@ -49,7 +49,6 @@ func TestRefreshUseCase_Execute_Success(t *testing.T) {
 		UserID:       1,
 		RefreshToken: stringPtr("refresh-token"),
 		ExpiresAt:    time.Now().Add(7 * 24 * time.Hour),
-		IsActive:     true,
 	}
 
 	// Mock user
@@ -196,7 +195,6 @@ func TestRefreshUseCase_Execute_UserNotFound(t *testing.T) {
 		UserID:       999, // Non-existent user
 		RefreshToken: stringPtr("refresh-token"),
 		ExpiresAt:    time.Now().Add(7 * 24 * time.Hour),
-		IsActive:     true,
 	}
 
 	// Setup mocks

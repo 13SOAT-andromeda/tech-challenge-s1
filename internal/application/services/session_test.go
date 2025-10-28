@@ -49,6 +49,16 @@ func (m *MockSessionRepository) DeleteByUserID(ctx context.Context, userID uint)
 	return args.Error(0)
 }
 
+func (m *MockSessionRepository) DeleteByRefreshToken(ctx context.Context, refreshToken string) error {
+	args := m.Called(ctx, refreshToken)
+	return args.Error(0)
+}
+
+func (m *MockSessionRepository) DeleteExpiredSessions(ctx context.Context) error {
+	args := m.Called(ctx)
+	return args.Error(0)
+}
+
 func TestNewSessionService(t *testing.T) {
 	mockRepo := &MockSessionRepository{}
 	service := NewSessionService(mockRepo)
@@ -78,7 +88,6 @@ func TestSessionService_Create(t *testing.T) {
 					UserID:       1,
 					RefreshToken: stringPtr("valid-token"),
 					ExpiresAt:    time.Now().Add(24 * time.Hour),
-					IsActive:     true,
 				}, nil)
 			},
 			expectError: false,
@@ -130,7 +139,6 @@ func TestSessionService_Create(t *testing.T) {
 				assert.Equal(t, tt.userID, session.UserID)
 				assert.Equal(t, tt.refreshToken, *session.RefreshToken)
 				assert.WithinDuration(t, tt.expiresAt, session.ExpiresAt, time.Second)
-				assert.True(t, session.IsActive)
 			}
 
 			mockRepo.AssertExpectations(t)
@@ -155,7 +163,6 @@ func TestSessionService_GetByRefreshToken(t *testing.T) {
 					UserID:       1,
 					RefreshToken: stringPtr("valid-token"),
 					ExpiresAt:    time.Now().Add(24 * time.Hour),
-					IsActive:     true,
 				}, nil)
 			},
 			expectError: false,
@@ -218,7 +225,6 @@ func TestSessionService_Validate(t *testing.T) {
 					UserID:       1,
 					RefreshToken: stringPtr("valid-token"),
 					ExpiresAt:    time.Now().Add(24 * time.Hour),
-					IsActive:     true,
 				}, nil)
 			},
 			expectError: false,
@@ -232,22 +238,6 @@ func TestSessionService_Validate(t *testing.T) {
 					UserID:       1,
 					RefreshToken: stringPtr("expired-token"),
 					ExpiresAt:    time.Now().Add(-time.Hour),
-					IsActive:     true,
-				}, nil)
-			},
-			expectError: true,
-			errorMsg:    "sessão inválida ou expirada",
-		},
-		{
-			name:         "inactive session",
-			refreshToken: "inactive-token",
-			setupMock: func(m *MockSessionRepository) {
-				m.On("FindByRefreshToken", mock.Anything, "inactive-token").Return(&domain.Session{
-					ID:           1,
-					UserID:       1,
-					RefreshToken: stringPtr("inactive-token"),
-					ExpiresAt:    time.Now().Add(24 * time.Hour),
-					IsActive:     false,
 				}, nil)
 			},
 			expectError: true,
