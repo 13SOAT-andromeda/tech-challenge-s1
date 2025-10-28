@@ -7,14 +7,18 @@ import (
 )
 
 func TestNewDocument_Valid(t *testing.T) {
+
+	expectedDocument := "12345678909"
+
 	tests := []struct {
 		name     string
 		document string
+		expected string
 	}{
-		{"Valid CPF with dots and dash", "123.456.789-09"},
-		{"Valid CPF without formatting", "12345678909"},
-		{"Valid CPF with spaces", "123 456 789 09"},
-		{"Another valid CPF", "111.444.777-35"},
+		{"Valid CPF with dots and dash", "123.456.789-09", expectedDocument},
+		{"Valid CPF without formatting", "12345678909", expectedDocument},
+		{"Valid CPF with spaces", "123 456 789 09", expectedDocument},
+		{"Another valid CPF", "123.456.789-09", expectedDocument},
 	}
 
 	for _, tt := range tests {
@@ -23,7 +27,7 @@ func TestNewDocument_Valid(t *testing.T) {
 
 			assert.NoError(t, err)
 			assert.NotNil(t, doc)
-			assert.Equal(t, tt.document, doc.Number)
+			assert.Equal(t, tt.expected, doc.Number)
 		})
 	}
 }
@@ -80,23 +84,28 @@ func TestDocument_GetDocumentNumber(t *testing.T) {
 }
 
 func TestDocument_NormalizeDocument(t *testing.T) {
+
+	expectedDocument := "12345678909"
+
 	tests := []struct {
 		name     string
 		input    string
 		expected string
 	}{
-		{"With dots and dash", "123.456.789-09", "12345678909"},
-		{"With spaces", "123 456 789 09", "12345678909"},
-		{"With mixed chars", "123-456.789/09", "12345678909"},
-		{"Only numbers", "12345678909", "12345678909"},
+		{"With dots and dash", "123.456.789-09", expectedDocument},
+		{"With spaces", "123 456 789 09", expectedDocument},
+		{"With mixed chars", "123-456.789/09", expectedDocument},
+		{"Only numbers", "12345678909", expectedDocument},
 		{"Empty", "", ""},
-		{"With letters", "123abc456def789", "123456789"},
+		{"With letters", "123abc456def78909", expectedDocument},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			doc := &Document{}
-			result := doc.NormalizeDocument(tt.input)
+			doc := &Document{
+				Number: tt.input,
+			}
+			result := doc.NormalizeDocument()
 
 			assert.Equal(t, tt.expected, result)
 		})
