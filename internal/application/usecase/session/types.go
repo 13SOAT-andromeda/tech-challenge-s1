@@ -18,7 +18,6 @@ type LoginOutput struct {
 	AccessToken  string     `json:"access_token"`
 	RefreshToken string     `json:"refresh_token"`
 	ExpiresIn    int64      `json:"expires_in"`
-	TokenType    string     `json:"token_type"`
 	User         UserOutput `json:"user"`
 }
 
@@ -39,7 +38,6 @@ type RefreshOutput struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 	ExpiresIn    int64  `json:"expires_in"`
-	TokenType    string `json:"token_type"`
 }
 
 type LogoutInput struct {

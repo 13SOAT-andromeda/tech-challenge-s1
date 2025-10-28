@@ -102,7 +102,7 @@ func TestNewLoginUseCase(t *testing.T) {
 	config := &config.Config{
 		JWT: &config.JWTConfig{
 			AccessTokenExpiry:  "15m",
-			RefreshTokenExpiry: "7d",
+			RefreshTokenExpiry: "168h",
 		},
 	}
 
@@ -169,7 +169,6 @@ func TestLoginUseCase_Execute_Success(t *testing.T) {
 	assert.NotEmpty(t, output.AccessToken)
 	assert.NotEmpty(t, output.RefreshToken)
 	assert.Equal(t, int64(900), output.ExpiresIn) // 15 minutes in seconds
-	assert.Equal(t, "Bearer", output.TokenType)
 	assert.Equal(t, user.ID, output.User.ID)
 	assert.Equal(t, user.Email, output.User.Email)
 

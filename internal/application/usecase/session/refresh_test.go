@@ -79,7 +79,6 @@ func TestRefreshUseCase_Execute_Success(t *testing.T) {
 	assert.NotEmpty(t, output.AccessToken)
 	assert.Equal(t, "refresh-token", output.RefreshToken)
 	assert.Equal(t, int64(900), output.ExpiresIn) // 15 minutes in seconds
-	assert.Equal(t, "Bearer", output.TokenType)
 
 	userService.AssertExpectations(t)
 	sessionService.AssertExpectations(t)

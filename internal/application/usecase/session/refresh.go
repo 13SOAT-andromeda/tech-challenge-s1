@@ -57,7 +57,6 @@ func (uc *refreshUseCase) Execute(ctx context.Context, input RefreshInput) (*Ref
 		AccessToken:  accessToken,
 		RefreshToken: input.RefreshToken, // Keep the same refresh token
 		ExpiresIn:    int64(accessExpiry.Seconds()),
-		TokenType:    "Bearer",
 	}
 
 	return output, nil
