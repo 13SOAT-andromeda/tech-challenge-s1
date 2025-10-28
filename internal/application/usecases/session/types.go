@@ -43,8 +43,3 @@ type RefreshOutput struct {
 type LogoutInput struct {
 	RefreshToken string
 }
-
-type LogoutOutput struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-}

@@ -121,13 +121,13 @@ func (h *SessionHandler) Logout(ctx *gin.Context) {
 		RefreshToken: req.RefreshToken,
 	}
 
-	output, err := h.logoutUseCase.Execute(ctx, input)
+	err := h.logoutUseCase.Execute(ctx, input)
 	if err != nil {
 		ctx.JSON(mapErrorToStatus(err), gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, output)
+	ctx.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 }
 
 // mapErrorToStatus maps domain errors to HTTP status codes

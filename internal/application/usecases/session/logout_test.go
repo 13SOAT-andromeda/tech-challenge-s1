@@ -31,13 +31,10 @@ func TestLogoutUseCase_Execute_Success(t *testing.T) {
 		RefreshToken: "refresh-token",
 	}
 
-	output, err := useCase.Execute(context.Background(), input)
+	err := useCase.Execute(context.Background(), input)
 
 	// Assertions
 	assert.NoError(t, err)
-	assert.NotNil(t, output)
-	assert.True(t, output.Success)
-	assert.Equal(t, "Logged out successfully", output.Message)
 
 	sessionService.AssertExpectations(t)
 }
@@ -55,11 +52,10 @@ func TestLogoutUseCase_Execute_InvalidRefreshToken(t *testing.T) {
 		RefreshToken: "invalid-token",
 	}
 
-	output, err := useCase.Execute(context.Background(), input)
+	err := useCase.Execute(context.Background(), input)
 
 	// Assertions
 	assert.Error(t, err)
-	assert.Nil(t, output)
 	assert.Equal(t, services.ErrSessionInvalid, err)
 
 	sessionService.AssertExpectations(t)
@@ -78,11 +74,10 @@ func TestLogoutUseCase_Execute_SessionNotFound(t *testing.T) {
 		RefreshToken: "nonexistent-token",
 	}
 
-	output, err := useCase.Execute(context.Background(), input)
+	err := useCase.Execute(context.Background(), input)
 
 	// Assertions
 	assert.Error(t, err)
-	assert.Nil(t, output)
 	assert.Equal(t, services.ErrSessionInvalid, err)
 
 	sessionService.AssertExpectations(t)
@@ -101,11 +96,10 @@ func TestLogoutUseCase_Execute_UpdateError(t *testing.T) {
 		RefreshToken: "refresh-token",
 	}
 
-	output, err := useCase.Execute(context.Background(), input)
+	err := useCase.Execute(context.Background(), input)
 
 	// Assertions
 	assert.Error(t, err)
-	assert.Nil(t, output)
 
 	sessionService.AssertExpectations(t)
 }
@@ -123,11 +117,10 @@ func TestLogoutUseCase_Execute_EmptyRefreshToken(t *testing.T) {
 		RefreshToken: "",
 	}
 
-	output, err := useCase.Execute(context.Background(), input)
+	err := useCase.Execute(context.Background(), input)
 
 	// Assertions
 	assert.Error(t, err)
-	assert.Nil(t, output)
 	assert.Equal(t, services.ErrSessionInvalid, err)
 
 	sessionService.AssertExpectations(t)

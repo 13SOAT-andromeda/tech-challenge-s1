@@ -19,16 +19,9 @@ func NewLogoutUseCase(
 	}
 }
 
-func (uc *logoutUseCase) Execute(ctx context.Context, input LogoutInput) (*LogoutOutput, error) {
-	// Delete session by refresh token
+func (uc *logoutUseCase) Execute(ctx context.Context, input LogoutInput) error {
 	if err := uc.sessionService.DeleteByRefreshToken(ctx, input.RefreshToken); err != nil {
-		return nil, services.ErrSessionInvalid
+		return services.ErrSessionInvalid
 	}
-
-	output := &LogoutOutput{
-		Success: true,
-		Message: "Logged out successfully",
-	}
-
-	return output, nil
+	return nil
 }

@@ -18,5 +18,5 @@ type RefreshUseCase interface {
 }
 
 type LogoutUseCase interface {
-	Execute(ctx context.Context, input LogoutInput) (*LogoutOutput, error)
+	Execute(ctx context.Context, input LogoutInput) error
 }
