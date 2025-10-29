@@ -4,21 +4,25 @@ import (
 	"context"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/jwt"
 )
 
 type validateUseCase struct {
-	userService ports.UserService
-	jwtService  *jwt.Service
+	userService    ports.UserService
+	sessionService ports.SessionService
+	jwtService     *jwt.Service
 }
 
 func NewValidateUseCase(
 	userService ports.UserService,
+	sessionService ports.SessionService,
 	jwtService *jwt.Service,
 ) ValidateUseCase {
 	return &validateUseCase{
-		userService: userService,
-		jwtService:  jwtService,
+		userService:    userService,
+		sessionService: sessionService,
+		jwtService:     jwtService,
 	}
 }
 
@@ -26,6 +30,27 @@ func (uc *validateUseCase) Execute(ctx context.Context, input ValidateInput) (*V
 	claims, err := uc.jwtService.ValidateToken(input.Token)
 	if err != nil {
 		return nil, err
+	}
+
+	sessions, err := uc.sessionService.GetByUserID(ctx, claims.UserID)
+	if err != nil {
+		return nil, services.ErrSessionInvalid
+	}
+
+	if len(sessions) == 0 {
+		return nil, services.ErrSessionNotFound
+	}
+
+	hasValidSession := false
+	for _, session := range sessions {
+		if session.IsValid() {
+			hasValidSession = true
+			break
+		}
+	}
+
+	if !hasValidSession {
+		return nil, services.ErrSessionInvalid
 	}
 
 	user, err := uc.userService.GetByID(ctx, claims.UserID)

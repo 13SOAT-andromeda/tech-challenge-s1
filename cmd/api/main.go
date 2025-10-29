@@ -75,7 +75,7 @@ func main() {
 
 	// Session UseCases
 	loginUseCase := session.NewLoginUseCase(userService, sessionService, jwtService, cfg)
-	validateUseCase := session.NewValidateUseCase(userService, jwtService)
+	validateUseCase := session.NewValidateUseCase(userService, sessionService, jwtService)
 	refreshUseCase := session.NewRefreshUseCase(userService, sessionService, jwtService, cfg)
 	logoutUseCase := session.NewLogoutUseCase(sessionService)
 

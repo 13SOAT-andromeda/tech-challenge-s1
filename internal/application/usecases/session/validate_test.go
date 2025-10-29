@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/jwt"
 	"github.com/stretchr/testify/assert"
@@ -13,9 +14,10 @@ import (
 
 func TestNewValidateUseCase(t *testing.T) {
 	userService := &MockUserService{}
+	sessionService := &MockSessionService{}
 	jwtService := jwt.NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
 
-	useCase := NewValidateUseCase(userService, jwtService)
+	useCase := NewValidateUseCase(userService, sessionService, jwtService)
 
 	assert.NotNil(t, useCase)
 	assert.Implements(t, (*ValidateUseCase)(nil), useCase)
@@ -23,9 +25,10 @@ func TestNewValidateUseCase(t *testing.T) {
 
 func TestValidateUseCase_Execute_ValidToken(t *testing.T) {
 	userService := &MockUserService{}
+	sessionService := &MockSessionService{}
 	jwtService := jwt.NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
 
-	useCase := NewValidateUseCase(userService, jwtService)
+	useCase := NewValidateUseCase(userService, sessionService, jwtService)
 
 	// Generate a valid token
 	userID := uint(1)
@@ -44,8 +47,16 @@ func TestValidateUseCase_Execute_ValidToken(t *testing.T) {
 		Active:  true,
 	}
 
+	// Mock valid session
+	validSession := &domain.Session{
+		ID:        1,
+		UserID:    userID,
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+
 	// Setup mocks
 	userService.On("GetByID", mock.Anything, userID).Return(user, nil)
+	sessionService.On("GetByUserID", mock.Anything, userID).Return([]*domain.Session{validSession}, nil)
 
 	// Execute
 	input := ValidateInput{
@@ -63,13 +74,15 @@ func TestValidateUseCase_Execute_ValidToken(t *testing.T) {
 	assert.Equal(t, user.Email, output.User.Email)
 
 	userService.AssertExpectations(t)
+	sessionService.AssertExpectations(t)
 }
 
 func TestValidateUseCase_Execute_InvalidToken(t *testing.T) {
 	userService := &MockUserService{}
+	sessionService := &MockSessionService{}
 	jwtService := jwt.NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
 
-	useCase := NewValidateUseCase(userService, jwtService)
+	useCase := NewValidateUseCase(userService, sessionService, jwtService)
 
 	// Execute with invalid token
 	input := ValidateInput{
@@ -83,13 +96,15 @@ func TestValidateUseCase_Execute_InvalidToken(t *testing.T) {
 	assert.Nil(t, output)
 
 	userService.AssertExpectations(t)
+	sessionService.AssertExpectations(t)
 }
 
 func TestValidateUseCase_Execute_EmptyToken(t *testing.T) {
 	userService := &MockUserService{}
+	sessionService := &MockSessionService{}
 	jwtService := jwt.NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
 
-	useCase := NewValidateUseCase(userService, jwtService)
+	useCase := NewValidateUseCase(userService, sessionService, jwtService)
 
 	// Execute with empty token
 	input := ValidateInput{
@@ -103,13 +118,15 @@ func TestValidateUseCase_Execute_EmptyToken(t *testing.T) {
 	assert.Nil(t, output)
 
 	userService.AssertExpectations(t)
+	sessionService.AssertExpectations(t)
 }
 
 func TestValidateUseCase_Execute_UserNotFound(t *testing.T) {
 	userService := &MockUserService{}
+	sessionService := &MockSessionService{}
 	jwtService := jwt.NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
 
-	useCase := NewValidateUseCase(userService, jwtService)
+	useCase := NewValidateUseCase(userService, sessionService, jwtService)
 
 	// Generate a valid token
 	userID := uint(999) // Non-existent user
@@ -118,8 +135,16 @@ func TestValidateUseCase_Execute_UserNotFound(t *testing.T) {
 	token, err := jwtService.GenerateAccessToken(userID, email, role)
 	assert.NoError(t, err)
 
+	// Mock valid session
+	validSession := &domain.Session{
+		ID:        1,
+		UserID:    userID,
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+
 	// Setup mocks - user not found
 	userService.On("GetByID", mock.Anything, userID).Return((*domain.User)(nil), assert.AnError)
+	sessionService.On("GetByUserID", mock.Anything, userID).Return([]*domain.Session{validSession}, nil)
 
 	// Execute
 	input := ValidateInput{
@@ -133,14 +158,16 @@ func TestValidateUseCase_Execute_UserNotFound(t *testing.T) {
 	assert.Nil(t, output)
 
 	userService.AssertExpectations(t)
+	sessionService.AssertExpectations(t)
 }
 
 func TestValidateUseCase_Execute_ExpiredToken(t *testing.T) {
 	userService := &MockUserService{}
+	sessionService := &MockSessionService{}
 	// Create JWT service with very short expiry
 	jwtService := jwt.NewService("test-secret", 1*time.Millisecond, 7*24*time.Hour)
 
-	useCase := NewValidateUseCase(userService, jwtService)
+	useCase := NewValidateUseCase(userService, sessionService, jwtService)
 
 	// Generate a token that expires quickly
 	userID := uint(1)
@@ -164,4 +191,110 @@ func TestValidateUseCase_Execute_ExpiredToken(t *testing.T) {
 	assert.Nil(t, output)
 
 	userService.AssertExpectations(t)
+	sessionService.AssertExpectations(t)
+}
+
+func TestValidateUseCase_Execute_NoValidSession(t *testing.T) {
+	userService := &MockUserService{}
+	sessionService := &MockSessionService{}
+	jwtService := jwt.NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
+
+	useCase := NewValidateUseCase(userService, sessionService, jwtService)
+
+	// Generate a valid token
+	userID := uint(1)
+	email := "test@example.com"
+	role := "user"
+	token, err := jwtService.GenerateAccessToken(userID, email, role)
+	assert.NoError(t, err)
+
+	// Mock expired session
+	expiredSession := &domain.Session{
+		ID:        1,
+		UserID:    userID,
+		ExpiresAt: time.Now().Add(-24 * time.Hour), // Expired
+	}
+
+	// Setup mocks - no valid session
+	sessionService.On("GetByUserID", mock.Anything, userID).Return([]*domain.Session{expiredSession}, nil)
+
+	// Execute
+	input := ValidateInput{
+		Token: token,
+	}
+
+	output, err := useCase.Execute(context.Background(), input)
+
+	// Assertions
+	assert.Error(t, err)
+	assert.Nil(t, output)
+	assert.Equal(t, services.ErrSessionInvalid, err)
+
+	userService.AssertExpectations(t)
+	sessionService.AssertExpectations(t)
+}
+
+func TestValidateUseCase_Execute_NoSessions(t *testing.T) {
+	userService := &MockUserService{}
+	sessionService := &MockSessionService{}
+	jwtService := jwt.NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
+
+	useCase := NewValidateUseCase(userService, sessionService, jwtService)
+
+	// Generate a valid token
+	userID := uint(1)
+	email := "test@example.com"
+	role := "user"
+	token, err := jwtService.GenerateAccessToken(userID, email, role)
+	assert.NoError(t, err)
+
+	// Setup mocks - no sessions
+	sessionService.On("GetByUserID", mock.Anything, userID).Return([]*domain.Session{}, nil)
+
+	// Execute
+	input := ValidateInput{
+		Token: token,
+	}
+
+	output, err := useCase.Execute(context.Background(), input)
+
+	// Assertions
+	assert.Error(t, err)
+	assert.Nil(t, output)
+	assert.Equal(t, services.ErrSessionNotFound, err)
+
+	userService.AssertExpectations(t)
+	sessionService.AssertExpectations(t)
+}
+
+func TestValidateUseCase_Execute_SessionServiceError(t *testing.T) {
+	userService := &MockUserService{}
+	sessionService := &MockSessionService{}
+	jwtService := jwt.NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
+
+	useCase := NewValidateUseCase(userService, sessionService, jwtService)
+
+	// Generate a valid token
+	userID := uint(1)
+	email := "test@example.com"
+	role := "user"
+	token, err := jwtService.GenerateAccessToken(userID, email, role)
+	assert.NoError(t, err)
+
+	// Setup mocks - session service error
+	sessionService.On("GetByUserID", mock.Anything, userID).Return(([]*domain.Session)(nil), assert.AnError)
+
+	// Execute
+	input := ValidateInput{
+		Token: token,
+	}
+
+	output, err := useCase.Execute(context.Background(), input)
+
+	// Assertions
+	assert.Error(t, err)
+	assert.Nil(t, output)
+
+	userService.AssertExpectations(t)
+	sessionService.AssertExpectations(t)
 }
