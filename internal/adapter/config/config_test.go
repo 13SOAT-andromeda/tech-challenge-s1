@@ -18,15 +18,17 @@ func TestConfig_Init_LoadsEnvFile(t *testing.T) {
 		"HTTP_PORT":            "9999",
 		"HTTP_URL":             "http://test.com",
 		"ENV":                  "test",
+		"ADMIN_EMAIL":          "admin@admin.com.br",
+		"ADMIN_PASSWORD":       "Pass123@",
 	})
-	defer UnsetMockEnv([]string{"DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME", "DB_PORT", "DB_SSLMODE", "DB_TIMEZONE", "HTTP_ALLOWED_ORIGINS", "HTTP_PORT", "HTTP_URL", "ENV"})
+	defer UnsetMockEnv([]string{"DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME", "DB_PORT", "DB_SSLMODE", "DB_TIMEZONE", "HTTP_ALLOWED_ORIGINS", "HTTP_PORT", "HTTP_URL", "ENV", "ADMIN_EMAIL", "ADMIN_PASSWORD"})
 
 	cfg, err := Init()
 	if err != nil {
 		t.Fatalf("Init() failed: %v", err)
 	}
 
-	if cfg.Database == nil || cfg.Http == nil {
+	if cfg.Database == nil || cfg.Http == nil || cfg.AdminUser == nil {
 		t.Error("Config struct not initialized correctly")
 	}
 

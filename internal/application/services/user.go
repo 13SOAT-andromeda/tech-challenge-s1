@@ -49,6 +49,49 @@ func (s *UserService) Create(ctx context.Context, u domain.User) (*domain.User, 
 	return created, nil
 }
 
+func (s *UserService) CreateAdminUser(ctx context.Context, email, password string) error {
+
+	var err error
+
+	if user, err := s.GetByEmail(ctx, email); err != nil {
+		return err
+	} else if user != nil {
+		return nil
+	}
+
+	p, err := domain.NewPassword(password, encryption.NewBcryptHasher())
+
+	if err != nil {
+		return err
+	}
+
+	if err := p.Hash(); err != nil {
+		return err
+	}
+
+	u := domain.User{
+		Name:     "Admin",
+		Email:    email,
+		Password: p,
+		Contact:  "",
+		Role:     "administrator",
+		Active:   true,
+	}
+
+	u.Address = &domain.Address{}
+
+	userModel := &user.Model{}
+	userModel.FromDomain(&u)
+
+	_, err = s.repo.Create(ctx, userModel)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *UserService) GetAll(ctx context.Context) ([]domain.User, error) {
 
 	users, err := s.repo.FindAll(ctx, false)

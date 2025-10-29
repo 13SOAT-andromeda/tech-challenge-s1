@@ -4,6 +4,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/middlewares"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
@@ -23,6 +24,7 @@ func NewRouter(
 	productHandler handlers.ProductHandler,
 	userHandler handlers.UserHandler,
 	sessionHandler handlers.SessionHandler,
+	sessionService ports.SessionService,
 ) *Router {
 	if config.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -37,7 +39,7 @@ func NewRouter(
 	router.Use(gin.Logger(), gin.Recovery(), cors.New(corsConfig))
 
 	// Initialize auth middleware
-	authMiddleware := middlewares.NewAuthMiddleware(&config)
+	authMiddleware := middlewares.NewAuthMiddleware(&config, sessionService)
 
 	// Public routes (no authentication required)
 	sessionGroup := router.Group("/sessions")
