@@ -25,6 +25,11 @@ func (m *MockUserService) Create(ctx context.Context, user domain.User) (*domain
 	return args.Get(0).(*domain.User), args.Error(1)
 }
 
+func (m *MockUserService) CreateAdminUser(ctx context.Context, email, password string) error {
+	args := m.Called(ctx, email, password)
+	return args.Error(0)
+}
+
 func (m *MockUserService) GetByID(ctx context.Context, id uint) (*domain.User, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(*domain.User), args.Error(1)
