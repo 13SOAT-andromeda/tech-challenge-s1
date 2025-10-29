@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/session"
 	"github.com/gin-gonic/gin"
@@ -42,7 +43,7 @@ type RefreshRequest struct {
 func (h *SessionHandler) Login(ctx *gin.Context) {
 	var req LoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -53,24 +54,24 @@ func (h *SessionHandler) Login(ctx *gin.Context) {
 
 	output, err := h.loginUseCase.Execute(ctx, input)
 	if err != nil {
-		ctx.JSON(mapErrorToStatus(err), gin.H{"error": err.Error()})
+		response.RespondError(ctx, mapErrorToStatus(err), err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, output)
+	response.RespondSuccess(ctx, output, "")
 }
 
 // Validate handles GET /sessions/validate
 func (h *SessionHandler) Validate(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	if authHeader == "" {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
+		response.RespondError(ctx, http.StatusUnauthorized, "Authorization header required")
 		return
 	}
 
 	// Extract token from "Bearer <token>"
 	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
+		response.RespondError(ctx, http.StatusUnauthorized, "Invalid authorization header format")
 		return
 	}
 
@@ -81,18 +82,18 @@ func (h *SessionHandler) Validate(ctx *gin.Context) {
 
 	output, err := h.validateUseCase.Execute(ctx, input)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, output)
+	response.RespondSuccess(ctx, output, "")
 }
 
 // Refresh handles POST /sessions/refresh
 func (h *SessionHandler) Refresh(ctx *gin.Context) {
 	var req RefreshRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -102,18 +103,18 @@ func (h *SessionHandler) Refresh(ctx *gin.Context) {
 
 	output, err := h.refreshUseCase.Execute(ctx, input)
 	if err != nil {
-		ctx.JSON(mapErrorToStatus(err), gin.H{"error": err.Error()})
+		response.RespondError(ctx, mapErrorToStatus(err), err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, output)
+	response.RespondSuccess(ctx, output, "")
 }
 
 // Logout handles DELETE /sessions/logout
 func (h *SessionHandler) Logout(ctx *gin.Context) {
 	var req RefreshRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -123,11 +124,11 @@ func (h *SessionHandler) Logout(ctx *gin.Context) {
 
 	err := h.logoutUseCase.Execute(ctx, input)
 	if err != nil {
-		ctx.JSON(mapErrorToStatus(err), gin.H{"error": err.Error()})
+		response.RespondError(ctx, mapErrorToStatus(err), err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
+	response.RespondSuccess(ctx, "Logged out successfully", "")
 }
 
 // mapErrorToStatus maps domain errors to HTTP status codes
