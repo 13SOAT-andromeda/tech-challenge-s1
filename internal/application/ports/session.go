@@ -9,6 +9,7 @@ import (
 
 type SessionRepository interface {
 	Create(ctx context.Context, session *domain.Session) (*domain.Session, error)
+	FindByID(ctx context.Context, sessionID uint) (*domain.Session, error)
 	FindByRefreshToken(ctx context.Context, refreshToken string) (*domain.Session, error)
 	FindByUserID(ctx context.Context, userID uint) ([]*domain.Session, error)
 	Update(ctx context.Context, session *domain.Session) (*domain.Session, error)
@@ -20,6 +21,7 @@ type SessionRepository interface {
 
 type SessionService interface {
 	Create(ctx context.Context, userID uint, refreshToken string, expiresAt time.Time) (*domain.Session, error)
+	GetByID(ctx context.Context, sessionID uint) (*domain.Session, error)
 	GetByRefreshToken(ctx context.Context, refreshToken string) (*domain.Session, error)
 	GetByUserID(ctx context.Context, userID uint) ([]*domain.Session, error)
 	Update(ctx context.Context, session *domain.Session) (*domain.Session, error)

@@ -29,6 +29,23 @@ func (r *SessionRepository) Create(ctx context.Context, session *domain.Session)
 	return sessionModel.ToDomain(), nil
 }
 
+func (r *SessionRepository) FindByID(ctx context.Context, sessionID uint) (*domain.Session, error) {
+	var sessionModel model.SessionModel
+
+	err := r.db.WithContext(ctx).
+		Where("id = ?", sessionID).
+		First(&sessionModel).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("session not found")
+		}
+		return nil, err
+	}
+
+	return sessionModel.ToDomain(), nil
+}
+
 func (r *SessionRepository) FindByRefreshToken(ctx context.Context, refreshToken string) (*domain.Session, error) {
 	var sessionModel model.SessionModel
 

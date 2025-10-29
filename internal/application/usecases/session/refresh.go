@@ -42,7 +42,7 @@ func (uc *refreshUseCase) Execute(ctx context.Context, input RefreshInput) (*Ref
 		return nil, services.ErrUserNotFound
 	}
 
-	accessToken, err := uc.jwtService.GenerateAccessToken(user.ID, user.Email, user.Role)
+	accessToken, err := uc.jwtService.GenerateAccessToken(user.ID, user.Email, user.Role, session.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -8,22 +8,20 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Claims represents the JWT claims structure
 type Claims struct {
-	UserID uint   `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
+	UserID    uint   `json:"user_id"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
+	SessionID uint   `json:"session_id"`
 	jwt.RegisteredClaims
 }
 
-// Service handles JWT operations
 type Service struct {
 	secret             []byte
 	accessTokenExpiry  time.Duration
 	refreshTokenExpiry time.Duration
 }
 
-// NewService creates a new JWT service
 func NewService(secret string, accessTokenExpiry, refreshTokenExpiry time.Duration) *Service {
 	return &Service{
 		secret:             []byte(secret),
@@ -32,12 +30,12 @@ func NewService(secret string, accessTokenExpiry, refreshTokenExpiry time.Durati
 	}
 }
 
-// GenerateAccessToken generates a new access token
-func (s *Service) GenerateAccessToken(userID uint, email, role string) (string, error) {
+func (s *Service) GenerateAccessToken(userID uint, email, role string, sessionID uint) (string, error) {
 	claims := &Claims{
-		UserID: userID,
-		Email:  email,
-		Role:   role,
+		UserID:    userID,
+		Email:     email,
+		Role:      role,
+		SessionID: sessionID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.accessTokenExpiry)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -51,7 +49,6 @@ func (s *Service) GenerateAccessToken(userID uint, email, role string) (string, 
 	return token.SignedString(s.secret)
 }
 
-// GenerateRefreshToken generates a new refresh token
 func (s *Service) GenerateRefreshToken(userID uint) (string, error) {
 	claims := &Claims{
 		UserID: userID,
@@ -68,7 +65,6 @@ func (s *Service) GenerateRefreshToken(userID uint) (string, error) {
 	return token.SignedString(s.secret)
 }
 
-// ValidateToken validates a JWT token and returns the claims
 func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -88,7 +84,6 @@ func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 	return nil, errors.New("invalid token")
 }
 
-// ExtractUserIDFromToken extracts user ID from a token without full validation
 func (s *Service) ExtractUserIDFromToken(tokenString string) (uint, error) {
 	claims, err := s.ValidateToken(tokenString)
 	if err != nil {
@@ -97,7 +92,6 @@ func (s *Service) ExtractUserIDFromToken(tokenString string) (uint, error) {
 	return claims.UserID, nil
 }
 
-// IsTokenExpired checks if a token is expired
 func (s *Service) IsTokenExpired(tokenString string) bool {
 	claims, err := s.ValidateToken(tokenString)
 	if err != nil {
@@ -106,13 +100,11 @@ func (s *Service) IsTokenExpired(tokenString string) bool {
 	return claims.ExpiresAt.Before(time.Now())
 }
 
-// RefreshAccessToken generates a new access token from a refresh token
-func (s *Service) RefreshAccessToken(refreshTokenString string, email, role string) (string, error) {
+func (s *Service) RefreshAccessToken(refreshTokenString string, email, role string, sessionID uint) (string, error) {
 	claims, err := s.ValidateToken(refreshTokenString)
 	if err != nil {
 		return "", err
 	}
 
-	// Generate new access token with updated claims
-	return s.GenerateAccessToken(claims.UserID, email, role)
+	return s.GenerateAccessToken(claims.UserID, email, role, sessionID)
 }

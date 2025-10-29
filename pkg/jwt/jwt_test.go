@@ -26,8 +26,9 @@ func TestService_GenerateAccessToken(t *testing.T) {
 	userID := uint(1)
 	email := "test@example.com"
 	role := "user"
+	sessionID := uint(123)
 
-	token, err := service.GenerateAccessToken(userID, email, role)
+	token, err := service.GenerateAccessToken(userID, email, role, sessionID)
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
@@ -38,6 +39,7 @@ func TestService_GenerateAccessToken(t *testing.T) {
 	assert.Equal(t, userID, claims.UserID)
 	assert.Equal(t, email, claims.Email)
 	assert.Equal(t, role, claims.Role)
+	assert.Equal(t, sessionID, claims.SessionID)
 	assert.Equal(t, "tech-challenge-s1", claims.Issuer)
 	assert.Equal(t, "1", claims.Subject)
 	assert.True(t, claims.ExpiresAt.After(time.Now()))
@@ -72,8 +74,11 @@ func TestService_ValidateToken(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name:        "valid token",
-			token:       func() string { token, _ := service.GenerateAccessToken(1, "test@example.com", "user"); return token }(),
+			name: "valid token",
+			token: func() string {
+				token, _ := service.GenerateAccessToken(1, "test@example.com", "user", 123)
+				return token
+			}(),
 			expectError: false,
 		},
 		{
@@ -112,7 +117,8 @@ func TestService_ExtractUserIDFromToken(t *testing.T) {
 	service := NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
 
 	userID := uint(123)
-	token, err := service.GenerateAccessToken(userID, "test@example.com", "user")
+	sessionID := uint(456)
+	token, err := service.GenerateAccessToken(userID, "test@example.com", "user", sessionID)
 	assert.NoError(t, err)
 
 	extractedUserID, err := service.ExtractUserIDFromToken(token)
@@ -125,7 +131,7 @@ func TestService_IsTokenExpired(t *testing.T) {
 	service := NewService("test-secret", 1*time.Millisecond, 7*24*time.Hour)
 
 	// Generate a token that expires very quickly
-	token, err := service.GenerateAccessToken(1, "test@example.com", "user")
+	token, err := service.GenerateAccessToken(1, "test@example.com", "user", 123)
 	assert.NoError(t, err)
 
 	// Wait for token to expire
@@ -140,11 +146,12 @@ func TestService_RefreshAccessToken(t *testing.T) {
 	userID := uint(1)
 	email := "test@example.com"
 	role := "user"
+	sessionID := uint(789)
 
 	refreshToken, err := service.GenerateRefreshToken(userID)
 	assert.NoError(t, err)
 
-	newAccessToken, err := service.RefreshAccessToken(refreshToken, email, role)
+	newAccessToken, err := service.RefreshAccessToken(refreshToken, email, role, sessionID)
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, newAccessToken)
@@ -155,13 +162,14 @@ func TestService_RefreshAccessToken(t *testing.T) {
 	assert.Equal(t, userID, claims.UserID)
 	assert.Equal(t, email, claims.Email)
 	assert.Equal(t, role, claims.Role)
+	assert.Equal(t, sessionID, claims.SessionID)
 }
 
 func TestService_EdgeCases(t *testing.T) {
 	t.Run("zero user ID", func(t *testing.T) {
 		service := NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
 
-		token, err := service.GenerateAccessToken(0, "test@example.com", "user")
+		token, err := service.GenerateAccessToken(0, "test@example.com", "user", 123)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, token)
@@ -174,7 +182,7 @@ func TestService_EdgeCases(t *testing.T) {
 	t.Run("empty email and role", func(t *testing.T) {
 		service := NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
 
-		token, err := service.GenerateAccessToken(1, "", "")
+		token, err := service.GenerateAccessToken(1, "", "", 123)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, token)
@@ -189,7 +197,7 @@ func TestService_EdgeCases(t *testing.T) {
 		service1 := NewService("secret1", 15*time.Minute, 7*24*time.Hour)
 		service2 := NewService("secret2", 15*time.Minute, 7*24*time.Hour)
 
-		token, err := service1.GenerateAccessToken(1, "test@example.com", "user")
+		token, err := service1.GenerateAccessToken(1, "test@example.com", "user", 123)
 		assert.NoError(t, err)
 
 		// Token generated with service1 should not be valid with service2
@@ -204,8 +212,9 @@ func TestClaims_Structure(t *testing.T) {
 	userID := uint(42)
 	email := "user@example.com"
 	role := "admin"
+	sessionID := uint(999)
 
-	token, err := service.GenerateAccessToken(userID, email, role)
+	token, err := service.GenerateAccessToken(userID, email, role, sessionID)
 	assert.NoError(t, err)
 
 	claims, err := service.ValidateToken(token)
@@ -215,6 +224,7 @@ func TestClaims_Structure(t *testing.T) {
 	assert.Equal(t, userID, claims.UserID)
 	assert.Equal(t, email, claims.Email)
 	assert.Equal(t, role, claims.Role)
+	assert.Equal(t, sessionID, claims.SessionID)
 	assert.Equal(t, "tech-challenge-s1", claims.Issuer)
 	assert.Equal(t, "42", claims.Subject)
 	assert.NotNil(t, claims.ExpiresAt)

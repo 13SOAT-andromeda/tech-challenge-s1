@@ -68,6 +68,11 @@ func (m *MockSessionService) Create(ctx context.Context, userID uint, refreshTok
 	return args.Get(0).(*domain.Session), args.Error(1)
 }
 
+func (m *MockSessionService) GetByID(ctx context.Context, sessionID uint) (*domain.Session, error) {
+	args := m.Called(ctx, sessionID)
+	return args.Get(0).(*domain.Session), args.Error(1)
+}
+
 func (m *MockSessionService) GetByRefreshToken(ctx context.Context, refreshToken string) (*domain.Session, error) {
 	args := m.Called(ctx, refreshToken)
 	return args.Get(0).(*domain.Session), args.Error(1)

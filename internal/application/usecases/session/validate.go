@@ -32,24 +32,12 @@ func (uc *validateUseCase) Execute(ctx context.Context, input ValidateInput) (*V
 		return nil, err
 	}
 
-	sessions, err := uc.sessionService.GetByUserID(ctx, claims.UserID)
+	session, err := uc.sessionService.GetByID(ctx, claims.SessionID)
 	if err != nil {
 		return nil, services.ErrSessionInvalid
 	}
 
-	if len(sessions) == 0 {
-		return nil, services.ErrSessionNotFound
-	}
-
-	hasValidSession := false
-	for _, session := range sessions {
-		if session.IsValid() {
-			hasValidSession = true
-			break
-		}
-	}
-
-	if !hasValidSession {
+	if !session.IsValid() {
 		return nil, services.ErrSessionInvalid
 	}
 

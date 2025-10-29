@@ -42,25 +42,25 @@ func (uc *loginUseCase) Execute(ctx context.Context, input LoginInput) (*LoginOu
 		return nil, services.ErrUserNotFound
 	}
 
-	accessToken, err := uc.jwtService.GenerateAccessToken(user.ID, user.Email, user.Role)
-	if err != nil {
-		return nil, err
-	}
-
 	refreshToken, err := uc.jwtService.GenerateRefreshToken(user.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	accessExpiry, _ := time.ParseDuration(uc.config.JWT.AccessTokenExpiry)
-
 	refreshExpiry, _ := time.ParseDuration(uc.config.JWT.RefreshTokenExpiry)
 	sessionExpiresAt := time.Now().Add(refreshExpiry)
 
-	_, err = uc.sessionService.Create(ctx, user.ID, refreshToken, sessionExpiresAt)
+	session, err := uc.sessionService.Create(ctx, user.ID, refreshToken, sessionExpiresAt)
 	if err != nil {
 		return nil, err
 	}
+
+	accessToken, err := uc.jwtService.GenerateAccessToken(user.ID, user.Email, user.Role, session.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	accessExpiry, _ := time.ParseDuration(uc.config.JWT.AccessTokenExpiry)
 
 	userOutput := UserOutput{
 		ID:      user.ID,

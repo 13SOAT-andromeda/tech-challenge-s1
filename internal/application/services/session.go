@@ -33,6 +33,14 @@ func (s *SessionService) Create(ctx context.Context, userID uint, refreshToken s
 	return s.repo.Create(ctx, session)
 }
 
+func (s *SessionService) GetByID(ctx context.Context, sessionID uint) (*domain.Session, error) {
+	if sessionID == 0 {
+		return nil, ErrSessionIDInvalid
+	}
+
+	return s.repo.FindByID(ctx, sessionID)
+}
+
 func (s *SessionService) GetByRefreshToken(ctx context.Context, refreshToken string) (*domain.Session, error) {
 	if refreshToken == "" {
 		return nil, ErrSessionRefreshTokenEmpty

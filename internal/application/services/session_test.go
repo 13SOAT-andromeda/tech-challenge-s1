@@ -21,6 +21,14 @@ func (m *MockSessionRepository) Create(ctx context.Context, session *domain.Sess
 	return args.Get(0).(*domain.Session), args.Error(1)
 }
 
+func (m *MockSessionRepository) FindByID(ctx context.Context, sessionID uint) (*domain.Session, error) {
+	args := m.Called(ctx, sessionID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Session), args.Error(1)
+}
+
 func (m *MockSessionRepository) FindByRefreshToken(ctx context.Context, refreshToken string) (*domain.Session, error) {
 	args := m.Called(ctx, refreshToken)
 	if args.Get(0) == nil {
@@ -139,6 +147,68 @@ func TestSessionService_Create(t *testing.T) {
 				assert.Equal(t, tt.userID, session.UserID)
 				assert.Equal(t, tt.refreshToken, *session.RefreshToken)
 				assert.WithinDuration(t, tt.expiresAt, session.ExpiresAt, time.Second)
+			}
+
+			mockRepo.AssertExpectations(t)
+		})
+	}
+}
+
+func TestSessionService_GetByID(t *testing.T) {
+	tests := []struct {
+		name        string
+		sessionID   uint
+		setupMock   func(*MockSessionRepository)
+		expectError bool
+		errorMsg    string
+	}{
+		{
+			name:      "successful retrieval",
+			sessionID: 1,
+			setupMock: func(m *MockSessionRepository) {
+				m.On("FindByID", mock.Anything, uint(1)).Return(&domain.Session{
+					ID:           1,
+					UserID:       1,
+					RefreshToken: stringPtr("valid-token"),
+					ExpiresAt:    time.Now().Add(24 * time.Hour),
+				}, nil)
+			},
+			expectError: false,
+		},
+		{
+			name:        "zero session ID",
+			sessionID:   0,
+			setupMock:   func(m *MockSessionRepository) {},
+			expectError: true,
+			errorMsg:    "ID de sessão inválido",
+		},
+		{
+			name:      "session not found",
+			sessionID: 999,
+			setupMock: func(m *MockSessionRepository) {
+				m.On("FindByID", mock.Anything, uint(999)).Return(nil, errors.New("session not found"))
+			},
+			expectError: true,
+			errorMsg:    "session not found",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRepo := &MockSessionRepository{}
+			tt.setupMock(mockRepo)
+
+			service := NewSessionService(mockRepo)
+			session, err := service.GetByID(context.Background(), tt.sessionID)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errorMsg)
+				assert.Nil(t, session)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, session)
+				assert.Equal(t, tt.sessionID, session.ID)
 			}
 
 			mockRepo.AssertExpectations(t)
