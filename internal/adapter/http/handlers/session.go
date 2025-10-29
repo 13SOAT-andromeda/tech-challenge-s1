@@ -61,7 +61,6 @@ func (h *SessionHandler) Login(ctx *gin.Context) {
 	response.RespondSuccess(ctx, output, "")
 }
 
-// Validate handles GET /sessions/validate
 func (h *SessionHandler) Validate(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	if authHeader == "" {
@@ -69,7 +68,6 @@ func (h *SessionHandler) Validate(ctx *gin.Context) {
 		return
 	}
 
-	// Extract token from "Bearer <token>"
 	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
 		response.RespondError(ctx, http.StatusUnauthorized, "Invalid authorization header format")
 		return

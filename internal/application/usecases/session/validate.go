@@ -23,16 +23,14 @@ func NewValidateUseCase(
 }
 
 func (uc *validateUseCase) Execute(ctx context.Context, input ValidateInput) (*ValidateOutput, error) {
-	// Validate token
 	claims, err := uc.jwtService.ValidateToken(input.Token)
 	if err != nil {
-		return &ValidateOutput{Valid: false}, nil
+		return nil, err
 	}
 
-	// Get user information
 	user, err := uc.userService.GetByID(ctx, claims.UserID)
 	if err != nil {
-		return &ValidateOutput{Valid: false}, nil
+		return nil, err
 	}
 
 	userOutput := &UserOutput{

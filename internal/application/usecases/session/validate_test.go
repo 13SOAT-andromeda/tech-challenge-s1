@@ -79,10 +79,8 @@ func TestValidateUseCase_Execute_InvalidToken(t *testing.T) {
 	output, err := useCase.Execute(context.Background(), input)
 
 	// Assertions
-	assert.NoError(t, err)
-	assert.NotNil(t, output)
-	assert.False(t, output.Valid)
-	assert.Nil(t, output.User)
+	assert.Error(t, err)
+	assert.Nil(t, output)
 
 	userService.AssertExpectations(t)
 }
@@ -101,10 +99,8 @@ func TestValidateUseCase_Execute_EmptyToken(t *testing.T) {
 	output, err := useCase.Execute(context.Background(), input)
 
 	// Assertions
-	assert.NoError(t, err)
-	assert.NotNil(t, output)
-	assert.False(t, output.Valid)
-	assert.Nil(t, output.User)
+	assert.Error(t, err)
+	assert.Nil(t, output)
 
 	userService.AssertExpectations(t)
 }
@@ -133,10 +129,8 @@ func TestValidateUseCase_Execute_UserNotFound(t *testing.T) {
 	output, err := useCase.Execute(context.Background(), input)
 
 	// Assertions
-	assert.NoError(t, err)
-	assert.NotNil(t, output)
-	assert.False(t, output.Valid)
-	assert.Nil(t, output.User)
+	assert.Error(t, err)
+	assert.Nil(t, output)
 
 	userService.AssertExpectations(t)
 }
@@ -166,10 +160,8 @@ func TestValidateUseCase_Execute_ExpiredToken(t *testing.T) {
 	output, err := useCase.Execute(context.Background(), input)
 
 	// Assertions
-	assert.NoError(t, err)
-	assert.NotNil(t, output)
-	assert.False(t, output.Valid)
-	assert.Nil(t, output.User)
+	assert.Error(t, err)
+	assert.Nil(t, output)
 
 	userService.AssertExpectations(t)
 }
