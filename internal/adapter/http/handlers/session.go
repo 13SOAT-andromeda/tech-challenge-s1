@@ -39,7 +39,6 @@ type RefreshRequest struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
-// Login handles POST /sessions
 func (h *SessionHandler) Login(ctx *gin.Context) {
 	var req LoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -87,7 +86,6 @@ func (h *SessionHandler) Validate(ctx *gin.Context) {
 	response.RespondSuccess(ctx, output, "")
 }
 
-// Refresh handles POST /sessions/refresh
 func (h *SessionHandler) Refresh(ctx *gin.Context) {
 	var req RefreshRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -108,7 +106,6 @@ func (h *SessionHandler) Refresh(ctx *gin.Context) {
 	response.RespondSuccess(ctx, output, "")
 }
 
-// Logout handles DELETE /sessions/logout
 func (h *SessionHandler) Logout(ctx *gin.Context) {
 	var req RefreshRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -129,7 +126,6 @@ func (h *SessionHandler) Logout(ctx *gin.Context) {
 	response.RespondSuccess(ctx, "Logged out successfully", "")
 }
 
-// mapErrorToStatus maps domain errors to HTTP status codes
 func mapErrorToStatus(err error) int {
 	switch err {
 	case services.ErrUserNotFound:
