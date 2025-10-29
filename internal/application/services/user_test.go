@@ -32,7 +32,7 @@ func TestUserService_Create_Success(t *testing.T) {
 		Name:     "João Silva",
 		Email:    "joao@test.com",
 		Contact:  "11999999999",
-		Role:     "admin",
+		Role:     "administrator",
 		Password: password,
 		Address: &domain.Address{
 			Address:       "Rua Teste",
@@ -60,7 +60,7 @@ func TestUserService_Create_Success(t *testing.T) {
 	assert.NotNil(t, result)
 	assert.Equal(t, "João Silva", result.Name)
 	assert.Equal(t, "joao@test.com", result.Email)
-	assert.Equal(t, "admin", result.Role)
+	assert.Equal(t, "administrator", result.Role)
 	assert.True(t, result.Active)
 	mockRepo.AssertExpectations(t)
 	mockHasher.AssertExpectations(t)
@@ -80,7 +80,7 @@ func TestUserService_Create_EmailAlreadyExists(t *testing.T) {
 		Name:     "João Silva",
 		Email:    "joao@test.com",
 		Contact:  "11999999999",
-		Role:     "admin",
+		Role:     "administrator",
 		Password: password,
 		Active:   true,
 	}
@@ -119,7 +119,7 @@ func TestUserService_Create_RepositoryError(t *testing.T) {
 		Name:     "João Silva",
 		Email:    "joao@test.com",
 		Contact:  "11999999999",
-		Role:     "admin",
+		Role:     "administrator",
 		Password: password,
 		Active:   true,
 	}
@@ -141,6 +141,91 @@ func TestUserService_Create_RepositoryError(t *testing.T) {
 	mockHasher.AssertExpectations(t)
 }
 
+func TestUserService_CreateAdminUser_EmailAlreadyExists(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	service := NewUserService(mockRepo)
+
+	ctx := context.Background()
+
+	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(&user.Model{Email: "admin@admin.com"}, nil)
+
+	// Act
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+
+	// Assert
+	assert.NoError(t, err)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUserService_CreateAdminUser_EmailError(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	service := NewUserService(mockRepo)
+
+	ctx := context.Background()
+
+	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(nil, errors.New("error on consult email"))
+
+	// Act
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+
+	// Assert
+	assert.Error(t, err)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUserService_CreateAdminUser_PasswordWeak(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	service := NewUserService(mockRepo)
+
+	ctx := context.Background()
+
+	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(nil, nil)
+
+	// Act
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "weakpass")
+
+	// Assert
+	assert.Error(t, err)
+	assert.ErrorIs(t, err, domain.ErrPasswordInvalidFormat)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUserService_CreateAdminUser_Success(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	service := NewUserService(mockRepo)
+
+	ctx := context.Background()
+
+	mockModel := user.Model{}
+
+	mockRepo.On("Create", ctx, mock.AnythingOfType("*user.Model")).Return(&mockModel, nil)
+	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(nil, nil)
+
+	// Act
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+
+	// Assert
+	assert.NoError(t, err)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUserService_CreateAdminUser_CreateError(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	service := NewUserService(mockRepo)
+
+	ctx := context.Background()
+
+	mockRepo.On("Create", ctx, mock.AnythingOfType("*user.Model")).Return(nil, errors.New("error on create admin user"))
+	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(nil, nil)
+
+	// Act
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+
+	// Assert
+	assert.Error(t, err)
+	mockRepo.AssertExpectations(t)
+}
+
 func TestUserService_GetAll_Success(t *testing.T) {
 	// Arrange
 	mockRepo := new(MockUserRepository)
@@ -153,7 +238,7 @@ func TestUserService_GetAll_Success(t *testing.T) {
 			ID:     1,
 			Name:   "João Silva",
 			Email:  "joao@test.com",
-			Role:   "admin",
+			Role:   "administrator",
 			Active: true,
 		},
 		{
@@ -213,7 +298,7 @@ func TestUserService_GetByID_Success(t *testing.T) {
 		ID:     1,
 		Name:   "João Silva",
 		Email:  "joao@test.com",
-		Role:   "admin",
+		Role:   "administrator",
 		Active: true,
 	}
 
@@ -227,7 +312,7 @@ func TestUserService_GetByID_Success(t *testing.T) {
 	assert.NotNil(t, result)
 	assert.Equal(t, "João Silva", result.Name)
 	assert.Equal(t, "joao@test.com", result.Email)
-	assert.Equal(t, "admin", result.Role)
+	assert.Equal(t, "administrator", result.Role)
 	mockRepo.AssertExpectations(t)
 }
 
@@ -267,7 +352,7 @@ func TestUserService_Search_Success(t *testing.T) {
 			ID:     1,
 			Name:   "João Silva",
 			Email:  "joao@test.com",
-			Role:   "admin",
+			Role:   "administrator",
 			Active: true,
 		},
 	}
@@ -305,7 +390,7 @@ func TestUserService_Search_WithPartialParams(t *testing.T) {
 			ID:     1,
 			Name:   "João Silva",
 			Email:  "joao@test.com",
-			Role:   "admin",
+			Role:   "administrator",
 			Active: true,
 		},
 	}
@@ -340,7 +425,7 @@ func TestUserService_Update_Success(t *testing.T) {
 		Name:    "João Silva",
 		Email:   "joao@test.com",
 		Contact: "11999999999",
-		Role:    "admin",
+		Role:    "administrator",
 		Active:  true,
 	}
 
@@ -349,7 +434,7 @@ func TestUserService_Update_Success(t *testing.T) {
 		Name:    "João Silva Santos",
 		Email:   "joao@test.com",
 		Contact: "11988888888",
-		Role:    "admin",
+		Role:    "administrator",
 		Active:  true,
 	}
 
@@ -406,7 +491,7 @@ func TestUserService_Update_EmailAlreadyExists(t *testing.T) {
 		ID:       1,
 		Name:     "João Silva",
 		Email:    "new@test.com",
-		Role:     "admin",
+		Role:     "administrator",
 		Password: "hashed_password",
 		Active:   true,
 	}
@@ -415,7 +500,7 @@ func TestUserService_Update_EmailAlreadyExists(t *testing.T) {
 		ID:       userID,
 		Name:     "João Silva",
 		Email:    "old@test.com",
-		Role:     "admin",
+		Role:     "administrator",
 		Password: "hashed_password",
 		Active:   true,
 	}
@@ -424,7 +509,7 @@ func TestUserService_Update_EmailAlreadyExists(t *testing.T) {
 		ID:     userID,
 		Name:   "João Silva Santos",
 		Email:  "new@test.com",
-		Role:   "admin",
+		Role:   "administrator",
 		Active: true,
 	}
 
@@ -454,7 +539,7 @@ func TestUserService_Update_PasswordUpdateNotAllowed(t *testing.T) {
 		ID:     1,
 		Name:   "João Silva",
 		Email:  "joao@test.com",
-		Role:   "admin",
+		Role:   "administrator",
 		Active: true,
 	}
 
@@ -466,7 +551,7 @@ func TestUserService_Update_PasswordUpdateNotAllowed(t *testing.T) {
 		Name:     "João Silva Santos",
 		Email:    "joao@test.com",
 		Password: password,
-		Role:     "admin",
+		Role:     "administrator",
 	}
 
 	// Configurar o mock
@@ -540,7 +625,7 @@ func TestUserService_Create_WithNilAddress(t *testing.T) {
 		Name:     "João Silva",
 		Email:    "joao@test.com",
 		Contact:  "11999999999",
-		Role:     "admin",
+		Role:     "administrator",
 		Password: password,
 		Address:  nil,
 		Active:   true,
