@@ -392,6 +392,166 @@ func TestSessionService_Delete(t *testing.T) {
 	}
 }
 
+func TestSessionService_DeleteByRefreshToken(t *testing.T) {
+	tests := []struct {
+		name         string
+		refreshToken string
+		setupMock    func(*MockSessionRepository)
+		expectError  bool
+		errorMsg     string
+	}{
+		{
+			name:         "successful deletion",
+			refreshToken: "refreshtoken",
+			setupMock: func(m *MockSessionRepository) {
+				m.On("DeleteByRefreshToken", mock.Anything, "refreshtoken").Return(nil)
+			},
+			expectError: false,
+		},
+		{
+			name:         "refresh token empty",
+			refreshToken: "",
+			setupMock:    func(m *MockSessionRepository) {},
+			expectError:  true,
+			errorMsg:     "refresh token não pode estar vazio",
+		},
+		{
+			name:         "session not found",
+			refreshToken: "refreshtoken",
+			setupMock: func(m *MockSessionRepository) {
+				m.On("DeleteByRefreshToken", mock.Anything, "refreshtoken").Return(errors.New("session not found"))
+			},
+			expectError: true,
+			errorMsg:    "session not found",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRepo := &MockSessionRepository{}
+			tt.setupMock(mockRepo)
+
+			service := NewSessionService(mockRepo)
+			err := service.DeleteByRefreshToken(context.Background(), tt.refreshToken)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errorMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			mockRepo.AssertExpectations(t)
+		})
+	}
+}
+
+func TestSessionService_DeleteByUserID(t *testing.T) {
+	tests := []struct {
+		name        string
+		userId      uint
+		setupMock   func(*MockSessionRepository)
+		expectError bool
+		errorMsg    string
+	}{
+		{
+			name:   "successful deletion",
+			userId: 1,
+			setupMock: func(m *MockSessionRepository) {
+				m.On("DeleteByUserID", mock.Anything, uint(1)).Return(nil)
+			},
+			expectError: false,
+		},
+		{
+			name:        "user invalid",
+			userId:      0,
+			setupMock:   func(m *MockSessionRepository) {},
+			expectError: true,
+			errorMsg:    "ID de usuário inválido",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRepo := &MockSessionRepository{}
+			tt.setupMock(mockRepo)
+
+			service := NewSessionService(mockRepo)
+			err := service.DeleteByUserID(context.Background(), tt.userId)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errorMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			mockRepo.AssertExpectations(t)
+		})
+	}
+}
+
+func TestSessionService_Update(t *testing.T) {
+	tests := []struct {
+		name         string
+		sessionID    uint
+		refreshToken string
+		expiresAt    time.Time
+		setupMock    func(*MockSessionRepository)
+		expectError  bool
+		errorMsg     string
+	}{
+		{
+			name:         "successful session updated",
+			sessionID:    2,
+			refreshToken: "valid-token",
+			expiresAt:    time.Now().Add(24 * time.Hour),
+			setupMock: func(m *MockSessionRepository) {
+				m.On("Update", mock.Anything, mock.AnythingOfType("*domain.Session")).Return(&domain.Session{
+					ID:           2,
+					UserID:       2,
+					RefreshToken: stringPtr("valid-token"),
+					ExpiresAt:    time.Now().Add(24 * time.Hour),
+				}, nil)
+			},
+			expectError: false,
+		},
+		{
+			name:         "zero user ID",
+			sessionID:    0,
+			refreshToken: "valid-token",
+			expiresAt:    time.Now().Add(24 * time.Hour),
+			setupMock:    func(m *MockSessionRepository) {},
+			expectError:  true,
+			errorMsg:     "ID de sessão inválido",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRepo := &MockSessionRepository{}
+			tt.setupMock(mockRepo)
+			d := domain.NewSession(1, "valid-token", time.Now())
+			d.ID = tt.sessionID
+			service := NewSessionService(mockRepo)
+			session, err := service.Update(context.Background(), d)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errorMsg)
+				assert.Nil(t, session)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, session)
+				assert.Equal(t, tt.refreshToken, *session.RefreshToken)
+				assert.WithinDuration(t, tt.expiresAt, session.ExpiresAt, time.Second)
+			}
+
+			mockRepo.AssertExpectations(t)
+		})
+	}
+}
+
 func TestSessionService_EdgeCases(t *testing.T) {
 	t.Run("nil session in Update", func(t *testing.T) {
 		mockRepo := &MockSessionRepository{}
