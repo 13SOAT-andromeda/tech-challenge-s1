@@ -3,6 +3,8 @@ package http
 import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/middlewares"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
@@ -21,6 +23,8 @@ func NewRouter(
 	maintenanceHandler handlers.MaintenanceHandler,
 	productHandler handlers.ProductHandler,
 	userHandler handlers.UserHandler,
+	sessionHandler handlers.SessionHandler,
+	sessionService ports.SessionService,
 ) *Router {
 	if config.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -34,8 +38,23 @@ func NewRouter(
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), cors.New(corsConfig))
 
+	// Initialize auth middleware
+	authMiddleware := middlewares.NewAuthMiddleware(&config, sessionService)
+
+	// Public routes (no authentication required)
+	sessionGroup := router.Group("/sessions")
 	{
-		customerGroup := router.Group("/customers")
+		sessionGroup.POST("", sessionHandler.Login)            // POST /sessions (login)
+		sessionGroup.GET("/validate", sessionHandler.Validate) // GET /sessions/validate
+		sessionGroup.POST("/refresh", sessionHandler.Refresh)  // POST /sessions/refresh
+		sessionGroup.DELETE("/logout", sessionHandler.Logout)  // DELETE /sessions/logout
+	}
+
+	// Protected routes (authentication required)
+	protected := router.Group("/")
+	protected.Use(authMiddleware.AuthRequired())
+	{
+		customerGroup := protected.Group("/customers")
 		{
 			customerGroup.GET("/:id", customerHandler.GetCustomerByID)
 			customerGroup.GET("", customerHandler.Search)
@@ -43,40 +62,40 @@ func NewRouter(
 			customerGroup.PUT("/:id", customerHandler.UpdateCustomer)
 			customerGroup.DELETE("/:id", customerHandler.DeleteCustomer)
 		}
-	}
 
-	companyGroup := router.Group("/companies")
-	{
-		companyGroup.POST("", companyHandler.CreateCompany)
-		companyGroup.GET("/:id", companyHandler.GetCompanyByID)
-		companyGroup.PUT("/:id", companyHandler.UpdateCompany)
-		companyGroup.DELETE("/:id", companyHandler.DeleteCompany)
-	}
+		companyGroup := protected.Group("/companies")
+		{
+			companyGroup.POST("", companyHandler.CreateCompany)
+			companyGroup.GET("/:id", companyHandler.GetCompanyByID)
+			companyGroup.PUT("/:id", companyHandler.UpdateCompany)
+			companyGroup.DELETE("/:id", companyHandler.DeleteCompany)
+		}
 
-	maintenances := router.Group("/maintenances")
-	{
-		maintenances.POST("", maintenanceHandler.CreateMaintenance)
-		maintenances.GET("/:id", maintenanceHandler.GetMaintenanceByID)
-		maintenances.PUT("/:id", maintenanceHandler.UpdateMaintenance)
-		maintenances.DELETE("/:id", maintenanceHandler.DeleteMaintenance)
-	}
+		maintenances := protected.Group("/maintenances")
+		{
+			maintenances.POST("", maintenanceHandler.CreateMaintenance)
+			maintenances.GET("/:id", maintenanceHandler.GetMaintenanceByID)
+			maintenances.PUT("/:id", maintenanceHandler.UpdateMaintenance)
+			maintenances.DELETE("/:id", maintenanceHandler.DeleteMaintenance)
+		}
 
-	productGroup := router.Group("/products")
-	{
-		productGroup.POST("", productHandler.CreateProduct)
-		productGroup.GET("", productHandler.GetAllProducts)
-		productGroup.GET("/:id", productHandler.GetProductByID)
-		productGroup.DELETE("/:id", productHandler.DeleteProduct)
-	}
+		productGroup := protected.Group("/products")
+		{
+			productGroup.POST("", productHandler.CreateProduct)
+			productGroup.GET("", productHandler.GetAllProducts)
+			productGroup.GET("/:id", productHandler.GetProductByID)
+			productGroup.DELETE("/:id", productHandler.DeleteProduct)
+		}
 
-	userGroup := router.Group("/user")
-	{
-		userGroup.GET("", userHandler.GetAll)
-		userGroup.POST("", userHandler.Create)
-		userGroup.GET("/:id", userHandler.GetByID)
-		userGroup.GET("/search", userHandler.Search)
-		userGroup.PUT("/:id", userHandler.Update)
-		userGroup.DELETE("/:id", userHandler.Delete)
+		userGroup := protected.Group("/user")
+		{
+			userGroup.GET("", userHandler.GetAll)
+			userGroup.POST("", userHandler.Create)
+			userGroup.GET("/:id", userHandler.GetByID)
+			userGroup.GET("/search", userHandler.Search)
+			userGroup.PUT("/:id", userHandler.Update)
+			userGroup.DELETE("/:id", userHandler.Delete)
+		}
 	}
 
 	router.GET("/health", func(c *gin.Context) {

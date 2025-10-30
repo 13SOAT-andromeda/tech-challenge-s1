@@ -1,0 +1,148 @@
+package handlers
+
+import (
+	"net/http"
+
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/session"
+	"github.com/gin-gonic/gin"
+)
+
+type SessionHandler struct {
+	loginUseCase    session.LoginUseCase
+	validateUseCase session.ValidateUseCase
+	refreshUseCase  session.RefreshUseCase
+	logoutUseCase   session.LogoutUseCase
+}
+
+func NewSessionHandler(
+	loginUC session.LoginUseCase,
+	validateUC session.ValidateUseCase,
+	refreshUC session.RefreshUseCase,
+	logoutUC session.LogoutUseCase,
+) *SessionHandler {
+	return &SessionHandler{
+		loginUseCase:    loginUC,
+		validateUseCase: validateUC,
+		refreshUseCase:  refreshUC,
+		logoutUseCase:   logoutUC,
+	}
+}
+
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
+func (h *SessionHandler) Login(ctx *gin.Context) {
+	var req LoginRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	input := session.LoginInput{
+		Email:    req.Email,
+		Password: req.Password,
+	}
+
+	output, err := h.loginUseCase.Execute(ctx, input)
+	if err != nil {
+		response.RespondError(ctx, mapErrorToStatus(err), err.Error())
+		return
+	}
+
+	response.RespondSuccess(ctx, output, "")
+}
+
+func (h *SessionHandler) Validate(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
+	if authHeader == "" {
+		response.RespondError(ctx, http.StatusUnauthorized, "Authorization header required")
+		return
+	}
+
+	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
+		response.RespondError(ctx, http.StatusUnauthorized, "Invalid authorization header format")
+		return
+	}
+
+	token := authHeader[7:]
+	input := session.ValidateInput{
+		Token: token,
+	}
+
+	output, err := h.validateUseCase.Execute(ctx, input)
+	if err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess(ctx, output, "")
+}
+
+func (h *SessionHandler) Refresh(ctx *gin.Context) {
+	var req RefreshRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	input := session.RefreshInput{
+		RefreshToken: req.RefreshToken,
+	}
+
+	output, err := h.refreshUseCase.Execute(ctx, input)
+	if err != nil {
+		response.RespondError(ctx, mapErrorToStatus(err), err.Error())
+		return
+	}
+
+	response.RespondSuccess(ctx, output, "")
+}
+
+func (h *SessionHandler) Logout(ctx *gin.Context) {
+	var req RefreshRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	input := session.LogoutInput{
+		RefreshToken: req.RefreshToken,
+	}
+
+	err := h.logoutUseCase.Execute(ctx, input)
+	if err != nil {
+		response.RespondError(ctx, mapErrorToStatus(err), err.Error())
+		return
+	}
+
+	response.RespondSuccess(ctx, "Logged out successfully", "")
+}
+
+func mapErrorToStatus(err error) int {
+	switch err {
+	case services.ErrUserNotFound:
+		return http.StatusUnauthorized
+	case services.ErrSessionInvalid:
+		return http.StatusUnauthorized
+	case services.ErrSessionRefreshTokenEmpty:
+		return http.StatusBadRequest
+	case services.ErrSessionExpiresAtPast:
+		return http.StatusBadRequest
+	case services.ErrSessionUserIDInvalid:
+		return http.StatusBadRequest
+	case services.ErrSessionIDInvalid:
+		return http.StatusBadRequest
+	case services.ErrSessionNil:
+		return http.StatusBadRequest
+	default:
+		return http.StatusInternalServerError
+	}
+}

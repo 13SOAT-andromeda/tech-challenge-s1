@@ -1,0 +1,33 @@
+package ports
+
+import (
+	"context"
+	"time"
+
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+)
+
+type SessionRepository interface {
+	Create(ctx context.Context, session *domain.Session) (*domain.Session, error)
+	FindByID(ctx context.Context, sessionID uint) (*domain.Session, error)
+	FindByRefreshToken(ctx context.Context, refreshToken string) (*domain.Session, error)
+	FindByUserID(ctx context.Context, userID uint) ([]*domain.Session, error)
+	Update(ctx context.Context, session *domain.Session) (*domain.Session, error)
+	Delete(ctx context.Context, sessionID uint) error
+	DeleteByUserID(ctx context.Context, userID uint) error
+	DeleteByRefreshToken(ctx context.Context, refreshToken string) error
+	DeleteExpiredSessions(ctx context.Context) error
+}
+
+type SessionService interface {
+	Create(ctx context.Context, userID uint, refreshToken string, expiresAt time.Time) (*domain.Session, error)
+	GetByID(ctx context.Context, sessionID uint) (*domain.Session, error)
+	GetByRefreshToken(ctx context.Context, refreshToken string) (*domain.Session, error)
+	GetByUserID(ctx context.Context, userID uint) ([]*domain.Session, error)
+	Update(ctx context.Context, session *domain.Session) (*domain.Session, error)
+	Delete(ctx context.Context, sessionID uint) error
+	DeleteByUserID(ctx context.Context, userID uint) error
+	Validate(ctx context.Context, refreshToken string) (*domain.Session, error)
+	DeleteByRefreshToken(ctx context.Context, refreshToken string) error
+	DeleteExpiredSessions(ctx context.Context) error
+}

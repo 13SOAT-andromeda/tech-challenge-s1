@@ -25,9 +25,9 @@ func (s *UserService) Create(ctx context.Context, u domain.User) (*domain.User, 
 		u.Address = &domain.Address{}
 	}
 
-	if exists, err := s.exists(ctx, 0, u.Email); err != nil {
+	if user, err := s.GetByEmail(ctx, u.Email); err != nil {
 		return nil, err
-	} else if exists {
+	} else if user != nil {
 		return nil, ErrUserEmailAlreadyExists
 	}
 
@@ -47,6 +47,49 @@ func (s *UserService) Create(ctx context.Context, u domain.User) (*domain.User, 
 	created := userModel.ToDomain()
 
 	return created, nil
+}
+
+func (s *UserService) CreateAdminUser(ctx context.Context, email, password string) error {
+
+	var err error
+
+	if user, err := s.GetByEmail(ctx, email); err != nil {
+		return err
+	} else if user != nil {
+		return nil
+	}
+
+	p, err := domain.NewPassword(password, encryption.NewBcryptHasher())
+
+	if err != nil {
+		return err
+	}
+
+	if err := p.Hash(); err != nil {
+		return err
+	}
+
+	u := domain.User{
+		Name:     "Admin",
+		Email:    email,
+		Password: p,
+		Contact:  "",
+		Role:     "administrator",
+		Active:   true,
+	}
+
+	u.Address = &domain.Address{}
+
+	userModel := &user.Model{}
+	userModel.FromDomain(&u)
+
+	_, err = s.repo.Create(ctx, userModel)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *UserService) GetAll(ctx context.Context) ([]domain.User, error) {
@@ -114,9 +157,9 @@ func (s *UserService) Update(ctx context.Context, u domain.User) (*domain.User, 
 	existingDomain := existingUser.ToDomain()
 
 	if u.Email != "" && u.Email != existingDomain.Email {
-		if exists, err := s.exists(ctx, u.ID, u.Email); err != nil {
+		if uMail, err := s.GetByEmail(ctx, u.Email); err != nil {
 			return nil, err
-		} else if exists {
+		} else if uMail != nil && existingUser.ID != uMail.ID {
 			return nil, ErrUserEmailAlreadyExists
 		}
 	}
@@ -152,7 +195,14 @@ func (s *UserService) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (s *UserService) exists(ctx context.Context, id uint, email string) (bool, error) {
+func (s *UserService) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 
-	return s.repo.Exists(ctx, id, email)
+	user, err := s.repo.GetByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, nil
+	}
+	return user.ToDomain(), nil
 }

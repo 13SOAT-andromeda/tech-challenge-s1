@@ -58,7 +58,10 @@ func (m *MockUserRepository) Search(ctx context.Context, params ports.UserSearch
 	return args.Get(0).([]user.Model)
 }
 
-func (m *MockUserRepository) Exists(ctx context.Context, id uint, email string) (bool, error) {
-	args := m.Called(ctx, id, email)
-	return args.Bool(0), args.Error(1)
+func (m *MockUserRepository) GetByEmail(ctx context.Context, email string) (*user.Model, error) {
+	args := m.Called(ctx, email)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*user.Model), args.Error(1)
 }
