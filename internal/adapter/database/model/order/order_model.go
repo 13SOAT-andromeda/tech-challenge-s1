@@ -37,7 +37,7 @@ func (m *Model) ToDomain() *domain.Order {
 		DateIn:            m.DateIn,
 		DateOut:           m.DateOut,
 		Number:            m.Number,
-		Status:            m.Status,
+		Status:            domain.OrderStatus(m.Status),
 		VehicleKilometers: m.VehicleKilometers,
 		Note:              m.Note,
 		DiagnosticNote:    m.DiagnosticNote,
@@ -57,7 +57,7 @@ func (m *Model) FromDomain(d *domain.Order) {
 	m.DateIn = d.DateIn
 	m.DateOut = d.DateOut
 	m.Number = d.Number
-	m.Status = d.Status
+	m.Status = string(d.Status)
 	m.VehicleKilometers = d.VehicleKilometers
 	m.Note = d.Note
 	m.DiagnosticNote = d.DiagnosticNote

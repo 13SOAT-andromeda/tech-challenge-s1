@@ -18,7 +18,10 @@ type ProductService interface {
 	Update(ctx context.Context, p domain.Product) (*domain.Product, error)
 	GetAll(ctx context.Context) ([]domain.Product, error)
 	GetById(ctx context.Context, productID uint) (*domain.Product, error)
-	Delete(ctx context.Context, productID uint) error
-	CheckAvailability(ctx context.Context, productID uint, quantity uint) error
+	Delete(ctx context.Context, productID uint) (*domain.Product, error)
 	CheckProductPrice(ctx context.Context, productIDs []uint) (map[uint]float64, error)
+	AddStockItem(ctx context.Context, productID uint, quantity uint) error
+	RemoveStockItem(ctx context.Context, productID uint, quantity uint) error
+	GetCurrentStock(ctx context.Context, productID uint) (uint, error)
+	SetStock(ctx context.Context, productID uint, quantity uint) error
 }

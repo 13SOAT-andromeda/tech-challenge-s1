@@ -24,7 +24,7 @@ var OrderStatuses = []OrderStatus{
 
 type Order struct {
 	ID                uint
-	DateIn            *time.Time
+	DateIn            time.Time
 	DateOut           *time.Time
 	Number            string
 	Status            OrderStatus
