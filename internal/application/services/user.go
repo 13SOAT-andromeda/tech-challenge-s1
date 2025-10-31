@@ -11,15 +11,15 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
 
-type UserService struct {
+type userService struct {
 	repo ports.UserRepository
 }
 
-func NewUserService(repo ports.UserRepository) *UserService {
-	return &UserService{repo: repo}
+func NewUserService(repo ports.UserRepository) *userService {
+	return &userService{repo: repo}
 }
 
-func (s *UserService) Create(ctx context.Context, u domain.User) (*domain.User, error) {
+func (s *userService) Create(ctx context.Context, u domain.User) (*domain.User, error) {
 
 	if u.Address == nil {
 		u.Address = &domain.Address{}
@@ -49,7 +49,7 @@ func (s *UserService) Create(ctx context.Context, u domain.User) (*domain.User, 
 	return created, nil
 }
 
-func (s *UserService) CreateAdminUser(ctx context.Context, email, password string) error {
+func (s *userService) CreateAdminUser(ctx context.Context, email, password string) error {
 
 	var err error
 
@@ -92,7 +92,7 @@ func (s *UserService) CreateAdminUser(ctx context.Context, email, password strin
 	return nil
 }
 
-func (s *UserService) GetAll(ctx context.Context) ([]domain.User, error) {
+func (s *userService) GetAll(ctx context.Context) ([]domain.User, error) {
 
 	users, err := s.repo.FindAll(ctx, false)
 
@@ -109,7 +109,7 @@ func (s *UserService) GetAll(ctx context.Context) ([]domain.User, error) {
 	return usersD, nil
 }
 
-func (s *UserService) GetByID(ctx context.Context, id uint) (*domain.User, error) {
+func (s *userService) GetByID(ctx context.Context, id uint) (*domain.User, error) {
 
 	user, err := s.repo.FindByID(ctx, id)
 
@@ -121,7 +121,7 @@ func (s *UserService) GetByID(ctx context.Context, id uint) (*domain.User, error
 	return customerDomain, nil
 }
 
-func (s *UserService) Search(ctx context.Context, params map[string]interface{}) (*[]domain.User, error) {
+func (s *userService) Search(ctx context.Context, params map[string]interface{}) (*[]domain.User, error) {
 
 	uSearch := ports.UserSearch{Name: "", Email: "", Contact: ""}
 	if params["name"] != nil {
@@ -146,7 +146,7 @@ func (s *UserService) Search(ctx context.Context, params map[string]interface{})
 	return &usersD, nil
 }
 
-func (s *UserService) Update(ctx context.Context, u domain.User) (*domain.User, error) {
+func (s *userService) Update(ctx context.Context, u domain.User) (*domain.User, error) {
 
 	existingUser, err := s.repo.FindByID(ctx, u.ID)
 
@@ -185,7 +185,7 @@ func (s *UserService) Update(ctx context.Context, u domain.User) (*domain.User, 
 	return updated, nil
 }
 
-func (s *UserService) Delete(ctx context.Context, id uint) error {
+func (s *userService) Delete(ctx context.Context, id uint) error {
 
 	err := s.repo.Delete(ctx, id)
 	if err != nil {
@@ -195,7 +195,7 @@ func (s *UserService) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (s *UserService) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
+func (s *userService) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 
 	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {

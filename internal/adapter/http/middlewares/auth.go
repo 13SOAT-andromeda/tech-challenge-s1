@@ -10,23 +10,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type AuthMiddleware struct {
+type authMiddleware struct {
 	jwtService     *jwt.Service
 	sessionService ports.SessionService
 }
 
-func NewAuthMiddleware(config *config.Config, sessionService ports.SessionService) *AuthMiddleware {
+func NewAuthMiddleware(config *config.Config, sessionService ports.SessionService) *authMiddleware {
 	accessExpiry, _ := time.ParseDuration(config.JWT.AccessTokenExpiry)
 	refreshExpiry, _ := time.ParseDuration(config.JWT.RefreshTokenExpiry)
 	jwtService := jwt.NewService(config.JWT.Secret, accessExpiry, refreshExpiry)
 
-	return &AuthMiddleware{
+	return &authMiddleware{
 		jwtService:     jwtService,
 		sessionService: sessionService,
 	}
 }
 
-func (m *AuthMiddleware) validateSession(c *gin.Context) (*jwt.Claims, bool) {
+func (m *authMiddleware) validateSession(c *gin.Context) (*jwt.Claims, bool) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
@@ -59,7 +59,7 @@ func (m *AuthMiddleware) validateSession(c *gin.Context) (*jwt.Claims, bool) {
 }
 
 // AuthRequired middleware that requires authentication
-func (m *AuthMiddleware) AuthRequired() gin.HandlerFunc {
+func (m *authMiddleware) AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims, valid := m.validateSession(c)
 		if !valid {
@@ -77,7 +77,7 @@ func (m *AuthMiddleware) AuthRequired() gin.HandlerFunc {
 }
 
 // RoleRequired middleware that requires specific role
-func (m *AuthMiddleware) RoleRequired(requiredRole string) gin.HandlerFunc {
+func (m *authMiddleware) RoleRequired(requiredRole string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims, valid := m.validateSession(c)
 		if !valid {
