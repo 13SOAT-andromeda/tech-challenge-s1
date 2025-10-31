@@ -13,7 +13,7 @@ var (
 )
 
 type Plate struct {
-	value string
+	Value string
 }
 
 func NewPlate(plate string) (*Plate, error) {
@@ -22,7 +22,7 @@ func NewPlate(plate string) (*Plate, error) {
 		return nil, err
 	}
 
-	return &Plate{value: normalizePlate(plate)}, nil
+	return &Plate{Value: normalizePlate(plate)}, nil
 }
 
 func normalizePlate(plate string) string {
@@ -50,5 +50,5 @@ func validatePlate(plate string) error {
 }
 
 func (p *Plate) GetPlate() string {
-	return p.value
+	return p.Value
 }
