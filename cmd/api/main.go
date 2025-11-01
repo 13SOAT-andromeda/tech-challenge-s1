@@ -13,6 +13,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/repository"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
@@ -40,6 +41,7 @@ func main() {
 		&product.Model{},
 		&user.Model{},
 		&model.SessionModel{},
+		&vehicle.Model{},
 	)
 
 	if err != nil {
@@ -54,6 +56,7 @@ func main() {
 	productRepository := repository.NewProductRepository(dbase)
 	userRepository := repository.NewUserRepository(dbase)
 	sessionRepository := repository.NewSessionRepository(dbase)
+	vehicleRepository := repository.NewVehicleRepository(dbase)
 
 	customerService := services.NewCustomerService(customerRepository)
 	companyService := services.NewCompanyService(companyRepository)
@@ -61,6 +64,7 @@ func main() {
 	productService := services.NewProductService(productRepository)
 	userService := services.NewUserService(userRepository)
 	sessionService := services.NewSessionService(sessionRepository)
+	vehicleService := services.NewVehicleService(vehicleRepository)
 
 	// @TODO create usecase aqui e mapear no router
 	//stockUseCase := stock.NewStockUseCase(productService)
@@ -71,6 +75,7 @@ func main() {
 	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceService)
 	productHandler := handlers.NewProductHandler(productService)
 	userHandler := handlers.NewUserHandler(userService)
+	vehicleHandler := handlers.NewVehicleHandler(vehicleService)
 
 	// JWT Service
 	accessExpiry, _ := time.ParseDuration(cfg.JWT.AccessTokenExpiry)
@@ -91,7 +96,7 @@ func main() {
 		logoutUseCase,
 	)
 
-	router := http.NewRouter(*cfg, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *sessionHandler, sessionService)
+	router := http.NewRouter(*cfg, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *vehicleHandler, *sessionHandler, sessionService)
 	log.Printf("Starting HTTP server on port %s", cfg.Http.Port)
 
 	if err = userService.CreateAdminUser(ctx, cfg.AdminUser.Email, cfg.AdminUser.Password); err != nil {

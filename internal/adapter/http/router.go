@@ -23,6 +23,7 @@ func NewRouter(
 	maintenanceHandler handlers.MaintenanceHandler,
 	productHandler handlers.ProductHandler,
 	userHandler handlers.UserHandler,
+	vehicleHandler handlers.VehicleHandler,
 	sessionHandler handlers.SessionHandler,
 	sessionService ports.SessionService,
 ) *Router {
@@ -98,6 +99,15 @@ func NewRouter(
 			userGroup.GET("/search", userHandler.Search)
 			userGroup.PUT("/:id", userHandler.Update)
 			userGroup.DELETE("/:id", userHandler.Delete)
+		}
+
+		vehicleGroup := protected.Group("/vehicles")
+		{
+			vehicleGroup.GET("", vehicleHandler.GetAll)
+			vehicleGroup.POST("", vehicleHandler.Create)
+			vehicleGroup.GET("/:id", vehicleHandler.GetByID)
+			vehicleGroup.PUT("/:id", vehicleHandler.Update)
+			vehicleGroup.DELETE("/:id", vehicleHandler.Delete)
 		}
 	}
 

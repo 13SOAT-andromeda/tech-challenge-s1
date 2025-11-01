@@ -47,7 +47,7 @@ func (s *mockSessionService) Validate(_ context.Context, _ string) (*domain.Sess
 func (s *mockSessionService) DeleteByRefreshToken(_ context.Context, _ string) error { return nil }
 func (s *mockSessionService) DeleteExpiredSessions(_ context.Context) error          { return nil }
 
-func setupRouter(m *AuthMiddleware, handler gin.HandlerFunc, useRole bool, role string) *gin.Engine {
+func setupRouter(m *authMiddleware, handler gin.HandlerFunc, useRole bool, role string) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	if useRole {
@@ -70,7 +70,7 @@ func generateToken(t *testing.T, svc *jwt.Service, userID, sessionID uint, email
 
 func TestAuthRequired_NoAuthorizationHeader(t *testing.T) {
 	jwtSvc := jwt.NewService("secret", time.Hour, time.Hour)
-	m := &AuthMiddleware{jwtService: jwtSvc, sessionService: &mockSessionService{sessionsByID: map[uint]*domain.Session{}}}
+	m := &authMiddleware{jwtService: jwtSvc, sessionService: &mockSessionService{sessionsByID: map[uint]*domain.Session{}}}
 
 	r := setupRouter(m, func(c *gin.Context) { c.Status(http.StatusOK) }, false, "")
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
@@ -84,7 +84,7 @@ func TestAuthRequired_NoAuthorizationHeader(t *testing.T) {
 
 func TestAuthRequired_InvalidHeaderFormat(t *testing.T) {
 	jwtSvc := jwt.NewService("secret", time.Hour, time.Hour)
-	m := &AuthMiddleware{jwtService: jwtSvc, sessionService: &mockSessionService{sessionsByID: map[uint]*domain.Session{}}}
+	m := &authMiddleware{jwtService: jwtSvc, sessionService: &mockSessionService{sessionsByID: map[uint]*domain.Session{}}}
 
 	r := setupRouter(m, func(c *gin.Context) { c.Status(http.StatusOK) }, false, "")
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
@@ -103,7 +103,7 @@ func TestAuthRequired_InvalidToken(t *testing.T) {
 	jwtSvcB := jwt.NewService("secret-b", time.Hour, time.Hour)
 	token := generateToken(t, jwtSvcB, 1, 1, "user@example.com", "user")
 
-	m := &AuthMiddleware{jwtService: jwtSvcA, sessionService: &mockSessionService{sessionsByID: map[uint]*domain.Session{}}}
+	m := &authMiddleware{jwtService: jwtSvcA, sessionService: &mockSessionService{sessionsByID: map[uint]*domain.Session{}}}
 	r := setupRouter(m, func(c *gin.Context) { c.Status(http.StatusOK) }, false, "")
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
@@ -124,7 +124,7 @@ func TestAuthRequired_SessionInvalid(t *testing.T) {
 	// Expired session
 	expired := &domain.Session{ID: sessionID, ExpiresAt: time.Now().Add(-1 * time.Hour)}
 	sessStub := &mockSessionService{sessionsByID: map[uint]*domain.Session{sessionID: expired}}
-	m := &AuthMiddleware{jwtService: jwtSvc, sessionService: sessStub}
+	m := &authMiddleware{jwtService: jwtSvc, sessionService: sessStub}
 
 	r := setupRouter(m, func(c *gin.Context) { c.Status(http.StatusOK) }, false, "")
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
@@ -147,7 +147,7 @@ func TestAuthRequired_Success_SetsContextAndCallsNext(t *testing.T) {
 
 	valid := &domain.Session{ID: sessionID, ExpiresAt: time.Now().Add(1 * time.Hour)}
 	sessStub := &mockSessionService{sessionsByID: map[uint]*domain.Session{sessionID: valid}}
-	m := &AuthMiddleware{jwtService: jwtSvc, sessionService: sessStub}
+	m := &authMiddleware{jwtService: jwtSvc, sessionService: sessStub}
 
 	r := setupRouter(m, func(c *gin.Context) {
 		// Validate context values populated by middleware
@@ -181,7 +181,7 @@ func TestRoleRequired_ForbiddenOnRoleMismatch(t *testing.T) {
 	sessionID := uint(1)
 	token := generateToken(t, jwtSvc, 1, sessionID, "user@example.com", "user")
 	valid := &domain.Session{ID: sessionID, ExpiresAt: time.Now().Add(1 * time.Hour)}
-	m := &AuthMiddleware{jwtService: jwtSvc, sessionService: &mockSessionService{sessionsByID: map[uint]*domain.Session{sessionID: valid}}}
+	m := &authMiddleware{jwtService: jwtSvc, sessionService: &mockSessionService{sessionsByID: map[uint]*domain.Session{sessionID: valid}}}
 
 	r := setupRouter(m, func(c *gin.Context) { c.Status(http.StatusOK) }, true, "admin")
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
@@ -199,7 +199,7 @@ func TestRoleRequired_SuccessWhenRoleMatches(t *testing.T) {
 	sessionID := uint(2)
 	token := generateToken(t, jwtSvc, 1, sessionID, "admin@example.com", "admin")
 	valid := &domain.Session{ID: sessionID, ExpiresAt: time.Now().Add(1 * time.Hour)}
-	m := &AuthMiddleware{jwtService: jwtSvc, sessionService: &mockSessionService{sessionsByID: map[uint]*domain.Session{sessionID: valid}}}
+	m := &authMiddleware{jwtService: jwtSvc, sessionService: &mockSessionService{sessionsByID: map[uint]*domain.Session{sessionID: valid}}}
 
 	r := setupRouter(m, func(c *gin.Context) { c.Status(http.StatusOK) }, true, "admin")
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
