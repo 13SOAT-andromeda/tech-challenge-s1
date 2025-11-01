@@ -10,14 +10,14 @@ import (
 
 func TestProductModelInitialization(t *testing.T) {
 	p := Model{
-		Name:     "Product A",
-		Quantity: 10,
-		Price:    1000, // R$ 10.00
+		Name:  "Product A",
+		Stock: 10,
+		Price: 1000, // R$ 10.00
 	}
 
 	assert.NotNil(t, p)
 	assert.Equal(t, "Product A", p.Name)
-	assert.Equal(t, uint(10), p.Quantity)
+	assert.Equal(t, uint(10), p.Stock)
 	assert.Equal(t, int64(1000), p.Price)
 }
 
@@ -32,16 +32,16 @@ func TestProductModel_ToFromDomain(t *testing.T) {
 			UpdatedAt: now,
 			DeletedAt: gorm.DeletedAt{Time: deletedAt, Valid: true},
 		},
-		Name:     "Product A",
-		Quantity: 10,
-		Price:    1000,
+		Name:  "Product A",
+		Stock: 10,
+		Price: 1000,
 	}
 
 	domainProduct := modelProduct.ToDomain()
 
 	assert.Equal(t, modelProduct.ID, domainProduct.ID)
 	assert.Equal(t, modelProduct.Name, domainProduct.Name)
-	assert.Equal(t, modelProduct.Quantity, domainProduct.Quantity)
+	assert.Equal(t, modelProduct.Stock, domainProduct.Stock)
 	assert.Equal(t, modelProduct.Price, domainProduct.Price)
 
 }
