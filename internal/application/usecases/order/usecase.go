@@ -1,26 +1,27 @@
 package order
 
-import (
-	"errors"
-
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
-)
-
-var (
-	ErrOrderNotFound         = errors.New("Order Not found")
-	ErrOrderAlreadyApproved  = errors.New("Order Already Approved")
-	ErrOrderAlreadyCancelled = errors.New("Order already cancelled")
-	ErrInvalidOrderStatus    = errors.New("Order Status invalid")
-)
-
-type UseCase struct {
-	productService ports.ProductService
-	orderService   ports.OrderService
-}
-
-func NewUseCase(productService ports.ProductService) *UseCase {
-	return &UseCase{productService: productService}
-}
+//
+//import (
+//	"errors"
+//
+//	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
+//)
+//
+//var (
+//	ErrOrderNotFound         = errors.New("Order Not found")
+//	ErrOrderAlreadyApproved  = errors.New("Order Already Approved")
+//	ErrOrderAlreadyCancelled = errors.New("Order already cancelled")
+//	ErrInvalidOrderStatus    = errors.New("Order Status invalid")
+//)
+//
+//type UseCase struct {
+//	productService ports.ProductService
+//	orderService   ports.OrderService
+//}
+//
+//func NewUseCase(productService ports.ProductService) *UseCase {
+//	return &UseCase{productService: productService}
+//}
 
 // @TODO: receber parametros necessarios para coletar as informacoes para criacao do order, deve vir do handle
 //func (uc *UseCase) Create(ctx context.Context) (*domain.Order, error) {
