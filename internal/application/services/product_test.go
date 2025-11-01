@@ -300,9 +300,9 @@ func TestProductService_GetAll_Success(t *testing.T) {
 		*createTestProductModel(2, 20, 20000),
 	}
 
-	mockRepo.On("FindAll", ctx).Return(products, nil)
+	mockRepo.On("Search", ctx).Return(products, nil)
 
-	result, err := service.GetAll(ctx)
+	result, err := service.GetAll(ctx, nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
@@ -316,9 +316,9 @@ func TestProductService_GetAll_RepositoryError(t *testing.T) {
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
-	mockRepo.On("FindAll", ctx).Return(nil, errors.New("database error"))
+	mockRepo.On("Search", ctx).Return(nil, errors.New("database error"))
 
-	result, err := service.GetAll(ctx)
+	result, err := service.GetAll(ctx, nil)
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
