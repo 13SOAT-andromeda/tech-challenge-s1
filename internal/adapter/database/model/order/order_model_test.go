@@ -73,7 +73,10 @@ func TestOrderModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelOrder.DateIn, domainOrder.DateIn)
 	assert.Equal(t, modelOrder.DateOut, domainOrder.DateOut)
 	assert.Equal(t, modelOrder.Number, domainOrder.Number)
-	assert.Equal(t, modelOrder.Status, domainOrder.Status)
+
+	assert.NotNil(t, domainOrder.Status)
+	assert.Equal(t, modelOrder.Status, string(domainOrder.Status))
+
 	assert.Equal(t, modelOrder.VehicleKilometers, domainOrder.VehicleKilometers)
 	assert.Equal(t, modelOrder.Note, domainOrder.Note)
 	assert.Equal(t, modelOrder.DiagnosticNote, domainOrder.DiagnosticNote)
@@ -81,5 +84,4 @@ func TestOrderModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelOrder.UserId, domainOrder.UserId)
 	assert.Equal(t, modelOrder.CustomerVehicleId, domainOrder.CustomerVehicleId)
 	assert.Equal(t, modelOrder.CompanyId, domainOrder.CompanyId)
-
 }
