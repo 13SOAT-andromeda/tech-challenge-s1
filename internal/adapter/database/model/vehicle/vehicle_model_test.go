@@ -4,9 +4,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
+
+func TestVehicleModel_TableName(t *testing.T) {
+	v := &Model{}
+	assert.Equal(t, "Vehicle", v.TableName())
+}
 
 func TestVehicleModelInitialization(t *testing.T) {
 	v := Model{
@@ -25,7 +31,7 @@ func TestVehicleModelInitialization(t *testing.T) {
 	assert.Equal(t, "Preto", v.Color)
 }
 
-func TestVehicleModel_ToFromDomain(t *testing.T) {
+func TestVehicleModel_ToDomain(t *testing.T) {
 	now := time.Now()
 	modelVehicle := &Model{
 		Model: gorm.Model{
@@ -52,5 +58,37 @@ func TestVehicleModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelVehicle.CreatedAt, domainVehicle.CreatedAt)
 	assert.Equal(t, modelVehicle.UpdatedAt, domainVehicle.UpdatedAt)
 	assert.Equal(t, modelVehicle.DeletedAt.Time, *domainVehicle.DeletedAt)
+
+}
+
+func TestVehicleModel_ToDomainNil(t *testing.T) {
+	var modelVehicle *Model
+
+	domainVehicle := modelVehicle.ToDomain()
+
+	assert.Nil(t, domainVehicle)
+
+}
+
+func TestVehicleModel_FromDomain(t *testing.T) {
+	plate, _ := domain.NewPlate("ABC1234")
+	domainVehicle := &domain.Vehicle{
+		ID:    1,
+		Plate: plate,
+		Name:  "Gol",
+		Year:  2023,
+		Brand: "Volkswagen",
+		Color: "Preto",
+	}
+
+	modelVehicle := &Model{}
+	modelVehicle.FromDomain(domainVehicle)
+
+	assert.Equal(t, domainVehicle.ID, modelVehicle.ID)
+	assert.Equal(t, domainVehicle.Plate.GetPlate(), modelVehicle.Plate)
+	assert.Equal(t, domainVehicle.Name, modelVehicle.Name)
+	assert.Equal(t, domainVehicle.Year, modelVehicle.Year)
+	assert.Equal(t, domainVehicle.Brand, modelVehicle.Brand)
+	assert.Equal(t, domainVehicle.Color, modelVehicle.Color)
 
 }
