@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	ErrVehicleIdInvalid          = &errors.ValidationError{Message: "ID de veículo inválido"}
-	ErrVehicleNotFound           = &errors.ValidationError{Message: "veículo não encontrado"}
-	ErrVehiclePlateAlreadyExists = &errors.ValidationError{Message: "placa já cadastrada"}
-	ErrVehicleDelete             = &errors.ValidationError{Message: "ocorreu um erro ao excluir o veículo"}
+	ErrVehicleIdInvalid          = &errors.ValidationError{Message: "Vehicle Id invalid"}
+	ErrVehicleNotFound           = &errors.ValidationError{Message: "Vehicle not found"}
+	ErrVehiclePlateAlreadyExists = &errors.ValidationError{Message: "Plate already exists"}
+	ErrVehicleDelete             = &errors.ValidationError{Message: "An error occurred while trying to delete the vehicle"}
 )
 
 type vehicleService struct {
