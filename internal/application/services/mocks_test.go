@@ -250,6 +250,14 @@ func (m *MockProductRepository) FindAll(ctx context.Context, includeDeleted bool
 	return args.Get(0).([]product.Model), args.Error(1)
 }
 
+func (m *MockProductRepository) Search(ctx context.Context, filters filter.ProductFilter) ([]product.Model, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]product.Model), args.Error(1)
+}
+
 func (m *MockProductRepository) Create(ctx context.Context, entity *product.Model) (*product.Model, error) {
 	args := m.Called(ctx, entity)
 
@@ -268,6 +276,21 @@ func (m *MockProductRepository) Update(ctx context.Context, entity *product.Mode
 func (m *MockProductRepository) Delete(ctx context.Context, id uint) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
+}
+
+func (m *MockProductRepository) UpdateStock(ctx context.Context, id uint, quantity int) error {
+	args := m.Called(ctx, id, quantity)
+	return args.Error(0)
+}
+
+func (m *MockProductRepository) FindByIDs(ctx context.Context, productIDs []uint) ([]product.Model, error) {
+	args := m.Called(ctx, productIDs)
+
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).([]product.Model), args.Error(1)
 }
 
 type MockVehicleRepository struct {

@@ -66,6 +66,10 @@ func main() {
 	sessionService := services.NewSessionService(sessionRepository)
 	vehicleService := services.NewVehicleService(vehicleRepository)
 
+	// @TODO create usecase aqui e mapear no router
+	//stockUseCase := stock.NewStockUseCase(productService)
+	// @TODO criar handler de order e passar o usecase para ele
+
 	customerHandler := handlers.NewCustomerHandler(customerService)
 	companyHandler := handlers.NewCompanyHandler(companyService)
 	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceService)

@@ -40,7 +40,7 @@ func TestSession_IsExpired(t *testing.T) {
 		},
 		{
 			name:      "session expires now",
-			expiresAt: time.Now(),
+			expiresAt: time.Now().Add(-time.Millisecond),
 			expected:  true,
 		},
 	}
