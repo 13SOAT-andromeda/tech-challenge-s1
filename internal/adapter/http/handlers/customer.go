@@ -237,3 +237,69 @@ func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
 
 	response.RespondSuccess[any](ctx, nil, "Customer updated successfully")
 }
+
+func (h *CustomerHandler) AddVehicleToCustomer(ctx *gin.Context) {
+	customerIDStr := ctx.Param("id")
+	vehicleIDStr := ctx.Param("vehicleId")
+
+	customerID, err := strconv.ParseUint(customerIDStr, 10, 64)
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, "Invalid customer ID")
+		return
+	}
+
+	vehicleID, err := strconv.ParseUint(vehicleIDStr, 10, 64)
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, "Invalid vehicle ID")
+		return
+	}
+
+	if err := h.service.AddVehicleToCustomer(ctx, uint(customerID), uint(vehicleID)); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondCreated[any](ctx, nil, "Vehicle associated with customer successfully")
+}
+
+func (h *CustomerHandler) RemoveVehicleFromCustomer(ctx *gin.Context) {
+	customerIDStr := ctx.Param("id")
+	vehicleIDStr := ctx.Param("vehicleId")
+
+	customerID, err := strconv.ParseUint(customerIDStr, 10, 64)
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, "Invalid customer ID")
+		return
+	}
+
+	vehicleID, err := strconv.ParseUint(vehicleIDStr, 10, 64)
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, "Invalid vehicle ID")
+		return
+	}
+
+	if err := h.service.RemoveVehicleFromCustomer(ctx, uint(customerID), uint(vehicleID)); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess[any](ctx, nil, "Vehicle removed from customer successfully")
+}
+
+func (h *CustomerHandler) GetCustomerVehicles(ctx *gin.Context) {
+	customerIDStr := ctx.Param("id")
+
+	customerID, err := strconv.ParseUint(customerIDStr, 10, 64)
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, "Invalid customer ID")
+		return
+	}
+
+	vehicles, err := h.service.GetCustomerVehicles(ctx, uint(customerID))
+	if err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess[[]domain.Vehicle](ctx, vehicles, "")
+}

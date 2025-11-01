@@ -10,6 +10,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
@@ -42,6 +43,7 @@ func main() {
 		&user.Model{},
 		&model.SessionModel{},
 		&vehicle.Model{},
+		&customer_vehicle.Model{},
 	)
 
 	if err != nil {
@@ -57,14 +59,15 @@ func main() {
 	userRepository := repository.NewUserRepository(dbase)
 	sessionRepository := repository.NewSessionRepository(dbase)
 	vehicleRepository := repository.NewVehicleRepository(dbase)
+	customerVehicleRepository := repository.NewCustomerVehicleRepository(dbase)
 
-	customerService := services.NewCustomerService(customerRepository)
+	vehicleService := services.NewVehicleService(vehicleRepository)
+	customerService := services.NewCustomerService(customerRepository, customerVehicleRepository, vehicleService)
 	companyService := services.NewCompanyService(companyRepository)
 	maintenanceService := services.NewMaintenanceService(maintenanceRepository)
 	productService := services.NewProductService(productRepository)
 	userService := services.NewUserService(userRepository)
 	sessionService := services.NewSessionService(sessionRepository)
-	vehicleService := services.NewVehicleService(vehicleRepository)
 
 	// @TODO create usecase aqui e mapear no router
 	//stockUseCase := stock.NewStockUseCase(productService)

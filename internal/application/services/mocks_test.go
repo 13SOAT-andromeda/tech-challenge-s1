@@ -5,11 +5,13 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
 	"github.com/stretchr/testify/mock"
 )
@@ -313,4 +315,82 @@ func (m *MockVehicleRepository) GetByPlate(ctx context.Context, plate string) (*
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*vehicle.Model), args.Error(1)
+}
+
+type MockCustomerVehicleRepository struct {
+	MockGenericRepository[customer_vehicle.Model]
+}
+
+var _ ports.CustomerVehicleRepository = (*MockCustomerVehicleRepository)(nil)
+
+func (m *MockCustomerVehicleRepository) FindByCustomerAndVehicle(ctx context.Context, customerID, vehicleID uint) (*customer_vehicle.Model, error) {
+	args := m.Called(ctx, customerID, vehicleID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*customer_vehicle.Model), args.Error(1)
+}
+
+func (m *MockCustomerVehicleRepository) FindByCustomerID(ctx context.Context, customerID uint) ([]customer_vehicle.Model, error) {
+	args := m.Called(ctx, customerID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]customer_vehicle.Model), args.Error(1)
+}
+
+func (m *MockCustomerVehicleRepository) DeleteByCustomerAndVehicle(ctx context.Context, customerID, vehicleID uint) error {
+	args := m.Called(ctx, customerID, vehicleID)
+	return args.Error(0)
+}
+
+type MockVehicleService struct {
+	mock.Mock
+}
+
+var _ ports.VehicleService = (*MockVehicleService)(nil)
+
+func (m *MockVehicleService) Create(ctx context.Context, v domain.Vehicle) (*domain.Vehicle, error) {
+	args := m.Called(ctx, v)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Vehicle), args.Error(1)
+}
+
+func (m *MockVehicleService) GetAll(ctx context.Context, params map[string]interface{}) (*[]domain.Vehicle, error) {
+	args := m.Called(ctx, params)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*[]domain.Vehicle), args.Error(1)
+}
+
+func (m *MockVehicleService) GetByID(ctx context.Context, id uint) (*domain.Vehicle, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Vehicle), args.Error(1)
+}
+
+func (m *MockVehicleService) GetByPlate(ctx context.Context, plate string) (*domain.Vehicle, error) {
+	args := m.Called(ctx, plate)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Vehicle), args.Error(1)
+}
+
+func (m *MockVehicleService) Update(ctx context.Context, v domain.Vehicle) (*domain.Vehicle, error) {
+	args := m.Called(ctx, v)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Vehicle), args.Error(1)
+}
+
+func (m *MockVehicleService) Delete(ctx context.Context, id uint) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
 }
