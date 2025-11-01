@@ -70,20 +70,30 @@ func (s *productService) ConfirmOrderProducts(ctx context.Context, id uint, quan
 }
 
 func (s *productService) Update(ctx context.Context, p domain.Product) (*domain.Product, error) {
-	existentProduct, err := s.repo.FindByID(ctx, p.ID)
+	return s.updateInternal(ctx, p, false)
+}
 
+func (s *productService) UpdateStock(ctx context.Context, p domain.Product) (*domain.Product, error) {
+	return s.updateInternal(ctx, p, true)
+}
+
+func (s *productService) updateInternal(ctx context.Context, p domain.Product, allowStockChange bool) (*domain.Product, error) {
+	existentProduct, err := s.repo.FindByID(ctx, p.ID)
 	if err != nil {
-		return nil, fmt.Errorf("Product with Id %d not found or disabled", p.ID)
+		return nil, fmt.Errorf("product with ID %d not found or disabled", p.ID)
 	}
 
 	var model product.Model
-
 	model.FromDomain(&p)
 	model.CreatedAt = existentProduct.CreatedAt
 	model.DeletedAt = existentProduct.DeletedAt
 
+	if !allowStockChange {
+		model.Stock = existentProduct.Stock
+	}
+
 	if err := s.repo.Update(ctx, &model); err != nil {
-		return nil, fmt.Errorf("Failed to update product: %w", err)
+		return nil, fmt.Errorf("failed to update product: %w", err)
 	}
 
 	return &p, nil
@@ -221,36 +231,4 @@ func (s *productService) RemoveStockItem(ctx context.Context, productID uint, qu
 	}
 
 	return updated, nil
-}
-
-func (s *productService) GetCurrentStock(ctx context.Context, productID uint) (uint, error) {
-	product, err := s.GetById(ctx, productID)
-
-	if err != nil {
-		return 0, err
-	}
-
-	if product == nil {
-		return 0, ErrProductNotFound
-	}
-
-	return product.Stock, nil
-}
-
-func (s *productService) SetStock(ctx context.Context, productID uint, quantity uint) error {
-	product, err := s.GetById(ctx, productID)
-
-	if err != nil {
-		return err
-	}
-
-	if product == nil {
-		return ErrProductNotFound
-	}
-
-	product.Stock = quantity
-
-	_, err = s.Update(ctx, *product)
-
-	return err
 }

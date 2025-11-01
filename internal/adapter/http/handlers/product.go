@@ -148,7 +148,7 @@ func (h *ProductHandler) UpdateProduct(ctx *gin.Context) {
 		return
 	}
 
-	response.RespondCreated[any](ctx, nil, "Product updated successfully")
+	response.RespondSuccess[any](ctx, nil, "Product updated successfully")
 }
 
 func (h *ProductHandler) ManageStockItem(ctx *gin.Context) {
@@ -182,27 +182,4 @@ func (h *ProductHandler) ManageStockItem(ctx *gin.Context) {
 	}
 
 	response.RespondSuccess[domain.Product](ctx, *product, "")
-}
-
-func (h *ProductHandler) GetCurrentStock(c *gin.Context) {
-	productIDStr := c.Param("product_id")
-	productID, err := strconv.ParseUint(productIDStr, 10, 32)
-	if err != nil {
-		response.RespondError(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	stock, err := h.service.GetCurrentStock(c.Request.Context(), uint(productID))
-
-	if err != nil {
-		response.RespondError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	stockResponse := gin.H{
-		"product_id": uint(productID),
-		"stock":      stock,
-	}
-
-	response.RespondSuccess[any](c, stockResponse, "")
 }

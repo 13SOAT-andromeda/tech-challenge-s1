@@ -9,17 +9,17 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-type ProductRepository struct {
+type productRepository struct {
 	*BaseRepository[product.Model]
 }
 
 func NewProductRepository(db *gorm.DB) ports.ProductRepository {
-	return &ProductRepository{
+	return &productRepository{
 		BaseRepository: NewBaseRepository[product.Model](db),
 	}
 }
 
-func (r *ProductRepository) UpdateStock(ctx context.Context, id uint, quantity int) error {
+func (r *productRepository) UpdateStock(ctx context.Context, id uint, quantity int) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var model product.Model
 
@@ -33,7 +33,7 @@ func (r *ProductRepository) UpdateStock(ctx context.Context, id uint, quantity i
 	})
 }
 
-func (r *ProductRepository) FindByIDs(ctx context.Context, productIDs []uint) ([]product.Model, error) {
+func (r *productRepository) FindByIDs(ctx context.Context, productIDs []uint) ([]product.Model, error) {
 	var products []product.Model
 
 	err := r.db.WithContext(ctx).Where("id IN ?", productIDs).Find(&products).Error

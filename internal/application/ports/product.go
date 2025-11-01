@@ -16,6 +16,7 @@ type ProductRepository interface {
 type ProductService interface {
 	Create(ctx context.Context, p domain.Product) (*domain.Product, error)
 	Update(ctx context.Context, p domain.Product) (*domain.Product, error)
+	UpdateStock(ctx context.Context, p domain.Product) (*domain.Product, error)
 	GetAll(ctx context.Context) ([]domain.Product, error)
 	GetById(ctx context.Context, productID uint) (*domain.Product, error)
 	Delete(ctx context.Context, productID uint) (*domain.Product, error)
@@ -23,6 +24,4 @@ type ProductService interface {
 	ManageStockItem(ctx context.Context, productID uint, quantity uint, operation string) (*domain.Product, error)
 	AddStockItem(ctx context.Context, productID uint, quantity uint) (*domain.Product, error)
 	RemoveStockItem(ctx context.Context, productID uint, quantity uint) (*domain.Product, error)
-	GetCurrentStock(ctx context.Context, productID uint) (uint, error)
-	SetStock(ctx context.Context, productID uint, quantity uint) error
 }

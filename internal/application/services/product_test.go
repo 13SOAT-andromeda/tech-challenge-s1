@@ -162,7 +162,100 @@ func TestProductService_Update_UpdateFails(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Contains(t, err.Error(), "Failed to update product")
+	assert.Contains(t, err.Error(), "failed to update product")
+	mockRepo.AssertExpectations(t)
+}
+
+func TestProductService_UpdateStock_Success(t *testing.T) {
+	mockRepo := new(MockProductRepository)
+	service := NewProductService(mockRepo)
+	ctx := context.Background()
+
+	existingProduct := createTestProductModel(1, 10, 10000) // Stock atual = 10
+	domainProduct := domain.Product{
+		ID:    1,
+		Name:  "Updated Product",
+		Price: 12000,
+		Stock: 20, // Novo estoque
+	}
+
+	mockRepo.On("FindByID", ctx, uint(1)).Return(existingProduct, nil)
+	mockRepo.On("Update", ctx, mock.MatchedBy(func(m *product.Model) bool {
+		return m.Stock == 20 // Esperamos que o estoque seja atualizado
+	})).Return(nil)
+
+	result, err := service.UpdateStock(ctx, domainProduct)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, uint(20), result.Stock)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestProductService_UpdateStock_ProductNotFound(t *testing.T) {
+	mockRepo := new(MockProductRepository)
+	service := NewProductService(mockRepo)
+	ctx := context.Background()
+
+	domainProduct := domain.Product{ID: 999, Stock: 5}
+
+	mockRepo.On("FindByID", ctx, uint(999)).Return(nil, errors.New("not found"))
+
+	result, err := service.UpdateStock(ctx, domainProduct)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	assert.Contains(t, err.Error(), "not found or disabled")
+	mockRepo.AssertExpectations(t)
+}
+
+func TestProductService_UpdateStock_UpdateFails(t *testing.T) {
+	mockRepo := new(MockProductRepository)
+	service := NewProductService(mockRepo)
+	ctx := context.Background()
+
+	existingProduct := createTestProductModel(1, 10, 10000)
+	domainProduct := domain.Product{
+		ID:    1,
+		Name:  "Updated Product",
+		Price: 12000,
+		Stock: 50,
+	}
+
+	mockRepo.On("FindByID", ctx, uint(1)).Return(existingProduct, nil)
+	mockRepo.On("Update", ctx, mock.AnythingOfType("*product.Model")).Return(errors.New("update error"))
+
+	result, err := service.UpdateStock(ctx, domainProduct)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	assert.Contains(t, err.Error(), "failed to update product")
+	mockRepo.AssertExpectations(t)
+}
+
+func TestProductService_Update_DoesNotChangeStock(t *testing.T) {
+	mockRepo := new(MockProductRepository)
+	service := NewProductService(mockRepo)
+	ctx := context.Background()
+
+	existingProduct := createTestProductModel(1, 10, 10000) // Stock atual = 10
+	domainProduct := domain.Product{
+		ID:    1,
+		Name:  "Updated Product",
+		Price: 15000,
+		Stock: 0, // Mesmo que venha 0, não deve sobrescrever
+	}
+
+	mockRepo.On("FindByID", ctx, uint(1)).Return(existingProduct, nil)
+	mockRepo.On("Update", ctx, mock.MatchedBy(func(m *product.Model) bool {
+		return m.Stock == 10 // Esperamos que continue com o valor antigo
+	})).Return(nil)
+
+	result, err := service.Update(ctx, domainProduct)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, uint(10), existingProduct.Stock)
 	mockRepo.AssertExpectations(t)
 }
 
@@ -531,77 +624,5 @@ func TestProductService_RemoveStockItem_UpdateFails(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestProductService_GetCurrentStock_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	service := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	productModel := createTestProductModel(1, 25, 10000)
-	mockRepo.On("FindByID", ctx, uint(1)).Return(productModel, nil)
-
-	result, err := service.GetCurrentStock(ctx, 1)
-
-	assert.NoError(t, err)
-	assert.Equal(t, uint(25), result)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestProductService_GetCurrentStock_ProductNotFound(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	service := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	mockRepo.On("FindByID", ctx, uint(999)).Return(nil, errors.New("not found"))
-
-	result, err := service.GetCurrentStock(ctx, 999)
-
-	assert.Error(t, err)
-	assert.Equal(t, uint(0), result)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestProductService_SetStock_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	service := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	productModel := createTestProductModel(1, 10, 10000)
-	mockRepo.On("FindByID", ctx, uint(1)).Return(productModel, nil)
-	mockRepo.On("Update", ctx, mock.AnythingOfType("*product.Model")).Return(nil)
-
-	err := service.SetStock(ctx, 1, 50)
-
-	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestProductService_SetStock_ProductNotFound(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	service := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	mockRepo.On("FindByID", ctx, uint(999)).Return(nil, errors.New("not found"))
-
-	err := service.SetStock(ctx, 999, 50)
-
-	assert.Error(t, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestProductService_SetStock_UpdateFails(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	service := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	productModel := createTestProductModel(1, 10, 10000)
-	mockRepo.On("FindByID", ctx, uint(1)).Return(productModel, nil)
-	mockRepo.On("Update", ctx, mock.AnythingOfType("*product.Model")).Return(errors.New("update failed"))
-
-	err := service.SetStock(ctx, 1, 50)
-
-	assert.Error(t, err)
 	mockRepo.AssertExpectations(t)
 }
