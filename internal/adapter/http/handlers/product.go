@@ -7,7 +7,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/monetary"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,29 +20,19 @@ func NewProductHandler(service ports.ProductService) *ProductHandler {
 }
 
 type createProductRequest struct {
-	Name  string  `json:"name" binding:"required"`
-	Price float64 `json:"price" binding:"required,gt=0"`
-	Stock int64   `json:"stock" binding:"required"`
+	Name  string `json:"name" binding:"required"`
+	Price int64  `json:"price" binding:"required,gt=0"`
+	Stock int64  `json:"stock" binding:"required"`
 }
 
 type updateProductRequest struct {
-	Name  string  `json:"name" binding:"required"`
-	Price float64 `json:"price" binding:"required,gt=0"`
+	Name  string `json:"name" binding:"required"`
+	Price int64  `json:"price" binding:"required,gt=0"`
 }
 
 type updateStockRequest struct {
 	Quantity  uint   `json:"quantity" binding:"required,min=1"`
 	Operation string `json:"operation" binding:"required"`
-}
-
-type setStockRequest struct {
-	ProductID uint `json:"product_id" binding:"required"`
-	Stock     uint `json:"stock" binding:"required,min=1"`
-}
-
-type checkAvailabilityRequest struct {
-	ProductID uint `json:"product_id" binding:"required"`
-	Quantity  uint `json:"quantity" binding:"required,min=1"`
 }
 
 func (h *ProductHandler) CreateProduct(ctx *gin.Context) {
@@ -54,7 +44,7 @@ func (h *ProductHandler) CreateProduct(ctx *gin.Context) {
 
 	p := domain.Product{
 		Name:  json.Name,
-		Price: monetary.ConvertToMinorUnitInt64(json.Price, 2),
+		Price: json.Price,
 		Stock: uint(json.Stock),
 	}
 
@@ -67,7 +57,15 @@ func (h *ProductHandler) CreateProduct(ctx *gin.Context) {
 }
 
 func (h *ProductHandler) GetAllProducts(ctx *gin.Context) {
-	products, err := h.service.GetAll(ctx.Request.Context())
+
+	filter := &filter.ProductFilter{}
+
+	if name := ctx.Query("name"); name != "" {
+		filter.Name = &name
+	}
+
+	products, err := h.service.GetAll(ctx, filter)
+
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -140,10 +138,10 @@ func (h *ProductHandler) UpdateProduct(ctx *gin.Context) {
 	p := domain.Product{
 		ID:    uint(productId),
 		Name:  json.Name,
-		Price: monetary.ConvertToMinorUnitInt64(json.Price, 2),
+		Price: json.Price,
 	}
 
-	if _, err := h.service.Update(ctx.Request.Context(), p); err != nil {
+	if _, err := h.service.Update(ctx, p); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}

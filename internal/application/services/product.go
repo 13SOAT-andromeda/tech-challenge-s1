@@ -9,6 +9,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
 )
 
 var (
@@ -87,9 +88,10 @@ func (s *productService) updateInternal(ctx context.Context, p domain.Product, a
 	model.FromDomain(&p)
 	model.CreatedAt = existentProduct.CreatedAt
 	model.DeletedAt = existentProduct.DeletedAt
+	model.Stock = existentProduct.Stock
 
-	if !allowStockChange {
-		model.Stock = existentProduct.Stock
+	if allowStockChange {
+		model.Stock = p.Stock
 	}
 
 	if err := s.repo.Update(ctx, &model); err != nil {
@@ -109,8 +111,13 @@ func (s *productService) GetById(ctx context.Context, productID uint) (*domain.P
 	return result, nil
 }
 
-func (s *productService) GetAll(ctx context.Context) ([]domain.Product, error) {
-	records, err := s.repo.FindAll(ctx, false)
+func (s *productService) GetAll(ctx context.Context, productFilter *filter.ProductFilter) ([]domain.Product, error) {
+
+	if productFilter == nil {
+		productFilter = &filter.ProductFilter{}
+	}
+
+	records, err := s.repo.Search(ctx, *productFilter)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +202,7 @@ func (s *productService) AddStockItem(ctx context.Context, productID uint, quant
 
 	product.Stock += quantity
 
-	updated, err := s.Update(ctx, *product)
+	updated, err := s.UpdateStock(ctx, *product)
 
 	if err != nil {
 		return nil, err
@@ -224,7 +231,7 @@ func (s *productService) RemoveStockItem(ctx context.Context, productID uint, qu
 		return nil, err
 	}
 
-	updated, err := s.Update(ctx, *product)
+	updated, err := s.UpdateStock(ctx, *product)
 
 	if err != nil {
 		return nil, err
