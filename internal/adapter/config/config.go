@@ -8,9 +8,11 @@ import (
 )
 
 type Config struct {
-	Database *DataBaseConfig
-	Http     *HttpConfig
-	Env      string
+	Database  *DataBaseConfig
+	Http      *HttpConfig
+	JWT       *JWTConfig
+	Env       string
+	AdminUser *AdminUserConfig
 }
 
 type HttpConfig struct {
@@ -27,6 +29,17 @@ type DataBaseConfig struct {
 	Port     string
 	SSLMode  string
 	TimeZone string
+}
+
+type JWTConfig struct {
+	Secret             string
+	AccessTokenExpiry  string
+	RefreshTokenExpiry string
+}
+
+type AdminUserConfig struct {
+	Email    string
+	Password string
 }
 
 func getEnv(key, defaultValue string) string {
@@ -63,9 +76,22 @@ func Init() (*Config, error) {
 		Url:            getEnv("HTTP_URL", "http://localhost"),
 	}
 
+	jwt := &JWTConfig{
+		Secret:             getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-in-production"),
+		AccessTokenExpiry:  getEnv("JWT_ACCESS_TOKEN_EXPIRY", "15m"),
+		RefreshTokenExpiry: getEnv("JWT_REFRESH_TOKEN_EXPIRY", "168h"),
+	}
+
+	adminUser := &AdminUserConfig{
+		Email:    getEnv("ADMIN_EMAIL", ""),
+		Password: getEnv("ADMIN_PASSWORD", ""),
+	}
+
 	return &Config{
-		Database: database,
-		Http:     http,
-		Env:      getEnv("ENV", "development"),
+		Database:  database,
+		Http:      http,
+		JWT:       jwt,
+		Env:       getEnv("ENV", "development"),
+		AdminUser: adminUser,
 	}, nil
 }

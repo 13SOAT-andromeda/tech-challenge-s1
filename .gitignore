@@ -29,7 +29,9 @@ go.work.sum
 
 # Local development files
 main
+api
 
 # Editor/IDE
 .idea/
 .vscode/
+tmp

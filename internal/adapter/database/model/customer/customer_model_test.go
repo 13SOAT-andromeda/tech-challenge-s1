@@ -8,7 +8,13 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/document"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
+
+func TestAddressModel_TableName(t *testing.T) {
+	customer := &Model{}
+	assert.Equal(t, "Customer", customer.TableName())
+}
 
 func TestAddressModel_ToDomain(t *testing.T) {
 	model := address.Model{
@@ -129,6 +135,7 @@ func TestCustomerModelInitialization(t *testing.T) {
 
 func TestCustomerModel_ToDomain(t *testing.T) {
 	now := time.Now()
+	deletedAt := now.Add(time.Hour * 1)
 	model := Model{
 		Name:  "Gedan",
 		Email: "gedan@example.com",
@@ -144,6 +151,9 @@ func TestCustomerModel_ToDomain(t *testing.T) {
 			City:          "New York",
 			Country:       "Brasil",
 			ZipCode:       "1234",
+		},
+		Model: gorm.Model{
+			DeletedAt: gorm.DeletedAt{Time: deletedAt, Valid: true},
 		},
 	}
 	model.ID = 1
@@ -164,7 +174,7 @@ func TestCustomerModel_ToDomain(t *testing.T) {
 	assert.Equal(t, "317", result.Address.AddressNumber)
 	assert.Equal(t, now, result.CreatedAt)
 	assert.Equal(t, now, result.UpdatedAt)
-	assert.Nil(t, result.DeletedAt)
+	assert.Equal(t, deletedAt, *result.DeletedAt)
 }
 
 func TestCustomerModel_ToDomain_WithNilAddress(t *testing.T) {
