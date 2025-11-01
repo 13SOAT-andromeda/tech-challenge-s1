@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
@@ -11,8 +12,10 @@ import (
 )
 
 var (
-	ErrProductNotFound = errors.New("Product not found")
-	ErrInvalidQuantity = errors.New("Invalid Quantity")
+	ErrProductNotFound             = errors.New("Product not found")
+	ErrInvalidQuantity             = errors.New("Invalid quantity")
+	ErrInvalidProductId            = errors.New("Invalid product Id")
+	ErrInvalidManageStockOperation = errors.New("Invalid manage stock operation")
 )
 
 type productService struct {
@@ -67,10 +70,23 @@ func (s *productService) ConfirmOrderProducts(ctx context.Context, id uint, quan
 }
 
 func (s *productService) Update(ctx context.Context, p domain.Product) (*domain.Product, error) {
+	existentProduct, err := s.repo.FindByID(ctx, p.ID)
 
-	// todo: implementar update de produto
+	if err != nil {
+		return nil, fmt.Errorf("Product with Id %d not found or disabled", p.ID)
+	}
 
-	return nil, nil
+	var model product.Model
+
+	model.FromDomain(&p)
+	model.CreatedAt = existentProduct.CreatedAt
+	model.DeletedAt = existentProduct.DeletedAt
+
+	if err := s.repo.Update(ctx, &model); err != nil {
+		return nil, fmt.Errorf("Failed to update product: %w", err)
+	}
+
+	return &p, nil
 }
 
 func (s *productService) GetById(ctx context.Context, productID uint) (*domain.Product, error) {
@@ -126,47 +142,85 @@ func (s *productService) Delete(ctx context.Context, productID uint) (*domain.Pr
 	return result, nil
 }
 
-func (s *productService) AddStockItem(ctx context.Context, productID uint, quantity uint) error {
+func (s *productService) ManageStockItem(ctx context.Context, productID uint, quantity uint, operation string) (*domain.Product, error) {
+	if productID == 0 {
+		return nil, ErrInvalidProductId
+	}
+
 	if quantity == 0 {
-		return ErrInvalidQuantity
+		return nil, ErrInvalidQuantity
+	}
+
+	normalizedOperation := strings.ToLower(operation)
+
+	switch normalizedOperation {
+	case "add":
+		return s.AddStockItem(ctx, productID, quantity)
+	case "remove":
+		return s.RemoveStockItem(ctx, productID, quantity)
+	default:
+		return nil, ErrInvalidManageStockOperation
+	}
+}
+
+func (s *productService) AddStockItem(ctx context.Context, productID uint, quantity uint) (*domain.Product, error) {
+
+	if productID == 0 {
+		return nil, ErrInvalidProductId
+	}
+
+	if quantity == 0 {
+		return nil, ErrInvalidQuantity
 	}
 
 	product, err := s.GetById(ctx, productID)
+
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if product == nil {
-		return ErrProductNotFound
+		return nil, ErrProductNotFound
 	}
 
 	product.Stock += quantity
 
-	_, err = s.Update(ctx, *product)
-	return err
+	updated, err := s.Update(ctx, *product)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return updated, nil
 }
 
-func (s *productService) RemoveStockItem(ctx context.Context, productID uint, quantity uint) error {
+func (s *productService) RemoveStockItem(ctx context.Context, productID uint, quantity uint) (*domain.Product, error) {
 
 	if quantity == 0 {
-		return ErrInvalidQuantity
+		return nil, ErrInvalidQuantity
 	}
 
 	product, err := s.GetById(ctx, productID)
+
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if product == nil {
-		return ErrProductNotFound
+		return nil, ErrProductNotFound
 	}
 
 	if err := product.DecreaseStock(quantity); err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = s.Update(ctx, *product)
-	return err
+	updated, err := s.Update(ctx, *product)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return updated, nil
 }
 
 func (s *productService) GetCurrentStock(ctx context.Context, productID uint) (uint, error) {

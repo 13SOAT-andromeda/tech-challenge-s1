@@ -25,9 +25,14 @@ type createProductRequest struct {
 	Stock int64   `json:"stock" binding:"required"`
 }
 
+type updateProductRequest struct {
+	Name  string  `json:"name" binding:"required"`
+	Price float64 `json:"price" binding:"required,gt=0"`
+}
+
 type updateStockRequest struct {
-	ProductID uint `json:"product_id" binding:"required"`
-	Stock     uint `json:"stock" binding:"required,min=1"`
+	Quantity  uint   `json:"quantity" binding:"required,min=1"`
+	Operation string `json:"operation" binding:"required"`
 }
 
 type setStockRequest struct {
@@ -114,66 +119,69 @@ func (h *ProductHandler) DeleteProduct(ctx *gin.Context) {
 	response.RespondSuccess[domain.Product](ctx, *product, "")
 }
 
-func (h *ProductHandler) AddStockItem(c *gin.Context) {
-	var req updateStockRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.RespondError(c, http.StatusBadRequest, err.Error())
+func (h *ProductHandler) UpdateProduct(ctx *gin.Context) {
+
+	var json updateProductRequest
+
+	if err := ctx.ShouldBindJSON(&json); err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if err := h.service.AddStockItem(c.Request.Context(), req.ProductID, req.Stock); err != nil {
-		response.RespondError(c, http.StatusInternalServerError, err.Error())
+	productIdStg := ctx.Param("id")
+
+	productId, err := strconv.ParseUint(productIdStg, 10, 64)
+
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, "Invalid product ID")
 		return
 	}
 
-	stockResponse := gin.H{
-		"product_id": req.ProductID,
-		"Stock":      req.Stock,
+	p := domain.Product{
+		ID:    uint(productId),
+		Name:  json.Name,
+		Price: monetary.ConvertToMinorUnitInt64(json.Price, 2),
 	}
 
-	response.RespondSuccess[any](c, stockResponse, "Estoque adicionado com sucesso")
+	if _, err := h.service.Update(ctx.Request.Context(), p); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondCreated[any](ctx, nil, "Product updated successfully")
 }
 
-func (h *ProductHandler) RemoveStockItem(c *gin.Context) {
+func (h *ProductHandler) ManageStockItem(ctx *gin.Context) {
+
+	productIdStg := ctx.Param("id")
+
+	productId, err := strconv.ParseUint(productIdStg, 10, 64)
+
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, "Invalid product ID")
+		return
+	}
 
 	var req updateStockRequest
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.RespondError(c, http.StatusBadRequest, err.Error())
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if err := h.service.RemoveStockItem(c.Request.Context(), req.ProductID, req.Stock); err != nil {
-		response.RespondError(c, http.StatusInternalServerError, err.Error())
+	product, err := h.service.ManageStockItem(ctx, uint(productId), req.Quantity, req.Operation)
+
+	if err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	stockResponse := gin.H{
-		"product_id": req.ProductID,
-		"Stock":      req.Stock,
-	}
-
-	response.RespondSuccess[any](c, stockResponse, "Estoque removido com sucesso")
-}
-
-func (h *ProductHandler) SetStockItem(c *gin.Context) {
-	var req setStockRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.RespondError(c, http.StatusBadRequest, err.Error())
+	if product == nil {
+		response.RespondError(ctx, http.StatusNotFound, "Customer not found")
 		return
 	}
 
-	if err := h.service.SetStock(c.Request.Context(), req.ProductID, req.Stock); err != nil {
-		response.RespondError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	stockResponse := gin.H{
-		"product_id": req.ProductID,
-		"Stock":      req.Stock,
-	}
-
-	response.RespondSuccess[any](c, stockResponse, "Stock Setted Successfully")
+	response.RespondSuccess[domain.Product](ctx, *product, "")
 }
 
 func (h *ProductHandler) GetCurrentStock(c *gin.Context) {

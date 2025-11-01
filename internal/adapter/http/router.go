@@ -67,10 +67,9 @@ func NewRouter(
 		productGroup.GET("", productHandler.GetAllProducts) // Todo: implementar search
 		productGroup.GET("/:id", productHandler.GetProductByID)
 		productGroup.DELETE("/:id", productHandler.DeleteProduct)
+		productGroup.PUT("/:id", productHandler.UpdateProduct)
 
-		productGroup.POST("/stock/add", productHandler.AddStockItem)
-		productGroup.POST("/stock/remove", productHandler.RemoveStockItem)
-		productGroup.POST("/stock/set", productHandler.SetStockItem)
+		productGroup.PATCH("/:id/stock", productHandler.ManageStockItem)
 	}
 
 	userGroup := router.Group("/user")
