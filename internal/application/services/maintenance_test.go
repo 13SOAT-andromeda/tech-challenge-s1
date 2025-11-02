@@ -21,9 +21,8 @@ func TestMaintenanceService_Create_Success(t *testing.T) {
 
 	ctx := context.Background()
 	inputService := domain.Maintenance{
-		Name:         "Maintenance Test",
-		DefaultPrice: float64Ptr(150.0),
-		Number:       "SVC1001",
+		Name:  "Maintenance Test",
+		Price: 150,
 	}
 
 	var mockModel maintenance.Model
@@ -40,11 +39,6 @@ func TestMaintenanceService_Create_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, "Maintenance Test", result.Name)
-	if result.DefaultPrice != nil {
-		assert.Equal(t, 150.0, *result.DefaultPrice)
-	} else {
-		t.Fatalf("result.DefaultPrice is nil")
-	}
 	mockRepo.AssertExpectations(t)
 }
 
@@ -55,12 +49,10 @@ func TestMaintenanceService_Create_RepositoryError(t *testing.T) {
 
 	ctx := context.Background()
 	inputService := domain.Maintenance{
-		Name:         "Maintenance Test",
-		DefaultPrice: float64Ptr(150.0),
-		Number:       "SVC1001",
+		Name:  "Maintenance Test",
+		Price: 150,
 	}
 
-	// Configurar o mock para esperar a chamada Create e retornar um erro
 	mockRepo.On("Create", mock.Anything, mock.Anything).
 		Return(nil, assert.AnError)
 
@@ -81,12 +73,11 @@ func TestMaintenanceService_FindByID_Success(t *testing.T) {
 	ctx := context.Background()
 	serviceID := uint(1)
 	expectedService := &maintenance.Model{
-		Model:  gorm.Model{ID: serviceID},
-		Name:   "Maintenance Test",
-		Number: "SVC1001",
+		Model: gorm.Model{ID: serviceID},
+		Name:  "Maintenance Test",
+		Price: 100,
 	}
 
-	// Configurar o mock para esperar a chamada FindByID e retornar sucesso
 	mockRepo.On("FindByID", mock.Anything, serviceID).
 		Return(expectedService, nil)
 
@@ -109,7 +100,6 @@ func TestMaintenanceService_FindByID_NotFound(t *testing.T) {
 	ctx := context.Background()
 	serviceID := uint(1)
 
-	// Configurar o mock para esperar a chamada FindByID e retornar um erro de não encontrado
 	mockRepo.On("FindByID", mock.Anything, serviceID).
 		Return(nil, gorm.ErrRecordNotFound)
 
@@ -130,10 +120,9 @@ func TestMaintenanceService_UpdateByID_Success(t *testing.T) {
 	ctx := context.Background()
 	serviceID := uint(1)
 	updateService := domain.Maintenance{
-		ID:           serviceID,
-		Name:         "Updated Maintenance",
-		DefaultPrice: float64Ptr(200.0),
-		Number:       "SVC2002",
+		ID:    serviceID,
+		Name:  "Updated Maintenance",
+		Price: 200,
 	}
 
 	var mockModel maintenance.Model
@@ -159,10 +148,9 @@ func TestMaintenanceService_UpdateByID_NotFound(t *testing.T) {
 	ctx := context.Background()
 	serviceID := uint(1)
 	updateService := domain.Maintenance{
-		ID:           serviceID,
-		Name:         "Updated Maintenance",
-		DefaultPrice: float64Ptr(200.0),
-		Number:       "SVC2002",
+		ID:    serviceID,
+		Name:  "Updated Maintenance",
+		Price: 200,
 	}
 
 	var mockModel maintenance.Model
@@ -188,9 +176,8 @@ func TestMaintenanceService_DeleteByID_Success(t *testing.T) {
 	ctx := context.Background()
 	serviceID := uint(1)
 	existingService := &maintenance.Model{
-		Model:  gorm.Model{ID: serviceID},
-		Name:   "Maintenance to Delete",
-		Number: "SVC3003",
+		Model: gorm.Model{ID: serviceID},
+		Name:  "Maintenance to Delete",
 	}
 
 	// Configurar o mock para esperar a chamada FindByID e retornar o serviço existente

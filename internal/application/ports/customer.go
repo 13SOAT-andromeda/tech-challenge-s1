@@ -12,7 +12,6 @@ type CustomerRepository interface {
 	Repository[customer.Model]
 	FindByEmail(ctx context.Context, email string) (*customer.Model, error)
 	FindByDocument(ctx context.Context, document string) (*customer.Model, error)
-
 	Search(ctx context.Context, filters filter.CustomerFilter) ([]customer.Model, error)
 }
 

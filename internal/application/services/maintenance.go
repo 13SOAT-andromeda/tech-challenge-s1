@@ -39,6 +39,24 @@ func (s *MaintenanceService) GetByID(ctx context.Context, id uint) (*domain.Main
 	return result, nil
 }
 
+func (s *MaintenanceService) GetByIDs(ctx context.Context, maintenanceIDs []uint) ([]domain.Maintenance, error) {
+	if len(maintenanceIDs) == 0 {
+		return []domain.Maintenance{}, nil
+	}
+
+	records, err := s.repo.FindByIDs(ctx, maintenanceIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []domain.Maintenance
+	for _, record := range records {
+		result = append(result, *record.ToDomain())
+	}
+
+	return result, nil
+}
+
 func (s *MaintenanceService) UpdateByID(ctx context.Context, id uint, c domain.Maintenance) error {
 	var model maintenance.Model
 	model.FromDomain(&c)

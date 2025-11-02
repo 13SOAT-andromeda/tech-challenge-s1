@@ -30,6 +30,14 @@ func (m *MockMaintenanceRepository) FindByID(ctx context.Context, id uint) (*mai
 	return args.Get(0).(*maintenance.Model), args.Error(1)
 }
 
+func (m *MockMaintenanceRepository) FindByIDs(ctx context.Context, ids []uint) ([]maintenance.Model, error) {
+	args := m.Called(ctx, ids)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]maintenance.Model), args.Error(1)
+}
+
 func (m *MockMaintenanceRepository) Create(ctx context.Context, entity *maintenance.Model) (*maintenance.Model, error) {
 	args := m.Called(ctx, entity)
 

@@ -13,23 +13,23 @@ import (
 )
 
 var (
-	ErrProductNotFound             = errors.New("Product not found")
-	ErrInvalidQuantity             = errors.New("Invalid quantity")
-	ErrInvalidProductId            = errors.New("Invalid product Id")
-	ErrInvalidManageStockOperation = errors.New("Invalid manage stock operation")
+	ErrProductNotFound             = errors.New("product not found")
+	ErrInvalidQuantity             = errors.New("invalid quantity")
+	ErrInvalidProductId            = errors.New("invalid product Id")
+	ErrInvalidManageStockOperation = errors.New("invalid manage stock operation")
 )
 
-type productService struct {
+type ProductService struct {
 	repo ports.ProductRepository
 }
 
-func NewProductService(repo ports.ProductRepository) *productService {
-	return &productService{
+func NewProductService(repo ports.ProductRepository) *ProductService {
+	return &ProductService{
 		repo: repo,
 	}
 }
 
-func (s *productService) checkAvailability(ctx context.Context, productID uint, quantity uint) error {
+func (s *ProductService) checkAvailability(ctx context.Context, productID uint, quantity uint) error {
 
 	result, err := s.repo.FindByID(ctx, productID)
 
@@ -46,39 +46,19 @@ func (s *productService) checkAvailability(ctx context.Context, productID uint, 
 	return nil
 }
 
-func (s *productService) CheckProductPrice(ctx context.Context, productIDs []uint) (map[uint]float64, error) {
-	if len(productIDs) == 0 {
-		return make(map[uint]float64), nil
-	}
-
-	products, err := s.repo.FindByIDs(ctx, productIDs)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to get products by IDs: %w", err)
-	}
-
-	priceMap := make(map[uint]float64, len(products))
-
-	for _, p := range products {
-		priceMap[p.ID] = float64(p.Price)
-	}
-
-	return priceMap, nil
-}
-
-func (s *productService) ConfirmOrderProducts(ctx context.Context, id uint, quantity int) error {
+func (s *ProductService) ConfirmOrderProducts(ctx context.Context, id uint, quantity int) error {
 	return s.repo.UpdateStock(ctx, id, quantity)
 }
 
-func (s *productService) Update(ctx context.Context, p domain.Product) (*domain.Product, error) {
+func (s *ProductService) Update(ctx context.Context, p domain.Product) (*domain.Product, error) {
 	return s.updateInternal(ctx, p, false)
 }
 
-func (s *productService) UpdateStock(ctx context.Context, p domain.Product) (*domain.Product, error) {
+func (s *ProductService) UpdateStock(ctx context.Context, p domain.Product) (*domain.Product, error) {
 	return s.updateInternal(ctx, p, true)
 }
 
-func (s *productService) updateInternal(ctx context.Context, p domain.Product, allowStockChange bool) (*domain.Product, error) {
+func (s *ProductService) updateInternal(ctx context.Context, p domain.Product, allowStockChange bool) (*domain.Product, error) {
 	existentProduct, err := s.repo.FindByID(ctx, p.ID)
 	if err != nil {
 		return nil, fmt.Errorf("product with ID %d not found or disabled", p.ID)
@@ -101,7 +81,7 @@ func (s *productService) updateInternal(ctx context.Context, p domain.Product, a
 	return &p, nil
 }
 
-func (s *productService) GetById(ctx context.Context, productID uint) (*domain.Product, error) {
+func (s *ProductService) GetById(ctx context.Context, productID uint) (*domain.Product, error) {
 	response, err := s.repo.FindByID(ctx, productID)
 	if err != nil {
 		return nil, err
@@ -111,7 +91,21 @@ func (s *productService) GetById(ctx context.Context, productID uint) (*domain.P
 	return result, nil
 }
 
-func (s *productService) GetAll(ctx context.Context, productFilter *filter.ProductFilter) ([]domain.Product, error) {
+func (s *ProductService) GetByIds(ctx context.Context, productIDs []uint) ([]domain.Product, error) {
+	records, err := s.repo.FindByIDs(ctx, productIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []domain.Product
+	for _, record := range records {
+		result = append(result, *record.ToDomain())
+	}
+
+	return result, nil
+}
+
+func (s *ProductService) GetAll(ctx context.Context, productFilter *filter.ProductFilter) ([]domain.Product, error) {
 
 	if productFilter == nil {
 		productFilter = &filter.ProductFilter{}
@@ -130,7 +124,7 @@ func (s *productService) GetAll(ctx context.Context, productFilter *filter.Produ
 	return result, nil
 }
 
-func (s *productService) Create(ctx context.Context, p domain.Product) (*domain.Product, error) {
+func (s *ProductService) Create(ctx context.Context, p domain.Product) (*domain.Product, error) {
 	var model product.Model
 	model.FromDomain(&p)
 
@@ -143,7 +137,7 @@ func (s *productService) Create(ctx context.Context, p domain.Product) (*domain.
 	return result, nil
 }
 
-func (s *productService) Delete(ctx context.Context, productID uint) (*domain.Product, error) {
+func (s *ProductService) Delete(ctx context.Context, productID uint) (*domain.Product, error) {
 	response, err := s.repo.FindByID(ctx, productID)
 
 	if err != nil {
@@ -159,7 +153,7 @@ func (s *productService) Delete(ctx context.Context, productID uint) (*domain.Pr
 	return result, nil
 }
 
-func (s *productService) ManageStockItem(ctx context.Context, productID uint, quantity uint, operation string) (*domain.Product, error) {
+func (s *ProductService) ManageStockItem(ctx context.Context, productID uint, quantity uint, operation string) (*domain.Product, error) {
 	if productID == 0 {
 		return nil, ErrInvalidProductId
 	}
@@ -180,7 +174,7 @@ func (s *productService) ManageStockItem(ctx context.Context, productID uint, qu
 	}
 }
 
-func (s *productService) AddStockItem(ctx context.Context, productID uint, quantity uint) (*domain.Product, error) {
+func (s *ProductService) AddStockItem(ctx context.Context, productID uint, quantity uint) (*domain.Product, error) {
 
 	if productID == 0 {
 		return nil, ErrInvalidProductId
@@ -211,7 +205,7 @@ func (s *productService) AddStockItem(ctx context.Context, productID uint, quant
 	return updated, nil
 }
 
-func (s *productService) RemoveStockItem(ctx context.Context, productID uint, quantity uint) (*domain.Product, error) {
+func (s *ProductService) RemoveStockItem(ctx context.Context, productID uint, quantity uint) (*domain.Product, error) {
 
 	if quantity == 0 {
 		return nil, ErrInvalidQuantity

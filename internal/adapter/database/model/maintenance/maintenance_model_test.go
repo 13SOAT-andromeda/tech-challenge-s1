@@ -9,25 +9,19 @@ import (
 )
 
 func TestServiceModelInitialization(t *testing.T) {
-	defaultPrice := 100.0
 	s := Model{
-		Name:         "Maintenance A",
-		DefaultPrice: &defaultPrice,
-		CategoryId:   1,
-		Number:       "S123",
+		Name:  "Maintenance A",
+		Price: 100,
 	}
 
 	assert.NotNil(t, s)
 	assert.Equal(t, "Maintenance A", s.Name)
-	assert.Equal(t, &defaultPrice, s.DefaultPrice)
-	assert.Equal(t, uint(1), s.CategoryId)
-	assert.Equal(t, "S123", s.Number)
+	assert.Equal(t, int64(100), s.Price)
 }
 
 func TestServiceModel_ToFromDomain(t *testing.T) {
 	now := time.Now()
 	deletedAt := now.Add(time.Hour * 1)
-	defaultPrice := 100.0
 
 	modelService := &Model{
 		Model: gorm.Model{
@@ -36,16 +30,13 @@ func TestServiceModel_ToFromDomain(t *testing.T) {
 			UpdatedAt: now,
 			DeletedAt: gorm.DeletedAt{Time: deletedAt, Valid: true},
 		},
-		Name:         "Service A",
-		DefaultPrice: &defaultPrice,
-		CategoryId:   1,
-		Number:       "S123",
+		Name:  "Service A",
+		Price: 100,
 	}
 
 	domainService := modelService.ToDomain()
 
 	assert.Equal(t, modelService.ID, domainService.ID)
 	assert.Equal(t, modelService.Name, domainService.Name)
-	assert.Equal(t, modelService.DefaultPrice, domainService.DefaultPrice)
-	assert.Equal(t, modelService.Number, domainService.Number)
+	assert.Equal(t, modelService.Price, domainService.Price)
 }

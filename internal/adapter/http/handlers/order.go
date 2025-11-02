@@ -6,51 +6,47 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/converters"
 	"github.com/gin-gonic/gin"
 )
 
 type OrderHandler struct {
 	service ports.OrderService
+	usecase ports.OrderUseCase
 }
 
-func NewOrderHandler(service ports.OrderService) *OrderHandler {
-	return &OrderHandler{service: service}
+func NewOrderHandler(service ports.OrderService, usecase ports.OrderUseCase) *OrderHandler {
+	return &OrderHandler{service: service, usecase: usecase}
 }
 
 type createOrderRequest struct {
-	VehicleKilometers int      `json:"vehicle_kilometers" binding:"required"`
-	Note              *string  `json:"note"`
-	Price             *float64 `json:"price"`
-	UserID            uint     `json:"user_id" binding:"required"`
-	CustomerVehicleID uint     `json:"customer_vehicle_id" binding:"required"`
-	CompanyID         uint     `json:"company_id" binding:"required"`
+	VehicleKilometers int     `json:"vehicle_kilometers" binding:"required"`
+	Note              *string `json:"note"`
+	UserID            uint    `json:"user_id" binding:"required"`
+	CustomerVehicleID uint    `json:"customer_vehicle_id" binding:"required"`
+	CompanyID         uint    `json:"company_id" binding:"required"`
+	ProductIDs        []uint  `json:"product_ids" binding:"required"`
+	MaintenanceIDs    []uint  `json:"maintenance_ids" binding:"required"`
 }
 
 func (h *OrderHandler) Create(ctx *gin.Context) {
-	var json createOrderRequest
-	if err := ctx.ShouldBindJSON(&json); err != nil {
+	var request createOrderRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	order := domain.Order{
-		User: domain.User{
-			ID: json.UserID,
-		},
-		CustomerVehicle: domain.CustomerVehicle{
-			ID: json.CustomerVehicleID,
-		},
-		Company: domain.Company{
-			ID: json.CompanyID,
-		},
-		VehicleKilometers: json.VehicleKilometers,
-		Note:              json.Note,
-		Price:             json.Price,
+	input := ports.CreateOrderInput{
+		VehicleKilometers: request.VehicleKilometers,
+		Note:              request.Note,
+		UserID:            request.UserID,
+		CustomerVehicleID: request.CustomerVehicleID,
+		CompanyID:         request.CompanyID,
+		ProductIDs:        request.ProductIDs,
+		MaintenanceIDs:    request.MaintenanceIDs,
 	}
 
-	created, err := h.service.Create(ctx, order)
+	created, err := h.usecase.CreateOrder(ctx, input)
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return

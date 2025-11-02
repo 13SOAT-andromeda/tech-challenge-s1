@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
@@ -16,47 +15,41 @@ var (
 	ErrOrderDelete    = &errors.ValidationError{Message: "An error occurred while trying to delete the order"}
 )
 
-type orderService struct {
+type OrderService struct {
 	repo ports.OrderRepository
 }
 
-func NewOrderService(repo ports.OrderRepository) *orderService {
-	return &orderService{repo: repo}
+func NewOrderService(repo ports.OrderRepository) *OrderService {
+	return &OrderService{repo: repo}
 }
 
-func (s *orderService) Create(ctx context.Context, o domain.Order) (*domain.Order, error) {
+func (s *OrderService) Create(ctx context.Context, o domain.Order) (*domain.Order, error) {
+	model := order.Model{}
+	model.FromDomain(&o)
 
-	order := &order.Model{}
-	order.FromDomain(&o)
-	order.Status = string(domain.RECEIVED)
-	order.DateIn = time.Now()
-	order.DateOut = nil
-
-	_, err := s.repo.Create(ctx, order)
+	_, err := s.repo.Create(ctx, &model)
 
 	if err != nil {
 		return nil, err
 	}
 
-	created := order.ToDomain()
+	created := model.ToDomain()
 
 	return created, nil
 }
 
-func (s *orderService) GetByID(ctx context.Context, id uint) (*domain.Order, error) {
-
-	order, err := s.repo.FindByID(ctx, id)
+func (s *OrderService) GetByID(ctx context.Context, id uint) (*domain.Order, error) {
+	result, err := s.repo.FindByID(ctx, id)
 
 	if err != nil {
 		return nil, err
 	}
-	o := order.ToDomain()
+	o := result.ToDomain()
 
 	return o, nil
 }
 
-func (s *orderService) GetAll(ctx context.Context, params map[string]interface{}) (*[]domain.Order, error) {
-
+func (s *OrderService) GetAll(ctx context.Context, params map[string]interface{}) (*[]domain.Order, error) {
 	oSearch := ports.OrderSearch{Status: "", Enabled: true}
 
 	if params["status"] != nil {
@@ -73,15 +66,14 @@ func (s *orderService) GetAll(ctx context.Context, params map[string]interface{}
 	}
 	ordersD := make([]domain.Order, 0, len(orders))
 
-	for _, order := range orders {
-		ordersD = append(ordersD, *order.ToDomain())
+	for _, item := range orders {
+		ordersD = append(ordersD, *item.ToDomain())
 	}
 
 	return &ordersD, nil
 }
 
-func (s *orderService) Delete(ctx context.Context, id uint) error {
-
+func (s *OrderService) Delete(ctx context.Context, id uint) error {
 	err := s.repo.Delete(ctx, id)
 	if err != nil {
 		return ErrOrderDelete
