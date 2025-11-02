@@ -45,7 +45,8 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 
-		if validationErrors, ok := err.(validator.ValidationErrors); ok {
+		var validationErrors validator.ValidationErrors
+		if errors.As(err, &validationErrors) {
 			for _, fieldError := range validationErrors {
 				if fieldError.Field() == "Type" && fieldError.Tag() == "oneof" {
 					response.RespondError(ctx, http.StatusBadRequest, "type must be one of: administrator, mechanic, attendant'")
@@ -97,25 +98,25 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 
 func (h *CustomerHandler) Search(ctx *gin.Context) {
 
-	filter := &filter.CustomerFilter{}
+	customerFilter := &filter.CustomerFilter{}
 
 	if doc := ctx.Query("document"); doc != "" {
-		filter.Document = &doc
+		customerFilter.Document = &doc
 	}
 
 	if name := ctx.Query("name"); name != "" {
-		filter.Name = &name
+		customerFilter.Name = &name
 	}
 
 	if status := ctx.Query("status"); status != "" {
-		filter.Status = status == "true" || status == "1"
+		customerFilter.Status = status == "true" || status == "1"
 	}
 
 	if email := ctx.Query("email"); email != "" {
-		filter.Email = &email
+		customerFilter.Email = &email
 	}
 
-	customers, err := h.service.Search(ctx, filter)
+	customers, err := h.service.Search(ctx, customerFilter)
 
 	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())

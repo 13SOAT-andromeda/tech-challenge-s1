@@ -15,15 +15,24 @@ const (
 	DELIVERED         OrderStatus = "Entregue"
 )
 
-var OrderStatuses = []OrderStatus{
-	RECEIVED,
-	IN_ANALYSIS,
-	ANALYSIS_FINISHED,
-	AWAITING_APPROVAL,
-	APPROVED,
-	IN_PROGRESS,
-	FINISHED,
-	DELIVERED,
+var OrderStatuses = struct {
+	RECEIVED          OrderStatus
+	IN_ANALYSIS       OrderStatus
+	ANALYSIS_FINISHED OrderStatus
+	AWAITING_APPROVAL OrderStatus
+	APPROVED          OrderStatus
+	IN_PROGRESS       OrderStatus
+	FINISHED          OrderStatus
+	DELIVERED         OrderStatus
+}{
+	RECEIVED:          RECEIVED,
+	IN_ANALYSIS:       IN_ANALYSIS,
+	ANALYSIS_FINISHED: ANALYSIS_FINISHED,
+	AWAITING_APPROVAL: AWAITING_APPROVAL,
+	APPROVED:          APPROVED,
+	IN_PROGRESS:       IN_PROGRESS,
+	FINISHED:          FINISHED,
+	DELIVERED:         DELIVERED,
 }
 
 type Order struct {

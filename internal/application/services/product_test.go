@@ -23,61 +23,6 @@ func createTestProductModel(id uint, stock uint, price int64) *product.Model {
 	return p
 }
 
-func TestProductService_CheckProductPrice_Success(t *testing.T) {
-	mockRepo := new(mocks.MockProductRepository)
-	service := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	productIDs := []uint{1, 2, 3}
-	products := []product.Model{
-		*createTestProductModel(1, 10, 10000), // 100.00 em centavos
-		*createTestProductModel(2, 20, 20000), // 200.00 em centavos
-		*createTestProductModel(3, 30, 30000), // 300.00 em centavos
-	}
-
-	mockRepo.On("FindByIDs", ctx, productIDs).Return(products, nil)
-
-	result, err := service.CheckProductPrice(ctx, productIDs)
-
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Len(t, result, 3)
-	assert.Equal(t, 10000.0, result[1]) // 100.00 em centavos como float64
-	assert.Equal(t, 20000.0, result[2]) // 200.00 em centavos como float64
-	assert.Equal(t, 30000.0, result[3]) // 300.00 em centavos como float64
-	mockRepo.AssertExpectations(t)
-}
-
-func TestProductService_CheckProductPrice_EmptyList(t *testing.T) {
-	mockRepo := new(mocks.MockProductRepository)
-	service := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	result, err := service.CheckProductPrice(ctx, []uint{})
-
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Len(t, result, 0)
-}
-
-func TestProductService_CheckProductPrice_RepositoryError(t *testing.T) {
-	mockRepo := new(mocks.MockProductRepository)
-	service := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	productIDs := []uint{1, 2}
-	expectedError := errors.New("database error")
-
-	mockRepo.On("FindByIDs", ctx, productIDs).Return(nil, expectedError)
-
-	result, err := service.CheckProductPrice(ctx, productIDs)
-
-	assert.Error(t, err)
-	assert.Nil(t, result)
-	assert.Contains(t, err.Error(), "failed to get products by IDs")
-	mockRepo.AssertExpectations(t)
-}
-
 func TestProductService_ConfirmOrderProducts_Success(t *testing.T) {
 	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
@@ -285,6 +230,42 @@ func TestProductService_GetById_NotFound(t *testing.T) {
 	mockRepo.On("FindByID", ctx, uint(999)).Return(nil, errors.New("not found"))
 
 	result, err := service.GetById(ctx, 999)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestProductService_GetByIds_Success(t *testing.T) {
+	mockRepo := new(mocks.MockProductRepository)
+	service := NewProductService(mockRepo)
+	ctx := context.Background()
+
+	products := []product.Model{
+		*createTestProductModel(1, 10, 10000),
+		*createTestProductModel(2, 20, 20000),
+	}
+
+	mockRepo.On("FindByIDs", ctx, []uint{1, 2}).Return(products, nil)
+
+	result, err := service.GetByIds(ctx, []uint{1, 2})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, result, 2)
+	assert.Equal(t, uint(1), result[0].ID)
+	assert.Equal(t, uint(2), result[1].ID)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestProductService_GetByIds_RepositoryError(t *testing.T) {
+	mockRepo := new(mocks.MockProductRepository)
+	service := NewProductService(mockRepo)
+	ctx := context.Background()
+
+	mockRepo.On("FindByIDs", ctx, []uint{1, 2}).Return(nil, errors.New("database error"))
+
+	result, err := service.GetByIds(ctx, []uint{1, 2})
 
 	assert.Error(t, err)
 	assert.Nil(t, result)

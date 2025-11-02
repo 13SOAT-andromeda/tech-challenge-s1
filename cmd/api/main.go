@@ -20,11 +20,12 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/session"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/jwt"
-)
 
-import usecase "github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/customer"
+	customerUseCase "github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/customer"
+	orderUsecase "github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/order"
+	sessionUseCase "github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/session"
+)
 
 func main() {
 	cfg, err := config.Init()
@@ -56,9 +57,13 @@ func main() {
 
 	dbase := db.GetDB()
 
+	accessExpiry, _ := time.ParseDuration(cfg.JWT.AccessTokenExpiry)
+	refreshExpiry, _ := time.ParseDuration(cfg.JWT.RefreshTokenExpiry)
+
+	// Repositories
 	customerRepository := repository.NewCustomerRepository(dbase)
 	companyRepository := repository.NewCompanyRepository(dbase)
-	maintenanceRepository := repository.NewMaintenenceRepository(dbase)
+	maintenanceRepository := repository.NewMaintenanceRepository(dbase)
 	productRepository := repository.NewProductRepository(dbase)
 	userRepository := repository.NewUserRepository(dbase)
 	sessionRepository := repository.NewSessionRepository(dbase)
@@ -66,6 +71,7 @@ func main() {
 	orderRepository := repository.NewOrderRepository(dbase)
 	customerVehicleRepository := repository.NewCustomerVehicleRepository(dbase)
 
+	// Services
 	vehicleService := services.NewVehicleService(vehicleRepository)
 	customerService := services.NewCustomerService(customerRepository, customerVehicleRepository, vehicleService)
 	companyService := services.NewCompanyService(companyRepository)
@@ -74,29 +80,26 @@ func main() {
 	userService := services.NewUserService(userRepository)
 	sessionService := services.NewSessionService(sessionRepository)
 	orderService := services.NewOrderService(orderRepository)
+	jwtService := jwt.NewService(cfg.JWT.Secret, accessExpiry, refreshExpiry)
 
-	customerUseCase := usecase.NewCustomerUseCase(customerRepository, customerVehicleRepository, vehicleService)
+	// UseCases
+	createCustomerUseCase := customerUseCase.NewCustomerUseCase(customerRepository, customerVehicleRepository, vehicleService)
 
-	customerHandler := handlers.NewCustomerHandler(customerService, customerUseCase)
+	loginUseCase := sessionUseCase.NewLoginUseCase(userService, sessionService, jwtService, cfg)
+	validateUseCase := sessionUseCase.NewValidateUseCase(userService, sessionService, jwtService)
+	refreshUseCase := sessionUseCase.NewRefreshUseCase(userService, sessionService, jwtService, cfg)
+	logoutUseCase := sessionUseCase.NewLogoutUseCase(sessionService)
+
+	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService)
+
+	// Handlers
+	customerHandler := handlers.NewCustomerHandler(customerService, createCustomerUseCase)
 	companyHandler := handlers.NewCompanyHandler(companyService)
 	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceService)
 	productHandler := handlers.NewProductHandler(productService)
 	userHandler := handlers.NewUserHandler(userService)
 	vehicleHandler := handlers.NewVehicleHandler(vehicleService)
-	orderHandler := handlers.NewOrderHandler(orderService)
-
-	// JWT Service
-	accessExpiry, _ := time.ParseDuration(cfg.JWT.AccessTokenExpiry)
-	refreshExpiry, _ := time.ParseDuration(cfg.JWT.RefreshTokenExpiry)
-	jwtService := jwt.NewService(cfg.JWT.Secret, accessExpiry, refreshExpiry)
-
-	// Session UseCases
-	loginUseCase := session.NewLoginUseCase(userService, sessionService, jwtService, cfg)
-	validateUseCase := session.NewValidateUseCase(userService, sessionService, jwtService)
-	refreshUseCase := session.NewRefreshUseCase(userService, sessionService, jwtService, cfg)
-	logoutUseCase := session.NewLogoutUseCase(sessionService)
-
-	// Session Handler
+	orderHandler := handlers.NewOrderHandler(orderService, createOrderUseCase)
 	sessionHandler := handlers.NewSessionHandler(
 		loginUseCase,
 		validateUseCase,

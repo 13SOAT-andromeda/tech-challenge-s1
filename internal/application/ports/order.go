@@ -12,6 +12,17 @@ type OrderSearch struct {
 	Enabled bool
 }
 
+type CreateOrderInput struct {
+	VehicleKilometers int
+	Note              *string
+	DiagnosticNote    *string
+	UserID            uint
+	CustomerVehicleID uint
+	CompanyID         uint
+	ProductIDs        []uint
+	MaintenanceIDs    []uint
+}
+
 type OrderRepository interface {
 	Repository[order.Model]
 	Search(ctx context.Context, params OrderSearch) ([]order.Model, error)
@@ -22,4 +33,8 @@ type OrderService interface {
 	GetAll(ctx context.Context, params map[string]interface{}) (*[]domain.Order, error)
 	GetByID(ctx context.Context, id uint) (*domain.Order, error)
 	Delete(ctx context.Context, id uint) error
+}
+
+type OrderUseCase interface {
+	CreateOrder(ctx context.Context, input CreateOrderInput) (*domain.Order, error)
 }
