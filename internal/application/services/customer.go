@@ -13,11 +13,17 @@ import (
 )
 
 type customerService struct {
-	repo ports.CustomerRepository
+	repo                ports.CustomerRepository
+	customerVehicleRepo ports.CustomerVehicleRepository
+	vehicleService      ports.VehicleService
 }
 
-func NewCustomerService(repo ports.CustomerRepository) *customerService {
-	return &customerService{repo: repo}
+func NewCustomerService(repo ports.CustomerRepository, customerVehicleRepo ports.CustomerVehicleRepository, vehicleService ports.VehicleService) *customerService {
+	return &customerService{
+		repo:                repo,
+		customerVehicleRepo: customerVehicleRepo,
+		vehicleService:      vehicleService,
+	}
 }
 
 func (s *customerService) Create(ctx context.Context, c domain.Customer) (*domain.Customer, error) {

@@ -57,11 +57,14 @@ func NewRouter(
 	{
 		customerGroup := protected.Group("/customers")
 		{
-			customerGroup.GET("/:id", customerHandler.GetCustomerByID)
 			customerGroup.GET("", customerHandler.Search)
 			customerGroup.POST("", customerHandler.CreateCustomer)
+			customerGroup.GET("/:id", customerHandler.GetCustomerByID)
 			customerGroup.PUT("/:id", customerHandler.UpdateCustomer)
 			customerGroup.DELETE("/:id", customerHandler.DeleteCustomer)
+			customerGroup.GET("/:id/vehicles", customerHandler.GetCustomerVehicles)
+			customerGroup.POST("/:id/vehicles/:vehicleId", customerHandler.AddVehicleToCustomer)
+			customerGroup.DELETE("/:id/vehicles/:vehicleId", customerHandler.RemoveVehicleFromCustomer)
 		}
 
 		companyGroup := protected.Group("/companies")

@@ -8,12 +8,13 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestVehicleService_Create_Success(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -43,7 +44,7 @@ func TestVehicleService_Create_Success(t *testing.T) {
 }
 
 func TestVehicleService_Create_PlateAlreadyExists(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -69,7 +70,7 @@ func TestVehicleService_Create_PlateAlreadyExists(t *testing.T) {
 }
 
 func TestVehicleService_Create_GetByPlateError(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -94,7 +95,7 @@ func TestVehicleService_Create_GetByPlateError(t *testing.T) {
 }
 
 func TestVehicleService_Create_RepositoryError(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -120,7 +121,7 @@ func TestVehicleService_Create_RepositoryError(t *testing.T) {
 }
 
 func TestVehicleService_GetByID_Success(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -151,7 +152,7 @@ func TestVehicleService_GetByID_Success(t *testing.T) {
 }
 
 func TestVehicleService_GetByID_NotFound(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -167,7 +168,7 @@ func TestVehicleService_GetByID_NotFound(t *testing.T) {
 }
 
 func TestVehicleService_GetByPlate_Success(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -197,7 +198,7 @@ func TestVehicleService_GetByPlate_Success(t *testing.T) {
 }
 
 func TestVehicleService_GetByPlate_NotFound(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -213,7 +214,7 @@ func TestVehicleService_GetByPlate_NotFound(t *testing.T) {
 }
 
 func TestVehicleService_GetByPlate_Error(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -231,7 +232,7 @@ func TestVehicleService_GetByPlate_Error(t *testing.T) {
 }
 
 func TestVehicleService_GetAll_Success(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -258,7 +259,7 @@ func TestVehicleService_GetAll_Success(t *testing.T) {
 }
 
 func TestVehicleService_GetAll_WithFilters(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -296,7 +297,7 @@ func TestVehicleService_GetAll_WithFilters(t *testing.T) {
 }
 
 func TestVehicleService_GetAll_WithPartialFilters(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -328,7 +329,7 @@ func TestVehicleService_GetAll_WithPartialFilters(t *testing.T) {
 }
 
 func TestVehicleService_Update_Success(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -366,7 +367,7 @@ func TestVehicleService_Update_Success(t *testing.T) {
 }
 
 func TestVehicleService_Update_VehicleNotFound(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -388,7 +389,7 @@ func TestVehicleService_Update_VehicleNotFound(t *testing.T) {
 }
 
 func TestVehicleService_Update_PlateAlreadyExists(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -431,7 +432,7 @@ func TestVehicleService_Update_PlateAlreadyExists(t *testing.T) {
 }
 
 func TestVehicleService_Update_PlateUnchanged(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -468,7 +469,7 @@ func TestVehicleService_Update_PlateUnchanged(t *testing.T) {
 }
 
 func TestVehicleService_Update_WithoutChangingPlate(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -506,7 +507,7 @@ func TestVehicleService_Update_WithoutChangingPlate(t *testing.T) {
 }
 
 func TestVehicleService_Update_RepositoryError(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -539,7 +540,7 @@ func TestVehicleService_Update_RepositoryError(t *testing.T) {
 }
 
 func TestVehicleService_Delete_Success(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -554,7 +555,7 @@ func TestVehicleService_Delete_Success(t *testing.T) {
 }
 
 func TestVehicleService_Delete_RepositoryError(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -571,7 +572,7 @@ func TestVehicleService_Delete_RepositoryError(t *testing.T) {
 }
 
 func TestVehicleService_GetAll_WithYearAndStatusConversion(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -598,7 +599,7 @@ func TestVehicleService_GetAll_WithYearAndStatusConversion(t *testing.T) {
 }
 
 func TestVehicleService_GetAll_WithInvalidYear(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()
@@ -624,7 +625,7 @@ func TestVehicleService_GetAll_WithInvalidYear(t *testing.T) {
 }
 
 func TestVehicleService_GetAll_WithInvalidStatus(t *testing.T) {
-	mockRepo := new(MockVehicleRepository)
+	mockRepo := new(mocks.MockVehicleRepository)
 	service := NewVehicleService(mockRepo)
 
 	ctx := context.Background()

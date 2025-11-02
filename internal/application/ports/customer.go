@@ -25,4 +25,7 @@ type CustomerService interface {
 }
 
 type CustomerUseCase interface {
+	AddVehicleToCustomer(ctx context.Context, customerID, vehicleID uint) error
+	RemoveVehicleFromCustomer(ctx context.Context, customerID, vehicleID uint) error
+	GetCustomerVehicles(ctx context.Context, customerID uint) ([]domain.Vehicle, error)
 }

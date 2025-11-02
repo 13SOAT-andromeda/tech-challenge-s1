@@ -8,13 +8,14 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestCompanyService_Create_Success(t *testing.T) {
 	// Arrange (Preparar)
-	mockRepo := new(MockCompanyRepository)
+	mockRepo := new(mocks.MockCompanyRepository)
 	service := NewCompanyService(mockRepo)
 
 	ctx := context.Background()
@@ -52,7 +53,7 @@ func TestCompanyService_Create_Success(t *testing.T) {
 
 func TestCompanyService_Create_RepositoryError(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockCompanyRepository)
+	mockRepo := new(mocks.MockCompanyRepository)
 	service := NewCompanyService(mockRepo)
 
 	ctx := context.Background()
@@ -78,7 +79,7 @@ func TestCompanyService_Create_RepositoryError(t *testing.T) {
 
 func TestCompanyService_FindById_Success(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockCompanyRepository)
+	mockRepo := new(mocks.MockCompanyRepository)
 	service := NewCompanyService(mockRepo)
 
 	ctx := context.Background()
@@ -105,7 +106,7 @@ func TestCompanyService_FindById_Success(t *testing.T) {
 
 func TestCompanyService_FindById_NotFound(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockCompanyRepository)
+	mockRepo := new(mocks.MockCompanyRepository)
 	service := NewCompanyService(mockRepo)
 
 	ctx := context.Background()
@@ -125,7 +126,7 @@ func TestCompanyService_FindById_NotFound(t *testing.T) {
 // Tests for UpdateById
 func TestCompanyService_UpdateById_Success(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockCompanyRepository)
+	mockRepo := new(mocks.MockCompanyRepository)
 	service := NewCompanyService(mockRepo)
 
 	ctx := context.Background()
@@ -151,7 +152,7 @@ func TestCompanyService_UpdateById_Success(t *testing.T) {
 
 func TestCompanyService_UpdateById_NotFound(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockCompanyRepository)
+	mockRepo := new(mocks.MockCompanyRepository)
 	service := NewCompanyService(mockRepo)
 
 	ctx := context.Background()
@@ -177,7 +178,7 @@ func TestCompanyService_UpdateById_NotFound(t *testing.T) {
 
 func TestCompanyService_DeleteById_Success(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockCompanyRepository)
+	mockRepo := new(mocks.MockCompanyRepository)
 	service := NewCompanyService(mockRepo)
 
 	ctx := context.Background()
@@ -206,7 +207,7 @@ func TestCompanyService_DeleteById_Success(t *testing.T) {
 
 func TestCompanyService_DeleteById_NotFound(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockCompanyRepository)
+	mockRepo := new(mocks.MockCompanyRepository)
 	service := NewCompanyService(mockRepo)
 
 	ctx := context.Background()

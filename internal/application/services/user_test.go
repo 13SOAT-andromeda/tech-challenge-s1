@@ -8,6 +8,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -16,7 +17,7 @@ import (
 // MockHasher é um mock para o hasher do Password
 func TestUserService_Create_Success(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	mockHasher := new(encryption.MockHasher)
 	service := NewUserService(mockRepo)
 
@@ -68,7 +69,7 @@ func TestUserService_Create_Success(t *testing.T) {
 
 func TestUserService_Create_EmailAlreadyExists(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -103,7 +104,7 @@ func TestUserService_Create_EmailAlreadyExists(t *testing.T) {
 
 func TestUserService_Create_RepositoryError(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	mockHasher := new(encryption.MockHasher)
 	service := NewUserService(mockRepo)
 
@@ -142,7 +143,7 @@ func TestUserService_Create_RepositoryError(t *testing.T) {
 }
 
 func TestUserService_CreateAdminUser_EmailAlreadyExists(t *testing.T) {
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -158,7 +159,7 @@ func TestUserService_CreateAdminUser_EmailAlreadyExists(t *testing.T) {
 }
 
 func TestUserService_CreateAdminUser_EmailError(t *testing.T) {
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -174,7 +175,7 @@ func TestUserService_CreateAdminUser_EmailError(t *testing.T) {
 }
 
 func TestUserService_CreateAdminUser_PasswordWeak(t *testing.T) {
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -191,7 +192,7 @@ func TestUserService_CreateAdminUser_PasswordWeak(t *testing.T) {
 }
 
 func TestUserService_CreateAdminUser_Success(t *testing.T) {
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -210,7 +211,7 @@ func TestUserService_CreateAdminUser_Success(t *testing.T) {
 }
 
 func TestUserService_CreateAdminUser_CreateError(t *testing.T) {
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -228,7 +229,7 @@ func TestUserService_CreateAdminUser_CreateError(t *testing.T) {
 
 func TestUserService_GetAll_Success(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -250,7 +251,7 @@ func TestUserService_GetAll_Success(t *testing.T) {
 		},
 	}
 
-	mockRepo.On("FindAll", ctx).Return(expectedUsers, nil)
+	mockRepo.On("FindAll", ctx, false).Return(expectedUsers, nil)
 
 	// Act
 	result, err := service.GetAll(ctx)
@@ -268,13 +269,13 @@ func TestUserService_GetAll_Success(t *testing.T) {
 
 func TestUserService_GetAll_RepositoryError(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
 	expectedError := errors.New("database error")
 
-	mockRepo.On("FindAll", ctx).Return(nil, expectedError)
+	mockRepo.On("FindAll", ctx, false).Return(nil, expectedError)
 
 	// Act
 	result, err := service.GetAll(ctx)
@@ -288,7 +289,7 @@ func TestUserService_GetAll_RepositoryError(t *testing.T) {
 
 func TestUserService_GetByID_Success(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -318,7 +319,7 @@ func TestUserService_GetByID_Success(t *testing.T) {
 
 func TestUserService_GetByID_NotFound(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -337,7 +338,7 @@ func TestUserService_GetByID_NotFound(t *testing.T) {
 
 func TestUserService_Search_Success(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -377,7 +378,7 @@ func TestUserService_Search_Success(t *testing.T) {
 
 func TestUserService_Search_WithPartialParams(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -414,7 +415,7 @@ func TestUserService_Search_WithPartialParams(t *testing.T) {
 
 func TestUserService_Update_Success(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -455,7 +456,7 @@ func TestUserService_Update_Success(t *testing.T) {
 
 func TestUserService_Update_UserNotFound(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -481,7 +482,7 @@ func TestUserService_Update_UserNotFound(t *testing.T) {
 
 func TestUserService_Update_EmailAlreadyExists(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -529,7 +530,7 @@ func TestUserService_Update_EmailAlreadyExists(t *testing.T) {
 
 func TestUserService_Update_PasswordUpdateNotAllowed(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -569,7 +570,7 @@ func TestUserService_Update_PasswordUpdateNotAllowed(t *testing.T) {
 
 func TestUserService_Delete_Success(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -588,7 +589,7 @@ func TestUserService_Delete_Success(t *testing.T) {
 
 func TestUserService_Delete_RepositoryError(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	service := NewUserService(mockRepo)
 
 	ctx := context.Background()
@@ -609,7 +610,7 @@ func TestUserService_Delete_RepositoryError(t *testing.T) {
 
 func TestUserService_Create_WithNilAddress(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockUserRepository)
+	mockRepo := new(mocks.MockUserRepository)
 	mockHasher := new(encryption.MockHasher)
 	service := NewUserService(mockRepo)
 
