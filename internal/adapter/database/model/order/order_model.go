@@ -7,24 +7,25 @@ import (
 	customerVehicle "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"gorm.io/gorm"
 )
 
 type Model struct {
-	ID                uint      `gorm:"primaryKey"`
+	gorm.Model
 	DateIn            time.Time `gorm:"not null"`
 	DateOut           *time.Time
 	Number            string `gorm:"not null; unique"`
 	Status            string
-	VehicleKilometers *float64
+	VehicleKilometers int
 	Note              *string
 	DiagnosticNote    *string
-	Price             float64 `gorm:"not null"`
-	UserId            uint
-	CustomerVehicleId uint
-	CompanyId         uint
-	User              user.Model            `gorm:"foreignKey:UserId;references:ID"`
-	CustomerVehicle   customerVehicle.Model `gorm:"foreignKey:CustomerVehicleId;references:ID"`
-	Company           company.Model         `gorm:"foreignKey:CompanyId;references:ID"`
+	Price             *float64
+	UserID            uint
+	CustomerVehicleID uint
+	CompanyID         uint
+	User              user.Model            `gorm:"foreignKey:UserID;references:ID"`
+	CustomerVehicle   customerVehicle.Model `gorm:"foreignKey:CustomerVehicleID;references:ID"`
+	Company           company.Model         `gorm:"foreignKey:CompanyID;references:ID"`
 }
 
 func (*Model) TableName() string {
@@ -42,9 +43,6 @@ func (m *Model) ToDomain() *domain.Order {
 		Note:              m.Note,
 		DiagnosticNote:    m.DiagnosticNote,
 		Price:             m.Price,
-		UserId:            m.UserId,
-		CustomerVehicleId: m.CustomerVehicleId,
-		CompanyId:         m.CompanyId,
 		User:              *m.User.ToDomain(),
 		CustomerVehicle:   *m.CustomerVehicle.ToDomain(),
 		Company:           *m.Company.ToDomain(),
@@ -62,9 +60,9 @@ func (m *Model) FromDomain(d *domain.Order) {
 	m.Note = d.Note
 	m.DiagnosticNote = d.DiagnosticNote
 	m.Price = d.Price
-	m.UserId = d.UserId
-	m.CustomerVehicleId = d.CustomerVehicleId
-	m.CompanyId = d.CompanyId
+	m.UserID = d.User.ID
+	m.CustomerVehicleID = d.CustomerVehicle.ID
+	m.CompanyID = d.Company.ID
 	m.User.FromDomain(&d.User)
 	m.CustomerVehicle.FromDomain(&d.CustomerVehicle)
 	m.Company.FromDomain(&d.Company)
