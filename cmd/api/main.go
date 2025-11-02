@@ -12,6 +12,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/vehicle"
@@ -46,6 +47,7 @@ func main() {
 		&model.SessionModel{},
 		&vehicle.Model{},
 		&customer_vehicle.Model{},
+		&order.Model{},
 	)
 
 	if err != nil {
