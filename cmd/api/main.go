@@ -63,6 +63,7 @@ func main() {
 	userRepository := repository.NewUserRepository(dbase)
 	sessionRepository := repository.NewSessionRepository(dbase)
 	vehicleRepository := repository.NewVehicleRepository(dbase)
+	orderRepository := repository.NewOrderRepository(dbase)
 	customerVehicleRepository := repository.NewCustomerVehicleRepository(dbase)
 
 	vehicleService := services.NewVehicleService(vehicleRepository)
@@ -72,6 +73,7 @@ func main() {
 	productService := services.NewProductService(productRepository)
 	userService := services.NewUserService(userRepository)
 	sessionService := services.NewSessionService(sessionRepository)
+	orderService := services.NewOrderService(orderRepository)
 
 	customerUseCase := usecase.NewCustomerUseCase(customerRepository, customerVehicleRepository, vehicleService)
 
@@ -81,6 +83,7 @@ func main() {
 	productHandler := handlers.NewProductHandler(productService)
 	userHandler := handlers.NewUserHandler(userService)
 	vehicleHandler := handlers.NewVehicleHandler(vehicleService)
+	orderHandler := handlers.NewOrderHandler(orderService)
 
 	// JWT Service
 	accessExpiry, _ := time.ParseDuration(cfg.JWT.AccessTokenExpiry)
@@ -101,7 +104,7 @@ func main() {
 		logoutUseCase,
 	)
 
-	router := http.NewRouter(*cfg, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *vehicleHandler, *sessionHandler, sessionService)
+	router := http.NewRouter(*cfg, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *vehicleHandler, *orderHandler, *sessionHandler, sessionService)
 	log.Printf("Starting HTTP server on port %s", cfg.Http.Port)
 
 	if err = userService.CreateAdminUser(ctx, cfg.AdminUser.Email, cfg.AdminUser.Password); err != nil {
