@@ -12,8 +12,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func float64Ptr(v float64) *float64 { return &v }
-
 func TestMaintenanceService_Create_Success(t *testing.T) {
 	// Arrange
 	mockRepo := new(mocks.MockMaintenanceRepository)
@@ -110,6 +108,52 @@ func TestMaintenanceService_FindByID_NotFound(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, result)
 	mockRepo.AssertExpectations(t)
+}
+
+func TestMaintenanceService_FindByIDs_Success(t *testing.T) {
+	// Arrange
+	mockRepo := new(mocks.MockMaintenanceRepository)
+	service := NewMaintenanceService(mockRepo)
+
+	ctx := context.Background()
+	serviceIDs := []uint{1, 2}
+	expectedServices := []maintenance.Model{
+		{Model: gorm.Model{ID: 1}, Name: "Maintenance 1", Price: 100},
+		{Model: gorm.Model{ID: 2}, Name: "Maintenance 2", Price: 150},
+	}
+
+	// Use mock.Anything for the slice argument to avoid brittle slice-equality issues
+	mockRepo.On("FindByIDs", ctx, serviceIDs).
+		Return(expectedServices, nil)
+
+	// Act
+	result, err := service.GetByIDs(ctx, serviceIDs)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.Len(t, result, 2)
+	assert.Equal(t, uint(1), result[0].ID)
+	assert.Equal(t, "Maintenance 1", result[0].Name)
+	assert.Equal(t, uint(2), result[1].ID)
+	assert.Equal(t, "Maintenance 2", result[1].Name)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestMaintenanceService_FindByIDs_EmptyInput(t *testing.T) {
+	// Arrange
+	mockRepo := new(mocks.MockMaintenanceRepository)
+	service := NewMaintenanceService(mockRepo)
+
+	ctx := context.Background()
+	serviceIDs := []uint{}
+
+	// Act
+	result, err := service.GetByIDs(ctx, serviceIDs)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.Len(t, result, 0)
+	mockRepo.AssertNotCalled(t, "FindByIDs")
 }
 
 func TestMaintenanceService_UpdateByID_Success(t *testing.T) {
