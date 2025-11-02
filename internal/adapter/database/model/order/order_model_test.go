@@ -12,56 +12,46 @@ import (
 
 func TestOrderModelInitialization(t *testing.T) {
 	now := time.Now()
-	vehicleKm := 10000.5
+	vehicleKm := 10000
 	note := "Test note"
 	diagnosticNote := "Test diagnostic note"
+	price := 150.75
 
 	o := Model{
 		DateIn:            now,
 		DateOut:           &now,
-		Number:            "12345",
 		Status:            "pending",
-		VehicleKilometers: &vehicleKm,
+		VehicleKilometers: vehicleKm,
 		Note:              &note,
 		DiagnosticNote:    &diagnosticNote,
-		Price:             150.75,
-		UserId:            1,
-		CustomerVehicleId: 1,
-		CompanyId:         1,
+		Price:             &price,
 	}
 
 	assert.NotNil(t, o)
 	assert.Equal(t, now, o.DateIn)
 	assert.Equal(t, &now, o.DateOut)
-	assert.Equal(t, "12345", o.Number)
 	assert.Equal(t, "pending", o.Status)
-	assert.Equal(t, &vehicleKm, o.VehicleKilometers)
+	assert.Equal(t, vehicleKm, o.VehicleKilometers)
 	assert.Equal(t, &note, o.Note)
 	assert.Equal(t, &diagnosticNote, o.DiagnosticNote)
-	assert.Equal(t, 150.75, o.Price)
-	assert.Equal(t, uint(1), o.UserId)
-	assert.Equal(t, uint(1), o.CustomerVehicleId)
-	assert.Equal(t, uint(1), o.CompanyId)
+	assert.Equal(t, &price, o.Price)
 }
 
 func TestOrderModel_ToFromDomain(t *testing.T) {
 	now := time.Now()
-	vehicleKm := 10000.5
+	vehicleKm := 10000
 	note := "Test note"
 	diagnosticNote := "Test diagnostic note"
+	price := 150.75
 
 	modelOrder := Model{
 		DateIn:            now,
 		DateOut:           &now,
-		Number:            "12345",
-		Status:            "pending",
-		VehicleKilometers: &vehicleKm,
+		Status:            "Recebida",
+		VehicleKilometers: vehicleKm,
 		Note:              &note,
 		DiagnosticNote:    &diagnosticNote,
-		Price:             150.75,
-		UserId:            1,
-		CustomerVehicleId: 1,
-		CompanyId:         1,
+		Price:             &price,
 		User:              user.Model{},
 		CustomerVehicle:   customer_vehicle.Model{},
 		Company:           company.Model{},
@@ -72,7 +62,6 @@ func TestOrderModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelOrder.ID, domainOrder.ID)
 	assert.Equal(t, modelOrder.DateIn, domainOrder.DateIn)
 	assert.Equal(t, modelOrder.DateOut, domainOrder.DateOut)
-	assert.Equal(t, modelOrder.Number, domainOrder.Number)
 
 	assert.NotNil(t, domainOrder.Status)
 	assert.Equal(t, modelOrder.Status, string(domainOrder.Status))
@@ -81,7 +70,4 @@ func TestOrderModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelOrder.Note, domainOrder.Note)
 	assert.Equal(t, modelOrder.DiagnosticNote, domainOrder.DiagnosticNote)
 	assert.Equal(t, modelOrder.Price, domainOrder.Price)
-	assert.Equal(t, modelOrder.UserId, domainOrder.UserId)
-	assert.Equal(t, modelOrder.CustomerVehicleId, domainOrder.CustomerVehicleId)
-	assert.Equal(t, modelOrder.CompanyId, domainOrder.CompanyId)
 }
