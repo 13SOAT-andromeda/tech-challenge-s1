@@ -30,7 +30,6 @@ type Order struct {
 	ID                uint
 	DateIn            time.Time
 	DateOut           *time.Time
-	Number            string
 	Status            OrderStatus
 	VehicleKilometers int
 	Note              *string

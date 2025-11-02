@@ -20,7 +20,6 @@ func TestOrderModelInitialization(t *testing.T) {
 	o := Model{
 		DateIn:            now,
 		DateOut:           &now,
-		Number:            "12345",
 		Status:            "pending",
 		VehicleKilometers: vehicleKm,
 		Note:              &note,
@@ -31,7 +30,6 @@ func TestOrderModelInitialization(t *testing.T) {
 	assert.NotNil(t, o)
 	assert.Equal(t, now, o.DateIn)
 	assert.Equal(t, &now, o.DateOut)
-	assert.Equal(t, "12345", o.Number)
 	assert.Equal(t, "pending", o.Status)
 	assert.Equal(t, vehicleKm, o.VehicleKilometers)
 	assert.Equal(t, &note, o.Note)
@@ -49,7 +47,6 @@ func TestOrderModel_ToFromDomain(t *testing.T) {
 	modelOrder := Model{
 		DateIn:            now,
 		DateOut:           &now,
-		Number:            "12345",
 		Status:            "Recebida",
 		VehicleKilometers: vehicleKm,
 		Note:              &note,
@@ -65,7 +62,6 @@ func TestOrderModel_ToFromDomain(t *testing.T) {
 	assert.Equal(t, modelOrder.ID, domainOrder.ID)
 	assert.Equal(t, modelOrder.DateIn, domainOrder.DateIn)
 	assert.Equal(t, modelOrder.DateOut, domainOrder.DateOut)
-	assert.Equal(t, modelOrder.Number, domainOrder.Number)
 
 	assert.NotNil(t, domainOrder.Status)
 	assert.Equal(t, modelOrder.Status, string(domainOrder.Status))

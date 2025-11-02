@@ -14,7 +14,6 @@ type Model struct {
 	gorm.Model
 	DateIn            time.Time `gorm:"not null"`
 	DateOut           *time.Time
-	Number            string `gorm:"not null; unique"`
 	Status            string
 	VehicleKilometers int
 	Note              *string
@@ -29,7 +28,7 @@ type Model struct {
 }
 
 func (*Model) TableName() string {
-	return "Order"
+	return "Orders"
 }
 
 func (m *Model) ToDomain() *domain.Order {
@@ -37,7 +36,6 @@ func (m *Model) ToDomain() *domain.Order {
 		ID:                m.ID,
 		DateIn:            m.DateIn,
 		DateOut:           m.DateOut,
-		Number:            m.Number,
 		Status:            domain.OrderStatus(m.Status),
 		VehicleKilometers: m.VehicleKilometers,
 		Note:              m.Note,
@@ -54,7 +52,6 @@ func (m *Model) FromDomain(d *domain.Order) {
 	m.ID = d.ID
 	m.DateIn = d.DateIn
 	m.DateOut = d.DateOut
-	m.Number = d.Number
 	m.Status = string(d.Status)
 	m.VehicleKilometers = d.VehicleKilometers
 	m.Note = d.Note
@@ -63,7 +60,9 @@ func (m *Model) FromDomain(d *domain.Order) {
 	m.UserID = d.User.ID
 	m.CustomerVehicleID = d.CustomerVehicle.ID
 	m.CompanyID = d.Company.ID
-	m.User.FromDomain(&d.User)
+	m.User = user.Model{
+		ID: d.User.ID,
+	}
 	m.CustomerVehicle.FromDomain(&d.CustomerVehicle)
 	m.Company.FromDomain(&d.Company)
 }
