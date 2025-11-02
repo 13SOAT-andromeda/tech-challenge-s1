@@ -15,10 +15,14 @@ import (
 
 type CustomerHandler struct {
 	service ports.CustomerService
+	useCase ports.CustomerUseCase
 }
 
-func NewCustomerHandler(service ports.CustomerService) *CustomerHandler {
-	return &CustomerHandler{service: service}
+func NewCustomerHandler(service ports.CustomerService, useCase ports.CustomerUseCase) *CustomerHandler {
+	return &CustomerHandler{
+		service: service,
+		useCase: useCase,
+	}
 }
 
 type createCustomerRequest struct {
@@ -254,7 +258,7 @@ func (h *CustomerHandler) AddVehicleToCustomer(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.service.AddVehicleToCustomer(ctx, uint(customerID), uint(vehicleID)); err != nil {
+	if err := h.useCase.AddVehicleToCustomer(ctx, uint(customerID), uint(vehicleID)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -278,7 +282,7 @@ func (h *CustomerHandler) RemoveVehicleFromCustomer(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.service.RemoveVehicleFromCustomer(ctx, uint(customerID), uint(vehicleID)); err != nil {
+	if err := h.useCase.RemoveVehicleFromCustomer(ctx, uint(customerID), uint(vehicleID)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -295,7 +299,7 @@ func (h *CustomerHandler) GetCustomerVehicles(ctx *gin.Context) {
 		return
 	}
 
-	vehicles, err := h.service.GetCustomerVehicles(ctx, uint(customerID))
+	vehicles, err := h.useCase.GetCustomerVehicles(ctx, uint(customerID))
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return

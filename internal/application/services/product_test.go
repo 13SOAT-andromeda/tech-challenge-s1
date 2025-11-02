@@ -7,6 +7,7 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -23,7 +24,7 @@ func createTestProductModel(id uint, stock uint, price int64) *product.Model {
 }
 
 func TestProductService_CheckProductPrice_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -48,7 +49,7 @@ func TestProductService_CheckProductPrice_Success(t *testing.T) {
 }
 
 func TestProductService_CheckProductPrice_EmptyList(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -60,7 +61,7 @@ func TestProductService_CheckProductPrice_EmptyList(t *testing.T) {
 }
 
 func TestProductService_CheckProductPrice_RepositoryError(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -78,7 +79,7 @@ func TestProductService_CheckProductPrice_RepositoryError(t *testing.T) {
 }
 
 func TestProductService_ConfirmOrderProducts_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -91,7 +92,7 @@ func TestProductService_ConfirmOrderProducts_Success(t *testing.T) {
 }
 
 func TestProductService_ConfirmOrderProducts_RepositoryError(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -106,7 +107,7 @@ func TestProductService_ConfirmOrderProducts_RepositoryError(t *testing.T) {
 }
 
 func TestProductService_Update_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -131,7 +132,7 @@ func TestProductService_Update_Success(t *testing.T) {
 }
 
 func TestProductService_Update_ProductNotFound(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -148,7 +149,7 @@ func TestProductService_Update_ProductNotFound(t *testing.T) {
 }
 
 func TestProductService_Update_UpdateFails(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -167,7 +168,7 @@ func TestProductService_Update_UpdateFails(t *testing.T) {
 }
 
 func TestProductService_UpdateStock_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -193,7 +194,7 @@ func TestProductService_UpdateStock_Success(t *testing.T) {
 }
 
 func TestProductService_UpdateStock_ProductNotFound(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -210,7 +211,7 @@ func TestProductService_UpdateStock_ProductNotFound(t *testing.T) {
 }
 
 func TestProductService_UpdateStock_UpdateFails(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -234,7 +235,7 @@ func TestProductService_UpdateStock_UpdateFails(t *testing.T) {
 }
 
 func TestProductService_Update_DoesNotChangeStock(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -260,7 +261,7 @@ func TestProductService_Update_DoesNotChangeStock(t *testing.T) {
 }
 
 func TestProductService_GetById_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -277,7 +278,7 @@ func TestProductService_GetById_Success(t *testing.T) {
 }
 
 func TestProductService_GetById_NotFound(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -291,7 +292,7 @@ func TestProductService_GetById_NotFound(t *testing.T) {
 }
 
 func TestProductService_GetAll_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -300,7 +301,7 @@ func TestProductService_GetAll_Success(t *testing.T) {
 		*createTestProductModel(2, 20, 20000),
 	}
 
-	mockRepo.On("Search", ctx).Return(products, nil)
+	mockRepo.On("Search", ctx, mock.Anything).Return(products, nil)
 
 	result, err := service.GetAll(ctx, nil)
 
@@ -312,11 +313,11 @@ func TestProductService_GetAll_Success(t *testing.T) {
 }
 
 func TestProductService_GetAll_RepositoryError(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
-	mockRepo.On("Search", ctx).Return(nil, errors.New("database error"))
+	mockRepo.On("Search", ctx, mock.AnythingOfType("filter.ProductFilter")).Return(nil, errors.New("database error"))
 
 	result, err := service.GetAll(ctx, nil)
 
@@ -326,7 +327,7 @@ func TestProductService_GetAll_RepositoryError(t *testing.T) {
 }
 
 func TestProductService_Create_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -349,7 +350,7 @@ func TestProductService_Create_Success(t *testing.T) {
 }
 
 func TestProductService_Create_RepositoryError(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -367,7 +368,7 @@ func TestProductService_Create_RepositoryError(t *testing.T) {
 }
 
 func TestProductService_Delete_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -384,7 +385,7 @@ func TestProductService_Delete_Success(t *testing.T) {
 }
 
 func TestProductService_Delete_ProductNotFound(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -398,7 +399,7 @@ func TestProductService_Delete_ProductNotFound(t *testing.T) {
 }
 
 func TestProductService_Delete_DeleteError(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -414,7 +415,7 @@ func TestProductService_Delete_DeleteError(t *testing.T) {
 }
 
 func TestProductService_ManageStockItem_AddOperation(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -431,7 +432,7 @@ func TestProductService_ManageStockItem_AddOperation(t *testing.T) {
 }
 
 func TestProductService_ManageStockItem_RemoveOperation(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -447,7 +448,7 @@ func TestProductService_ManageStockItem_RemoveOperation(t *testing.T) {
 }
 
 func TestProductService_ManageStockItem_CaseInsensitive(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -463,7 +464,7 @@ func TestProductService_ManageStockItem_CaseInsensitive(t *testing.T) {
 }
 
 func TestProductService_ManageStockItem_InvalidProductId(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -475,7 +476,7 @@ func TestProductService_ManageStockItem_InvalidProductId(t *testing.T) {
 }
 
 func TestProductService_ManageStockItem_InvalidQuantity(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -487,7 +488,7 @@ func TestProductService_ManageStockItem_InvalidQuantity(t *testing.T) {
 }
 
 func TestProductService_ManageStockItem_InvalidOperation(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -499,7 +500,7 @@ func TestProductService_ManageStockItem_InvalidOperation(t *testing.T) {
 }
 
 func TestProductService_AddStockItem_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -516,7 +517,7 @@ func TestProductService_AddStockItem_Success(t *testing.T) {
 }
 
 func TestProductService_AddStockItem_InvalidProductId(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -528,7 +529,7 @@ func TestProductService_AddStockItem_InvalidProductId(t *testing.T) {
 }
 
 func TestProductService_AddStockItem_InvalidQuantity(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -540,7 +541,7 @@ func TestProductService_AddStockItem_InvalidQuantity(t *testing.T) {
 }
 
 func TestProductService_AddStockItem_ProductNotFound(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -554,7 +555,7 @@ func TestProductService_AddStockItem_ProductNotFound(t *testing.T) {
 }
 
 func TestProductService_AddStockItem_UpdateFails(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -570,7 +571,7 @@ func TestProductService_AddStockItem_UpdateFails(t *testing.T) {
 }
 
 func TestProductService_RemoveStockItem_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -586,7 +587,7 @@ func TestProductService_RemoveStockItem_Success(t *testing.T) {
 }
 
 func TestProductService_RemoveStockItem_InvalidQuantity(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -598,7 +599,7 @@ func TestProductService_RemoveStockItem_InvalidQuantity(t *testing.T) {
 }
 
 func TestProductService_RemoveStockItem_ProductNotFound(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 
@@ -612,7 +613,7 @@ func TestProductService_RemoveStockItem_ProductNotFound(t *testing.T) {
 }
 
 func TestProductService_RemoveStockItem_UpdateFails(t *testing.T) {
-	mockRepo := new(MockProductRepository)
+	mockRepo := new(mocks.MockProductRepository)
 	service := NewProductService(mockRepo)
 	ctx := context.Background()
 

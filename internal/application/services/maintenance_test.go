@@ -6,6 +6,7 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"
@@ -15,7 +16,7 @@ func float64Ptr(v float64) *float64 { return &v }
 
 func TestMaintenanceService_Create_Success(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockMaintenanceRepository)
+	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
@@ -49,7 +50,7 @@ func TestMaintenanceService_Create_Success(t *testing.T) {
 
 func TestMaintenanceService_Create_RepositoryError(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockMaintenanceRepository)
+	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
@@ -74,7 +75,7 @@ func TestMaintenanceService_Create_RepositoryError(t *testing.T) {
 
 func TestMaintenanceService_FindByID_Success(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockMaintenanceRepository)
+	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
@@ -102,7 +103,7 @@ func TestMaintenanceService_FindByID_Success(t *testing.T) {
 
 func TestMaintenanceService_FindByID_NotFound(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockMaintenanceRepository)
+	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
@@ -123,7 +124,7 @@ func TestMaintenanceService_FindByID_NotFound(t *testing.T) {
 
 func TestMaintenanceService_UpdateByID_Success(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockMaintenanceRepository)
+	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
@@ -152,7 +153,7 @@ func TestMaintenanceService_UpdateByID_Success(t *testing.T) {
 
 func TestMaintenanceService_UpdateByID_NotFound(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockMaintenanceRepository)
+	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
@@ -181,7 +182,7 @@ func TestMaintenanceService_UpdateByID_NotFound(t *testing.T) {
 
 func TestMaintenanceService_DeleteByID_Success(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockMaintenanceRepository)
+	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
@@ -213,7 +214,7 @@ func TestMaintenanceService_DeleteByID_Success(t *testing.T) {
 
 func TestMaintenanceService_DeleteByID_NotFound(t *testing.T) {
 	// Arrange
-	mockRepo := new(MockMaintenanceRepository)
+	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()

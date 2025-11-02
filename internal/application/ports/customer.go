@@ -22,10 +22,10 @@ type CustomerService interface {
 	GetByID(ctx context.Context, id uint) (*domain.Customer, error)
 	UpdateByID(ctx context.Context, id uint, c domain.Customer) error
 	DeleteByID(ctx context.Context, id uint) (*domain.Customer, error)
-	AddVehicleToCustomer(ctx context.Context, customerID, vehicleID uint) error
-	RemoveVehicleFromCustomer(ctx context.Context, customerID, vehicleID uint) error
-	GetCustomerVehicles(ctx context.Context, customerID uint) ([]domain.Vehicle, error)
 }
 
 type CustomerUseCase interface {
+	AddVehicleToCustomer(ctx context.Context, customerID, vehicleID uint) error
+	RemoveVehicleFromCustomer(ctx context.Context, customerID, vehicleID uint) error
+	GetCustomerVehicles(ctx context.Context, customerID uint) ([]domain.Vehicle, error)
 }

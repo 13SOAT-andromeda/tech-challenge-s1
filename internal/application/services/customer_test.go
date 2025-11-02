@@ -7,14 +7,15 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestCustomerService_Create_Success(t *testing.T) {
-	mockRepo := new(MockCustomerRepository)
-	mockCustomerVehicleRepo := new(MockCustomerVehicleRepository)
-	mockVehicleService := new(MockVehicleService)
+	mockRepo := new(mocks.MockCustomerRepository)
+	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockVehicleService := new(mocks.MockVehicleService)
 	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
 
 	ctx := context.Background()
@@ -55,9 +56,9 @@ func TestCustomerService_Create_Success(t *testing.T) {
 }
 
 func TestCustomerService_Create_RepositoryError(t *testing.T) {
-	mockRepo := new(MockCustomerRepository)
-	mockCustomerVehicleRepo := new(MockCustomerVehicleRepository)
-	mockVehicleService := new(MockVehicleService)
+	mockRepo := new(mocks.MockCustomerRepository)
+	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockVehicleService := new(mocks.MockVehicleService)
 	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
 
 	ctx := context.Background()
@@ -86,9 +87,9 @@ func TestCustomerService_Create_RepositoryError(t *testing.T) {
 }
 
 func TestCustomerService_GetByID_Success(t *testing.T) {
-	mockRepo := new(MockCustomerRepository)
-	mockCustomerVehicleRepo := new(MockCustomerVehicleRepository)
-	mockVehicleService := new(MockVehicleService)
+	mockRepo := new(mocks.MockCustomerRepository)
+	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockVehicleService := new(mocks.MockVehicleService)
 	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
 
 	ctx := context.Background()
@@ -114,9 +115,9 @@ func TestCustomerService_GetByID_Success(t *testing.T) {
 }
 
 func TestCustomerService_Search_Success(t *testing.T) {
-	mockRepo := new(MockCustomerRepository)
-	mockCustomerVehicleRepo := new(MockCustomerVehicleRepository)
-	mockVehicleService := new(MockVehicleService)
+	mockRepo := new(mocks.MockCustomerRepository)
+	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockVehicleService := new(mocks.MockVehicleService)
 	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
 
 	ctx := context.Background()
@@ -132,7 +133,7 @@ func TestCustomerService_Search_Success(t *testing.T) {
 		},
 	}
 
-	mockRepo.On("Search", ctx).Return(expectedCustomers, nil)
+	mockRepo.On("Search", ctx, mock.Anything).Return(expectedCustomers, nil)
 
 	result, err := service.Search(ctx, nil)
 
@@ -148,9 +149,9 @@ func TestCustomerService_Search_Success(t *testing.T) {
 }
 
 func TestCustomerService_GetByID_NotFound(t *testing.T) {
-	mockRepo := new(MockCustomerRepository)
-	mockCustomerVehicleRepo := new(MockCustomerVehicleRepository)
-	mockVehicleService := new(MockVehicleService)
+	mockRepo := new(mocks.MockCustomerRepository)
+	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockVehicleService := new(mocks.MockVehicleService)
 	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
 
 	ctx := context.Background()
@@ -166,9 +167,9 @@ func TestCustomerService_GetByID_NotFound(t *testing.T) {
 }
 
 func TestCustomerService_UpdateByID_Success(t *testing.T) {
-	mockRepo := new(MockCustomerRepository)
-	mockCustomerVehicleRepo := new(MockCustomerVehicleRepository)
-	mockVehicleService := new(MockVehicleService)
+	mockRepo := new(mocks.MockCustomerRepository)
+	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockVehicleService := new(mocks.MockVehicleService)
 	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
 	ctx := context.Background()
 
@@ -197,9 +198,9 @@ func TestCustomerService_UpdateByID_Success(t *testing.T) {
 }
 
 func TestCustomerService_UpdateByID_CustomerNotFound(t *testing.T) {
-	mockRepo := new(MockCustomerRepository)
-	mockCustomerVehicleRepo := new(MockCustomerVehicleRepository)
-	mockVehicleService := new(MockVehicleService)
+	mockRepo := new(mocks.MockCustomerRepository)
+	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockVehicleService := new(mocks.MockVehicleService)
 	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
 	ctx := context.Background()
 
@@ -215,9 +216,9 @@ func TestCustomerService_UpdateByID_CustomerNotFound(t *testing.T) {
 }
 
 func TestCustomerService_UpdateByID_DocumentAlreadyInUse(t *testing.T) {
-	mockRepo := new(MockCustomerRepository)
-	mockCustomerVehicleRepo := new(MockCustomerVehicleRepository)
-	mockVehicleService := new(MockVehicleService)
+	mockRepo := new(mocks.MockCustomerRepository)
+	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockVehicleService := new(mocks.MockVehicleService)
 	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
 	ctx := context.Background()
 
@@ -252,9 +253,9 @@ func TestCustomerService_UpdateByID_DocumentAlreadyInUse(t *testing.T) {
 }
 
 func TestCustomerService_UpdateByID_UpdateFails(t *testing.T) {
-	mockRepo := new(MockCustomerRepository)
-	mockCustomerVehicleRepo := new(MockCustomerVehicleRepository)
-	mockVehicleService := new(MockVehicleService)
+	mockRepo := new(mocks.MockCustomerRepository)
+	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockVehicleService := new(mocks.MockVehicleService)
 	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
 	ctx := context.Background()
 
@@ -284,9 +285,9 @@ func TestCustomerService_UpdateByID_UpdateFails(t *testing.T) {
 }
 
 func TestCustomerService_DeleteByID_Success(t *testing.T) {
-	mockRepo := new(MockCustomerRepository)
-	mockCustomerVehicleRepo := new(MockCustomerVehicleRepository)
-	mockVehicleService := new(MockVehicleService)
+	mockRepo := new(mocks.MockCustomerRepository)
+	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockVehicleService := new(mocks.MockVehicleService)
 	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
 
 	ctx := context.Background()
@@ -313,9 +314,9 @@ func TestCustomerService_DeleteByID_Success(t *testing.T) {
 }
 
 func TestCustomerService_DeleteByID_NotFound(t *testing.T) {
-	mockRepo := new(MockCustomerRepository)
-	mockCustomerVehicleRepo := new(MockCustomerVehicleRepository)
-	mockVehicleService := new(MockVehicleService)
+	mockRepo := new(mocks.MockCustomerRepository)
+	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockVehicleService := new(mocks.MockVehicleService)
 	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
 
 	ctx := context.Background()
@@ -331,9 +332,9 @@ func TestCustomerService_DeleteByID_NotFound(t *testing.T) {
 }
 
 func TestCustomerService_DeleteByID_DeleteError(t *testing.T) {
-	mockRepo := new(MockCustomerRepository)
-	mockCustomerVehicleRepo := new(MockCustomerVehicleRepository)
-	mockVehicleService := new(MockVehicleService)
+	mockRepo := new(mocks.MockCustomerRepository)
+	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockVehicleService := new(mocks.MockVehicleService)
 	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
 
 	ctx := context.Background()

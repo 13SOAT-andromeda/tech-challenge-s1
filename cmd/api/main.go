@@ -23,6 +23,8 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/jwt"
 )
 
+import usecase "github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/customer"
+
 func main() {
 	cfg, err := config.Init()
 	if err != nil {
@@ -69,11 +71,9 @@ func main() {
 	userService := services.NewUserService(userRepository)
 	sessionService := services.NewSessionService(sessionRepository)
 
-	// @TODO create usecase aqui e mapear no router
-	//stockUseCase := stock.NewStockUseCase(productService)
-	// @TODO criar handler de order e passar o usecase para ele
+	customerUseCase := usecase.NewCustomerUseCase(customerRepository, customerVehicleRepository, vehicleService)
 
-	customerHandler := handlers.NewCustomerHandler(customerService)
+	customerHandler := handlers.NewCustomerHandler(customerService, customerUseCase)
 	companyHandler := handlers.NewCompanyHandler(companyService)
 	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceService)
 	productHandler := handlers.NewProductHandler(productService)
