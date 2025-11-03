@@ -691,11 +691,11 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 
 		input := ports.CreateCompleteOrderAnalysisInput{
 			DiagnosticNote: ptrString("diagnostic"),
-			Products: []ports.ProductItem{
+			Products: []domain.ProductItem{
 				{ID: 1, Quantity: 2},
 				{ID: 2, Quantity: 1},
 			},
-			Maintenances: []ports.MaintenanceItem{
+			Maintenances: []domain.MaintenanceItem{
 				{ID: 3},
 			},
 		}
@@ -791,7 +791,7 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		orderID := uint(1)
 		userID := uint(2)
 		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
-		input := ports.CreateCompleteOrderAnalysisInput{Products: []ports.ProductItem{
+		input := ports.CreateCompleteOrderAnalysisInput{Products: []domain.ProductItem{
 			{ID: 1, Quantity: 2},
 		}}
 
@@ -817,7 +817,7 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		orderID := uint(1)
 		userID := uint(2)
 		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
-		input := ports.CreateCompleteOrderAnalysisInput{Maintenances: []ports.MaintenanceItem{
+		input := ports.CreateCompleteOrderAnalysisInput{Maintenances: []domain.MaintenanceItem{
 			{ID: 1},
 		}}
 
@@ -852,8 +852,8 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 
 		input := ports.CreateCompleteOrderAnalysisInput{
 			DiagnosticNote: ptrString("diag"),
-			Products:       []ports.ProductItem{{ID: 1, Quantity: 1}},
-			Maintenances:   []ports.MaintenanceItem{{ID: 2}},
+			Products:       []domain.ProductItem{{ID: 1, Quantity: 1}},
+			Maintenances:   []domain.MaintenanceItem{{ID: 2}},
 		}
 
 		productIds := []uint{1}

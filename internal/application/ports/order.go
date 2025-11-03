@@ -23,17 +23,8 @@ type CreateOrderInput struct {
 
 type CreateCompleteOrderAnalysisInput struct {
 	DiagnosticNote *string
-	Products       []ProductItem
-	Maintenances   []MaintenanceItem
-}
-
-type ProductItem struct {
-	ID       uint
-	Quantity uint
-}
-
-type MaintenanceItem struct {
-	ID uint
+	Products       []domain.ProductItem
+	Maintenances   []domain.MaintenanceItem
 }
 
 type OrderRepository interface {
@@ -59,4 +50,5 @@ type OrderUseCase interface {
 	ApproveOrder(ctx context.Context, id uint) error
 	RejectOrder(ctx context.Context, id uint) error
 	ArchiveOrder(ctx context.Context, id uint) error
+	StartWorkOrder(ctx context.Context, id uint) error
 }

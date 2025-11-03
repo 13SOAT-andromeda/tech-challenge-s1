@@ -112,19 +112,32 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 
 	totalPrice := 0.0
 
+	orderProducts := make([]domain.ProductItem, 0, len(products))
 	for _, product := range products {
 		quantity := productQuantities[product.ID]
 		totalPrice += float64(product.Price) * float64(quantity)
+
+		orderProducts = append(orderProducts, domain.ProductItem{
+			ID:       product.ID,
+			Quantity: uint(quantity),
+		})
 	}
 
-	for _, v := range maintenances {
-		totalPrice += float64(v.Price)
+	orderMaintenances := make([]domain.MaintenanceItem, 0, len(maintenances))
+	for _, maintenance := range maintenances {
+		totalPrice += float64(maintenance.Price)
+
+		orderMaintenances = append(orderMaintenances, domain.MaintenanceItem{
+			ID: maintenance.ID,
+		})
 	}
 
 	order.DiagnosticNote = input.DiagnosticNote
 	order.Status = domain.OrderStatuses.AWAITING_APPROVAL
 	order.Price = &totalPrice
 	order.User.ID = userID
+	order.Products = &orderProducts
+	order.Maintenances = &orderMaintenances
 
 	if err := uc.orderService.Update(ctx, *order); err != nil {
 		return fmt.Errorf("failed to complete order analysis: %w", err)
@@ -229,6 +242,48 @@ func (uc *UseCase) RequestApproval(ctx context.Context, id uint) error {
 
 	if err != nil {
 		return fmt.Errorf("failed to send approval notification: %w", err)
+	}
+
+	return nil
+}
+
+func (uc *UseCase) StartWorkOrder(ctx context.Context, id uint) error {
+	order, err := uc.orderService.GetByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to get order with id %d: %w", id, err)
+	}
+
+	if order.Status != domain.OrderStatuses.APPROVED {
+		return fmt.Errorf("order cannot start work. current status: %s", order.Status)
+	}
+
+	productItems := make([]domain.ProductItem, 0, len(*order.Products))
+
+	for _, item := range *order.Products {
+		available, err := uc.productService.CheckAvailability(ctx, item.ID, item.Quantity)
+		if err != nil {
+			return fmt.Errorf("failed to check availability for product %d: %w", item.ID, err)
+		}
+
+		if !available {
+			return fmt.Errorf("cannot start work: product ID %d is not available in quantity %d", item.ID, item.Quantity)
+		}
+
+		productItems = append(productItems, domain.ProductItem{
+			ID:       item.ID,
+			Quantity: item.Quantity,
+		})
+	}
+
+	err = uc.productService.UpdateStock(ctx, productItems, domain.StockOperationRemove)
+	if err != nil {
+		return fmt.Errorf("failed to decrement stock: %w", err)
+	}
+
+	order.Status = domain.OrderStatuses.IN_PROGRESS
+
+	if err = uc.orderService.Update(ctx, *order); err != nil {
+		return fmt.Errorf("failed to update order status: %w", err)
 	}
 
 	return nil
