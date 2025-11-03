@@ -91,8 +91,8 @@ func TestCreateOrder_ProductServiceError(t *testing.T) {
 	}
 
 	mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
-	mockProd.On("GetByIds", ctx, input.ProductIDs).Return(products, nil)
-	mockMaint.On("GetByIDs", ctx, input.MaintenanceIDs).Return(maints, nil)
+	mockProd.On("GetByIds", ctx, input.Products).Return(products, nil)
+	mockMaint.On("GetByIDs", ctx, input.Maintenances).Return(maints, nil)
 
 	err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)
 
@@ -120,8 +120,8 @@ func TestCreateOrder_MaintenanceServiceError(t *testing.T) {
 	}
 
 	mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
-	mockProd.On("GetByIds", ctx, input.ProductIDs).Return(products, nil)
-	mockMaint.On("GetByIDs", ctx, input.MaintenanceIDs).Return(maints, nil)
+	mockProd.On("GetByIds", ctx, input.Products).Return(products, nil)
+	mockMaint.On("GetByIDs", ctx, input.Maintenances).Return(maints, nil)
 
 	err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)
 
@@ -485,13 +485,20 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 
 		input := ports.CreateCompleteOrderAnalysisInput{
 			DiagnosticNote: ptrString("diagnostic"),
-			ProductIDs:     []uint{1, 2},
-			MaintenanceIDs: []uint{3},
+			Products: []ports.ProductItem{
+				{ID: 1, Quantity: 2},
+				{ID: 2, Quantity: 1},
+			},
+			Maintenances: []ports.MaintenanceItem{
+				{ID: 3},
+			},
 		}
 
+		productsIds := []uint{1, 2}
+		maintenanceIds := []uint{3}
 		mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
-		mockProd.On("GetByIds", ctx, input.ProductIDs).Return(products, nil)
-		mockMaint.On("GetByIDs", ctx, input.MaintenanceIDs).Return(maints, nil)
+		mockProd.On("GetByIds", ctx, productsIds).Return(products, nil)
+		mockMaint.On("GetByIDs", ctx, maintenanceIds).Return(maints, nil)
 		mockOrder.On("Update", ctx, mock.MatchedBy(func(o domain.Order) bool {
 			// Price should be set and status updated to AWAITING_APPROVAL and diagnostic note set
 			if o.ID != orderID {
@@ -510,7 +517,7 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 				return false
 			}
 			// total price = 100 + 150 + 250 = 500
-			if *o.Price != 500 {
+			if *o.Price != 600 {
 				return false
 			}
 			return true
@@ -575,10 +582,13 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		orderID := uint(1)
 		userID := uint(2)
 		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
-		input := ports.CreateCompleteOrderAnalysisInput{ProductIDs: []uint{1}}
+		input := ports.CreateCompleteOrderAnalysisInput{Products: []ports.ProductItem{
+			{ID: 1, Quantity: 2},
+		}}
 
+		productIds := []uint{1}
 		mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
-		mockProd.On("GetByIds", ctx, input.ProductIDs).Return(nil, errors.New("product error"))
+		mockProd.On("GetByIds", ctx, productIds).Return(nil, errors.New("product error"))
 
 		err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)
 		assert.Error(t, err)
@@ -597,11 +607,15 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		orderID := uint(1)
 		userID := uint(2)
 		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
-		input := ports.CreateCompleteOrderAnalysisInput{MaintenanceIDs: []uint{1}}
+		input := ports.CreateCompleteOrderAnalysisInput{Maintenances: []ports.MaintenanceItem{
+			{ID: 1},
+		}}
+
+		maintenanceIds := []uint{1}
 
 		mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
 		mockProd.On("GetByIds", ctx, mock.Anything).Return([]domain.Product{}, nil)
-		mockMaint.On("GetByIDs", ctx, input.MaintenanceIDs).Return(nil, errors.New("maintenance error"))
+		mockMaint.On("GetByIDs", ctx, maintenanceIds).Return(nil, errors.New("maintenance error"))
 
 		err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)
 		assert.Error(t, err)
@@ -627,13 +641,16 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 
 		input := ports.CreateCompleteOrderAnalysisInput{
 			DiagnosticNote: ptrString("diag"),
-			ProductIDs:     []uint{1},
-			MaintenanceIDs: []uint{2},
+			Products:       []ports.ProductItem{{ID: 1, Quantity: 1}},
+			Maintenances:   []ports.MaintenanceItem{{ID: 2}},
 		}
 
+		productIds := []uint{1}
+		maintenanceIds := []uint{2}
+
 		mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
-		mockProd.On("GetByIds", ctx, input.ProductIDs).Return(products, nil)
-		mockMaint.On("GetByIDs", ctx, input.MaintenanceIDs).Return(maints, nil)
+		mockProd.On("GetByIds", ctx, productIds).Return(products, nil)
+		mockMaint.On("GetByIDs", ctx, maintenanceIds).Return(maints, nil)
 		mockOrder.On("Update", ctx, mock.Anything).Return(errors.New("update error"))
 
 		err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)

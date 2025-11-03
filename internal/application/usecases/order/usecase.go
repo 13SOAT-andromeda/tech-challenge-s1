@@ -77,8 +77,8 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 	productQuantities := make(map[uint]int, len(input.Products))
 
 	for _, item := range input.Products {
-		productIds = append(productIds, item.ProductID)
-		productQuantities[item.ProductID] = int(item.Quantity)
+		productIds = append(productIds, item.ID)
+		productQuantities[item.ID] = int(item.Quantity)
 	}
 
 	products, err := uc.productService.GetByIds(ctx, productIds)
@@ -88,7 +88,7 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 
 	maintenanceIds := make([]uint, 0, len(input.Maintenances))
 	for _, v := range input.Maintenances {
-		maintenanceIds = append(maintenanceIds, v.MaintenanceID)
+		maintenanceIds = append(maintenanceIds, v.ID)
 	}
 
 	maintenances, err := uc.maintenanceService.GetByIDs(ctx, maintenanceIds)

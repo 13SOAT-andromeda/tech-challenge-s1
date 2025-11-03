@@ -28,12 +28,12 @@ type CreateCompleteOrderAnalysisInput struct {
 }
 
 type ProductItem struct {
-	ProductID uint
-	Quantity  uint
+	ID       uint
+	Quantity uint
 }
 
 type MaintenanceItem struct {
-	MaintenanceID uint
+	ID uint
 }
 
 type OrderRepository interface {
