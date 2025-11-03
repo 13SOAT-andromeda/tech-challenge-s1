@@ -65,6 +65,7 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 		Password: p,
 		Role:     json.Role,
 		Contact:  json.Contact,
+		Active:   true,
 		Address: &domain.Address{
 			Address:       json.Address,
 			AddressNumber: json.AddressNumber,
