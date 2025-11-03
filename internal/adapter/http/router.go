@@ -117,8 +117,9 @@ func NewRouter(
 		orderGroup := protected.Group("/orders")
 		{
 			orderGroup.GET("", orderHandler.GetAll)
-			orderGroup.POST("", orderHandler.Create)
 			orderGroup.GET("/:id", orderHandler.GetByID)
+			orderGroup.POST("", orderHandler.Create)
+			orderGroup.POST("/:id/assign", orderHandler.Assign)
 			orderGroup.DELETE("/:id", orderHandler.Delete)
 		}
 	}

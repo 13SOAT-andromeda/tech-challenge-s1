@@ -9,8 +9,8 @@ import (
 
 type Model struct {
 	gorm.Model
-	CustomerId uint
 	VehicleId  uint
+	CustomerId uint
 
 	Vehicle  vehicle.Model  `gorm:"foreignKey:VehicleId;references:ID"`
 	Customer customer.Model `gorm:"foreignKey:CustomerId;references:ID"`
@@ -23,14 +23,14 @@ func (*Model) TableName() string {
 func (m *Model) ToDomain() *domain.CustomerVehicle {
 	return &domain.CustomerVehicle{
 		ID:         m.ID,
-		CustomerId: m.CustomerId,
-		VehicleId:  m.VehicleId,
+		CustomerId: m.Customer.ID,
+		VehicleId:  m.Vehicle.ID,
 	}
 }
 
 func (m *Model) FromDomain(d *domain.CustomerVehicle) {
 
 	m.ID = d.ID
-	m.CustomerId = d.CustomerId
-	m.VehicleId = d.VehicleId
+	m.Customer.ID = d.CustomerId
+	m.Vehicle.ID = d.VehicleId
 }

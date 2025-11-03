@@ -8,25 +8,26 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
-	"gorm.io/gorm"
 )
 
 type useCase struct {
 	customerRepository  ports.CustomerRepository
 	customerVehicleRepo ports.CustomerVehicleRepository
 	vehicleService      ports.VehicleService
+	customerService     ports.CustomerService
 }
 
-func NewCustomerUseCase(customerRepository ports.CustomerRepository, customerVehicleRepo ports.CustomerVehicleRepository, vehicleService ports.VehicleService) *useCase {
+func NewCustomerUseCase(customerRepository ports.CustomerRepository, customerVehicleRepo ports.CustomerVehicleRepository, vehicleService ports.VehicleService, customerService ports.CustomerService) *useCase {
 	return &useCase{
 		customerRepository:  customerRepository,
 		customerVehicleRepo: customerVehicleRepo,
 		vehicleService:      vehicleService,
+		customerService:     customerService,
 	}
 }
 
 func (s *useCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleID uint) error {
-	customer, err := s.customerRepository.FindByID(ctx, customerID)
+	customer, err := s.customerService.GetByID(ctx, customerID)
 
 	if err != nil {
 		return fmt.Errorf("customer not found: %w", err)
@@ -54,13 +55,18 @@ func (s *useCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 		return errors.New("vehicle is already associated with this customer")
 	}
 
-	customerVehicle := &customer_vehicle.Model{
-		Model:      gorm.Model{},
+	// @TODO: Passar para o service de customer-vehicle
+	customerVehicleDomain := &domain.CustomerVehicle{
 		CustomerId: customerID,
 		VehicleId:  vehicleID,
 	}
 
-	_, err = s.customerVehicleRepo.Create(ctx, customerVehicle)
+	model := customer_vehicle.Model{}
+	model.FromDomain(customerVehicleDomain)
+
+	customerVehicle := model
+
+	_, err = s.customerVehicleRepo.Create(ctx, &customerVehicle)
 	if err != nil {
 		return fmt.Errorf("error creating customer-vehicle association: %w", err)
 	}

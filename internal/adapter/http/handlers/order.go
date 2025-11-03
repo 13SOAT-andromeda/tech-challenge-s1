@@ -22,7 +22,6 @@ func NewOrderHandler(service ports.OrderService, usecase ports.OrderUseCase) *Or
 type createOrderRequest struct {
 	VehicleKilometers int     `json:"vehicle_kilometers" binding:"required"`
 	Note              *string `json:"note"`
-	UserID            uint    `json:"user_id" binding:"required"`
 	CustomerVehicleID uint    `json:"customer_vehicle_id" binding:"required"`
 	CompanyID         uint    `json:"company_id" binding:"required"`
 	ProductIDs        []uint  `json:"product_ids" binding:"required"`
@@ -36,10 +35,16 @@ func (h *OrderHandler) Create(ctx *gin.Context) {
 		return
 	}
 
+	userId, exists := ctx.Get("user_id")
+	if !exists {
+		response.RespondError(ctx, http.StatusUnauthorized, "User ID not found in context")
+		return
+	}
+
 	input := ports.CreateOrderInput{
-		VehicleKilometers: request.VehicleKilometers,
+		VehicleKilometers: &request.VehicleKilometers,
 		Note:              request.Note,
-		UserID:            request.UserID,
+		UserID:            userId.(uint),
 		CustomerVehicleID: request.CustomerVehicleID,
 		CompanyID:         request.CompanyID,
 		ProductIDs:        request.ProductIDs,
@@ -53,6 +58,27 @@ func (h *OrderHandler) Create(ctx *gin.Context) {
 	}
 
 	response.RespondCreated(ctx, created, "Order created successfully")
+}
+
+func (h *OrderHandler) Assign(ctx *gin.Context) {
+	orderID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userId, exists := ctx.Get("user_id")
+	if !exists {
+		response.RespondError(ctx, http.StatusUnauthorized, "User ID not found in context")
+		return
+	}
+
+	if err := h.usecase.AssignOrder(ctx, uint(orderID), userId.(uint)); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess(ctx, "", "Order assigned successfully")
 }
 
 func (h *OrderHandler) GetAll(ctx *gin.Context) {

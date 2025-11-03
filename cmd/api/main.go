@@ -83,7 +83,7 @@ func main() {
 	jwtService := jwt.NewService(cfg.JWT.Secret, accessExpiry, refreshExpiry)
 
 	// UseCases
-	createCustomerUseCase := customerUseCase.NewCustomerUseCase(customerRepository, customerVehicleRepository, vehicleService)
+	createCustomerUseCase := customerUseCase.NewCustomerUseCase(customerRepository, customerVehicleRepository, vehicleService, customerService)
 
 	loginUseCase := sessionUseCase.NewLoginUseCase(userService, sessionService, jwtService, cfg)
 	validateUseCase := sessionUseCase.NewValidateUseCase(userService, sessionService, jwtService)
