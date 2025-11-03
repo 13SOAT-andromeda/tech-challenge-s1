@@ -42,3 +42,8 @@ func (m *MockOrderService) Delete(ctx context.Context, id uint) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
+
+func (m *MockOrderService) Update(ctx context.Context, input domain.Order) error {
+	args := m.Called(ctx, input)
+	return args.Error(0)
+}

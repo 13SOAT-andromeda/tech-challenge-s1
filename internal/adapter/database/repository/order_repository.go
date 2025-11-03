@@ -8,17 +8,29 @@ import (
 	"gorm.io/gorm"
 )
 
-type orderRepository struct {
+type OrderRepository struct {
 	*BaseRepository[order.Model]
 }
 
 func NewOrderRepository(db *gorm.DB) ports.OrderRepository {
-	return &orderRepository{
+	return &OrderRepository{
 		BaseRepository: NewBaseRepository[order.Model](db),
 	}
 }
 
-func (r *orderRepository) Search(ctx context.Context, params ports.OrderSearch) ([]order.Model, error) {
+func (r *OrderRepository) FindOrderByID(ctx context.Context, id uint) (*order.Model, error) {
+	var models order.Model
+	err := r.db.WithContext(ctx).
+		Preload("CustomerVehicle").
+		Preload("Company").
+		Preload("User").
+		Where("id = ?", id).
+		Find(&models).Error
+
+	return &models, err
+}
+
+func (r *OrderRepository) Search(ctx context.Context, params ports.OrderSearch) ([]order.Model, error) {
 	var model []order.Model
 
 	db := r.db.WithContext(ctx)
