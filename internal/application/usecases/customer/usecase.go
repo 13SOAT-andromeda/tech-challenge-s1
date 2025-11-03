@@ -10,24 +10,22 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
 
-type useCase struct {
+type UseCase struct {
 	customerRepository  ports.CustomerRepository
 	customerVehicleRepo ports.CustomerVehicleRepository
 	vehicleService      ports.VehicleService
-	customerService     ports.CustomerService
 }
 
-func NewCustomerUseCase(customerRepository ports.CustomerRepository, customerVehicleRepo ports.CustomerVehicleRepository, vehicleService ports.VehicleService, customerService ports.CustomerService) *useCase {
-	return &useCase{
+func NewCustomerUseCase(customerRepository ports.CustomerRepository, customerVehicleRepo ports.CustomerVehicleRepository, vehicleService ports.VehicleService) *UseCase {
+	return &UseCase{
 		customerRepository:  customerRepository,
 		customerVehicleRepo: customerVehicleRepo,
 		vehicleService:      vehicleService,
-		customerService:     customerService,
 	}
 }
 
-func (s *useCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleID uint) error {
-	customer, err := s.customerService.GetByID(ctx, customerID)
+func (s *UseCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleID uint) error {
+	customer, err := s.customerRepository.FindByID(ctx, customerID)
 
 	if err != nil {
 		return fmt.Errorf("customer not found: %w", err)
@@ -74,7 +72,7 @@ func (s *useCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 	return nil
 }
 
-func (s *useCase) RemoveVehicleFromCustomer(ctx context.Context, customerID, vehicleID uint) error {
+func (s *UseCase) RemoveVehicleFromCustomer(ctx context.Context, customerID, vehicleID uint) error {
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 	if err != nil {
 		return fmt.Errorf("customer not found: %w", err)
@@ -99,7 +97,7 @@ func (s *useCase) RemoveVehicleFromCustomer(ctx context.Context, customerID, veh
 	return nil
 }
 
-func (s *useCase) GetCustomerVehicles(ctx context.Context, customerID uint) ([]domain.Vehicle, error) {
+func (s *UseCase) GetCustomerVehicles(ctx context.Context, customerID uint) ([]domain.Vehicle, error) {
 
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 

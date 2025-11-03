@@ -13,7 +13,7 @@ type OrderSearch struct {
 }
 
 type CreateOrderInput struct {
-	VehicleKilometers *int
+	VehicleKilometers int
 	Note              *string
 	DiagnosticNote    *string
 	UserID            uint

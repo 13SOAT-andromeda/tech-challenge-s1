@@ -42,7 +42,7 @@ func (h *OrderHandler) Create(ctx *gin.Context) {
 	}
 
 	input := ports.CreateOrderInput{
-		VehicleKilometers: &request.VehicleKilometers,
+		VehicleKilometers: request.VehicleKilometers,
 		Note:              request.Note,
 		UserID:            userId.(uint),
 		CustomerVehicleID: request.CustomerVehicleID,
