@@ -24,8 +24,12 @@ type createOrderRequest struct {
 	Note              *string `json:"note"`
 	CustomerVehicleID uint    `json:"customer_vehicle_id" binding:"required"`
 	CompanyID         uint    `json:"company_id" binding:"required"`
-	ProductIDs        []uint  `json:"product_ids" binding:"required"`
-	MaintenanceIDs    []uint  `json:"maintenance_ids" binding:"required"`
+}
+
+type CompleteAnalysisRequest struct {
+	DiagnosticNote string `json:"diagnostic_note"`
+	ProductIDs     []uint `json:"product_ids" binding:"required"`
+	MaintenanceIDs []uint `json:"maintenance_ids" binding:"required"`
 }
 
 func (h *OrderHandler) Create(ctx *gin.Context) {
@@ -44,14 +48,11 @@ func (h *OrderHandler) Create(ctx *gin.Context) {
 	input := ports.CreateOrderInput{
 		VehicleKilometers: request.VehicleKilometers,
 		Note:              request.Note,
-		UserID:            userId.(uint),
 		CustomerVehicleID: request.CustomerVehicleID,
 		CompanyID:         request.CompanyID,
-		ProductIDs:        request.ProductIDs,
-		MaintenanceIDs:    request.MaintenanceIDs,
 	}
 
-	created, err := h.usecase.CreateOrder(ctx, input)
+	created, err := h.usecase.CreateOrder(ctx, userId.(uint), input)
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -79,6 +80,39 @@ func (h *OrderHandler) Assign(ctx *gin.Context) {
 	}
 
 	response.RespondSuccess(ctx, "", "Order assigned successfully")
+}
+
+func (h *OrderHandler) CompleteAnalysis(ctx *gin.Context) {
+	orderID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userId, exists := ctx.Get("user_id")
+	if !exists {
+		response.RespondError(ctx, http.StatusUnauthorized, "User ID not found in context")
+		return
+	}
+
+	var request CompleteAnalysisRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	input := ports.CreateCompleteOrderAnalysisInput{
+		DiagnosticNote: &request.DiagnosticNote,
+		ProductIDs:     request.ProductIDs,
+		MaintenanceIDs: request.MaintenanceIDs,
+	}
+
+	if err := h.usecase.CompleteOrderAnalysis(ctx, uint(orderID), userId.(uint), input); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess(ctx, "", "Order analysis completed successfully")
 }
 
 func (h *OrderHandler) GetAll(ctx *gin.Context) {

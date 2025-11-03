@@ -25,36 +25,16 @@ func NewOrderUseCase(orderService ports.OrderService, productsService ports.Prod
 	}
 }
 
-func (uc *UseCase) CreateOrder(ctx context.Context, input ports.CreateOrderInput) (*domain.Order, error) {
-	products, err := uc.productService.GetByIds(ctx, input.ProductIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	maintenances, err := uc.maintenanceService.GetByIDs(ctx, input.MaintenanceIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	totalPrice := 0.0
-
-	for _, v := range products {
-		totalPrice += float64(v.Price)
-	}
-
-	for _, v := range maintenances {
-		totalPrice += float64(v.Price)
-	}
-
+func (uc *UseCase) CreateOrder(ctx context.Context, userID uint, input ports.CreateOrderInput) (*domain.Order, error) {
 	order := domain.Order{
 		DateIn:            time.Now(),
 		DateOut:           nil,
 		Status:            domain.OrderStatuses.RECEIVED,
 		VehicleKilometers: input.VehicleKilometers,
 		Note:              input.Note,
-		Price:             &totalPrice,
+		Price:             nil,
 		CustomerVehicle:   domain.CustomerVehicle{ID: input.CustomerVehicleID},
-		User:              domain.User{ID: input.UserID},
+		User:              domain.User{ID: userID},
 		Company:           domain.Company{ID: input.CompanyID},
 	}
 
@@ -83,64 +63,107 @@ func (uc *UseCase) AssignOrder(ctx context.Context, orderID uint, userID uint) e
 	return err
 }
 
-func (s *UseCase) ApproveOrder(ctx context.Context, id uint) error {
-
-	existentOrder, err := s.orderRepository.FindByID(ctx, id)
+func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID uint, input ports.CreateCompleteOrderAnalysisInput) error {
+	order, err := uc.orderService.GetByID(ctx, id)
 
 	if err != nil {
-		return fmt.Errorf("Order with Id %d not found", id)
+		return fmt.Errorf("order with Id %d not found", id)
+	}
+
+	if order.Status != domain.OrderStatuses.IN_ANALYSIS {
+		return fmt.Errorf("order cannot complete analysis. Current status: %s", order.Status)
+	}
+
+	products, err := uc.productService.GetByIds(ctx, input.ProductIDs)
+	if err != nil {
+		return err
+	}
+
+	maintenances, err := uc.maintenanceService.GetByIDs(ctx, input.MaintenanceIDs)
+	if err != nil {
+		return err
+	}
+
+	totalPrice := 0.0
+
+	for _, v := range products {
+		totalPrice += float64(v.Price)
+	}
+
+	for _, v := range maintenances {
+		totalPrice += float64(v.Price)
+	}
+
+	order.DiagnosticNote = input.DiagnosticNote
+	order.Status = domain.OrderStatuses.AWAITING_APPROVAL
+	order.Price = &totalPrice
+	order.User.ID = userID
+
+	if err := uc.orderService.Update(ctx, *order); err != nil {
+		return fmt.Errorf("failed to complete order analysis: %w", err)
+	}
+
+	return nil
+}
+
+func (uc *UseCase) ApproveOrder(ctx context.Context, id uint) error {
+
+	existentOrder, err := uc.orderRepository.FindByID(ctx, id)
+
+	if err != nil {
+		return fmt.Errorf("order with Id %d not found", id)
 	}
 
 	if domain.OrderStatus(existentOrder.Status) != domain.OrderStatuses.AWAITING_APPROVAL {
-		return fmt.Errorf("Order cannot be approved. Current status: %s", existentOrder.Status)
+		return fmt.Errorf("order cannot be approved. Current status: %s", existentOrder.Status)
 	}
 
 	existentOrder.Status = string(domain.OrderStatuses.APPROVED)
 
-	if err := s.orderRepository.Update(ctx, existentOrder); err != nil {
-		return fmt.Errorf("Failed to approve order: %w", err)
+	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
+		return fmt.Errorf("failed to approve order: %w", err)
 	}
 
 	return nil
 }
 
-func (s *UseCase) RejectOrder(ctx context.Context, id uint) error {
+func (uc *UseCase) RejectOrder(ctx context.Context, id uint) error {
 
-	existentOrder, err := s.orderRepository.FindByID(ctx, id)
+	existentOrder, err := uc.orderRepository.FindByID(ctx, id)
 
 	if err != nil {
-		return fmt.Errorf("Order with Id %d not found", id)
+		return fmt.Errorf("order with Id %d not found", id)
 	}
 
 	if domain.OrderStatus(existentOrder.Status) != domain.OrderStatuses.AWAITING_APPROVAL {
-		return fmt.Errorf("Order cannot be reject. Current status: %s", existentOrder.Status)
+		return fmt.Errorf("order cannot be reject. Current status: %s", existentOrder.Status)
 	}
 
 	existentOrder.Status = string(domain.OrderStatuses.FINISHED)
 
-	if err := s.orderRepository.Update(ctx, existentOrder); err != nil {
-		return fmt.Errorf("Failed to reject order: %w", err)
+	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
+		return fmt.Errorf("failed to reject order: %w", err)
 	}
 
 	return nil
 }
 
-func (s *UseCase) ArchiveOrder(ctx context.Context, id uint) error {
+func (uc *UseCase) ArchiveOrder(ctx context.Context, id uint) error {
 
-	existentOrder, err := s.orderRepository.FindByID(ctx, id)
+	existentOrder, err := uc.orderRepository.FindByID(ctx, id)
 
 	if err != nil {
-		return fmt.Errorf("Order with Id %d not found", id)
+		return fmt.Errorf("order with Id %d not found", id)
 	}
 
 	if domain.OrderStatus(existentOrder.Status) != domain.OrderStatuses.FINISHED {
-		return fmt.Errorf("Order cannot be archived. Current status: %s", existentOrder.Status)
+		return fmt.Errorf("order cannot be archived. Current status: %s", existentOrder.Status)
 	}
 
 	existentOrder.Status = string(domain.OrderStatuses.DELIVERED)
 
-	if err := s.orderRepository.Update(ctx, existentOrder); err != nil {
-		return fmt.Errorf("Failed to archive order: %w", err)
+	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
+		return fmt.Errorf("failed to archive order: %w", err)
 	}
 
 	return nil

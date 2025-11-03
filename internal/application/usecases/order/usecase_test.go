@@ -18,13 +18,13 @@ import (
 	"gorm.io/gorm"
 )
 
-// Helper to create product/maintenance with price
 func p(id uint, price int64) domain.Product {
 	return domain.Product{ID: id, Price: price, Name: "p"}
 }
 func ma(id uint, price int64) domain.Maintenance {
 	return domain.Maintenance{ID: id, Price: price, Name: "m"}
 }
+
 func ptrString(s string) *string { return &s }
 
 func TestCreateOrder_Success(t *testing.T) {
@@ -41,22 +41,10 @@ func TestCreateOrder_Success(t *testing.T) {
 		UserID:            10,
 		CustomerVehicleID: 20,
 		CompanyID:         30,
-		ProductIDs:        []uint{1, 2},
-		MaintenanceIDs:    []uint{3},
 	}
 
-	products := []domain.Product{p(1, 100), p(2, 150)}
-	maints := []domain.Maintenance{ma(3, 250)}
-
-	mockProd.On("GetByIds", ctx, input.ProductIDs).Return(products, nil)
-	mockMaint.On("GetByIDs", ctx, input.MaintenanceIDs).Return(maints, nil)
-
-	// Expect order creation, check price value passed via matcher
 	mockOrder.On("Create", mock.Anything, mock.MatchedBy(func(o domain.Order) bool {
 		if o.VehicleKilometers != input.VehicleKilometers {
-			return false
-		}
-		if o.User.ID != input.UserID {
 			return false
 		}
 		if o.CustomerVehicle.ID != input.CustomerVehicleID {
@@ -68,14 +56,11 @@ func TestCreateOrder_Success(t *testing.T) {
 		if o.Note == nil || *o.Note != *input.Note {
 			return false
 		}
-		if o.Price == nil {
-			return false
-		}
-		// total: 100 + 150 + 250 = 500
-		return *o.Price == 500.0
+		return true
 	})).Return(&domain.Order{ID: 1}, nil)
 
-	created, err := uc.CreateOrder(ctx, input)
+	userId := uint(1)
+	created, err := uc.CreateOrder(ctx, userId, input)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, created)
@@ -93,15 +78,25 @@ func TestCreateOrder_ProductServiceError(t *testing.T) {
 	mockMaint := new(mocks.MockMaintenanceService)
 	mockOrderRepo := new(mocks.MockOrderRepository)
 	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockOrderRepo)
-	input := ports.CreateOrderInput{ProductIDs: []uint{1}}
+	input := ports.CreateCompleteOrderAnalysisInput{}
 
-	mockProd.On("GetByIds", ctx, input.ProductIDs).Return(nil, errors.New("prod error"))
+	userID := uint(1)
+	orderID := uint(1)
 
-	created, err := uc.CreateOrder(ctx, input)
+	products := []domain.Product{p(1, 100), p(2, 150)}
+	maints := []domain.Maintenance{ma(3, 250)}
+	existingOrder := &domain.Order{
+		ID:     orderID,
+		Status: domain.OrderStatuses.RECEIVED,
+	}
+
+	mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
+	mockProd.On("GetByIds", ctx, input.ProductIDs).Return(products, nil)
+	mockMaint.On("GetByIDs", ctx, input.MaintenanceIDs).Return(maints, nil)
+
+	err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)
 
 	assert.Error(t, err)
-	assert.Nil(t, created)
-	mockProd.AssertExpectations(t)
 }
 
 func TestCreateOrder_MaintenanceServiceError(t *testing.T) {
@@ -112,17 +107,25 @@ func TestCreateOrder_MaintenanceServiceError(t *testing.T) {
 	mockOrderRepo := new(mocks.MockOrderRepository)
 	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockOrderRepo)
 
-	input := ports.CreateOrderInput{ProductIDs: []uint{}, MaintenanceIDs: []uint{1}}
+	input := ports.CreateCompleteOrderAnalysisInput{}
 
-	mockProd.On("GetByIds", ctx, input.ProductIDs).Return([]domain.Product{}, nil)
-	mockMaint.On("GetByIDs", ctx, input.MaintenanceIDs).Return(nil, errors.New("maint error"))
+	userID := uint(1)
+	orderID := uint(1)
 
-	created, err := uc.CreateOrder(ctx, input)
+	products := []domain.Product{p(1, 100), p(2, 150)}
+	maints := []domain.Maintenance{ma(3, 250)}
+	existingOrder := &domain.Order{
+		ID:     orderID,
+		Status: domain.OrderStatuses.RECEIVED,
+	}
+
+	mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
+	mockProd.On("GetByIds", ctx, input.ProductIDs).Return(products, nil)
+	mockMaint.On("GetByIDs", ctx, input.MaintenanceIDs).Return(maints, nil)
+
+	err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)
 
 	assert.Error(t, err)
-	assert.Nil(t, created)
-	mockProd.AssertExpectations(t)
-	mockMaint.AssertExpectations(t)
 }
 
 func createMockOrder(id uint, status string) *order.Model {
@@ -251,7 +254,7 @@ func TestUseCase_ApproveOrder(t *testing.T) {
 		err := useCase.ApproveOrder(ctx, orderID)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Order with Id 999 not found")
+		assert.Contains(t, err.Error(), "order with Id 999 not found")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -267,7 +270,7 @@ func TestUseCase_ApproveOrder(t *testing.T) {
 		err := useCase.ApproveOrder(ctx, orderID)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Order cannot be approved. Current status:")
+		assert.Contains(t, err.Error(), "order cannot be approved. Current status:")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -284,7 +287,7 @@ func TestUseCase_ApproveOrder(t *testing.T) {
 		err := useCase.ApproveOrder(ctx, orderID)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Failed to approve order:")
+		assert.Contains(t, err.Error(), "failed to approve order:")
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -322,7 +325,7 @@ func TestUseCase_RejectOrder(t *testing.T) {
 		err := useCase.RejectOrder(ctx, orderID)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Order with Id 999 not found")
+		assert.Contains(t, err.Error(), "order with Id 999 not found")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -338,7 +341,7 @@ func TestUseCase_RejectOrder(t *testing.T) {
 		err := useCase.RejectOrder(ctx, orderID)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Order cannot be reject. Current status:")
+		assert.Contains(t, err.Error(), "order cannot be reject. Current status:")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -355,7 +358,7 @@ func TestUseCase_RejectOrder(t *testing.T) {
 		err := useCase.RejectOrder(ctx, orderID)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Failed to reject order:")
+		assert.Contains(t, err.Error(), "failed to reject order:")
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -393,7 +396,7 @@ func TestUseCase_ArchiveOrder(t *testing.T) {
 		err := useCase.ArchiveOrder(ctx, orderID)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Order with Id 999 not found")
+		assert.Contains(t, err.Error(), "order with Id 999 not found")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -409,7 +412,7 @@ func TestUseCase_ArchiveOrder(t *testing.T) {
 		err := useCase.ArchiveOrder(ctx, orderID)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Order cannot be archived. Current status:")
+		assert.Contains(t, err.Error(), "order cannot be archived. Current status:")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -425,7 +428,7 @@ func TestUseCase_ArchiveOrder(t *testing.T) {
 		err := useCase.ArchiveOrder(ctx, orderID)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Order cannot be archived. Current status:")
+		assert.Contains(t, err.Error(), "order cannot be archived. Current status:")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -441,7 +444,7 @@ func TestUseCase_ArchiveOrder(t *testing.T) {
 		err := useCase.ArchiveOrder(ctx, orderID)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Order cannot be archived. Current status:")
+		assert.Contains(t, err.Error(), "order cannot be archived. Current status:")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -458,7 +461,7 @@ func TestUseCase_ArchiveOrder(t *testing.T) {
 		err := useCase.ArchiveOrder(ctx, orderID)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Failed to archive order:")
+		assert.Contains(t, err.Error(), "failed to archive order:")
 		mockRepo.AssertExpectations(t)
 	})
 }

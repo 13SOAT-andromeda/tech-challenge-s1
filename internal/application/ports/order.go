@@ -19,8 +19,12 @@ type CreateOrderInput struct {
 	UserID            uint
 	CustomerVehicleID uint
 	CompanyID         uint
-	ProductIDs        []uint
-	MaintenanceIDs    []uint
+}
+
+type CreateCompleteOrderAnalysisInput struct {
+	DiagnosticNote *string
+	ProductIDs     []uint
+	MaintenanceIDs []uint
 }
 
 type OrderRepository interface {
@@ -38,8 +42,9 @@ type OrderService interface {
 }
 
 type OrderUseCase interface {
-	CreateOrder(ctx context.Context, input CreateOrderInput) (*domain.Order, error)
+	CreateOrder(ctx context.Context, userID uint, input CreateOrderInput) (*domain.Order, error)
 	AssignOrder(ctx context.Context, orderID uint, userID uint) error
+	CompleteOrderAnalysis(ctx context.Context, id uint, userID uint, input CreateCompleteOrderAnalysisInput) error
 	ApproveOrder(ctx context.Context, id uint) error
 	RejectOrder(ctx context.Context, id uint) error
 	ArchiveOrder(ctx context.Context, id uint) error
