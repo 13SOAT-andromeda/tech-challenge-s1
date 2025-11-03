@@ -8,6 +8,13 @@ var (
 	ErrInsufficientStock = errors.New("insufficient Stock")
 )
 
+type StockOperation string
+
+const (
+	StockOperationAdd    StockOperation = "ADD"
+	StockOperationRemove StockOperation = "REMOVE"
+)
+
 type Product struct {
 	ID    uint   `json:"id"`
 	Name  string `json:"name"`
@@ -34,6 +41,7 @@ func (p *Product) CanBePurchased(quantity uint) error {
 
 	return nil
 }
+
 func (p *Product) DecreaseStock(quantity uint) error {
 	if err := p.CanBePurchased(quantity); err != nil {
 		return err

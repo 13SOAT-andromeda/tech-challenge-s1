@@ -5,25 +5,21 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
 )
 
 type ProductRepository interface {
 	Repository[product.Model]
-	UpdateStock(ctx context.Context, productID uint, quantity int) error
+	UpdateStock(ctx context.Context, productID uint, quantity int, operation domain.StockOperation) error
 	FindByIDs(ctx context.Context, productIDs []uint) ([]product.Model, error)
-	Search(ctx context.Context, filters filter.ProductFilter) ([]product.Model, error)
 }
 
 type ProductService interface {
 	Create(ctx context.Context, p domain.Product) (*domain.Product, error)
 	Update(ctx context.Context, p domain.Product) (*domain.Product, error)
-	UpdateStock(ctx context.Context, p domain.Product) (*domain.Product, error)
-	GetAll(ctx context.Context, productFilter *filter.ProductFilter) ([]domain.Product, error)
+	GetAll(ctx context.Context) ([]domain.Product, error)
 	GetById(ctx context.Context, productID uint) (*domain.Product, error)
 	GetByIds(ctx context.Context, productIDs []uint) ([]domain.Product, error)
 	Delete(ctx context.Context, productID uint) (*domain.Product, error)
-	ManageStockItem(ctx context.Context, productID uint, quantity uint, operation string) (*domain.Product, error)
-	AddStockItem(ctx context.Context, productID uint, quantity uint) (*domain.Product, error)
-	RemoveStockItem(ctx context.Context, productID uint, quantity uint) (*domain.Product, error)
+	CheckAvailability(ctx context.Context, productID uint, quantity uint) (bool, error)
+	UpdateStock(ctx context.Context, products []domain.ProductItem, operation domain.StockOperation) error
 }
