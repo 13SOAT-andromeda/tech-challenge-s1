@@ -257,7 +257,7 @@ func (uc *UseCase) StartWorkOrder(ctx context.Context, id uint) error {
 		return fmt.Errorf("order cannot start work. current status: %s", order.Status)
 	}
 
-	productItems := make([]domain.ProductItem, 0, len(*order.Products))
+	productItems := make([]domain.StockItem, 0, len(*order.Products))
 
 	for _, item := range *order.Products {
 		available, err := uc.productService.CheckAvailability(ctx, item.ID, item.Quantity)
@@ -269,13 +269,14 @@ func (uc *UseCase) StartWorkOrder(ctx context.Context, id uint) error {
 			return fmt.Errorf("cannot start work: product ID %d is not available in quantity %d", item.ID, item.Quantity)
 		}
 
-		productItems = append(productItems, domain.ProductItem{
-			ID:       item.ID,
-			Quantity: item.Quantity,
+		productItems = append(productItems, domain.StockItem{
+			ID:        item.ID,
+			Quantity:  item.Quantity,
+			Operation: item.Operation,
 		})
 	}
 
-	err = uc.productService.UpdateStock(ctx, productItems, domain.StockOperationRemove)
+	err = uc.productService.UpdateStock(ctx, productItems)
 	if err != nil {
 		return fmt.Errorf("failed to decrement stock: %w", err)
 	}

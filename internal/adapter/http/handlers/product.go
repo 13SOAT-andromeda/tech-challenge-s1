@@ -30,8 +30,7 @@ type updateProductRequest struct {
 }
 
 type updateStockRequest struct {
-	Quantity  uint   `json:"quantity" binding:"required,min=1"`
-	Operation string `json:"operation" binding:"required"`
+	Products []domain.StockItem `json:"products" binding:"required"`
 }
 
 func (h *ProductHandler) CreateProduct(ctx *gin.Context) {
@@ -139,4 +138,21 @@ func (h *ProductHandler) UpdateProduct(ctx *gin.Context) {
 	}
 
 	response.RespondSuccess[any](ctx, nil, "Product updated successfully")
+}
+
+func (h *ProductHandler) UpdateStock(ctx *gin.Context) {
+	var request updateStockRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = h.service.UpdateStock(ctx.Request.Context(), request.Products)
+
+	if err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess[any](ctx, nil, "Product stock updated successfully")
 }

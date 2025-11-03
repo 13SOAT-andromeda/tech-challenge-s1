@@ -43,15 +43,6 @@ var OrderStatuses = struct {
 	DELIVERED:         DELIVERED,
 }
 
-type ProductItem struct {
-	ID       uint
-	Quantity uint
-}
-
-type MaintenanceItem struct {
-	ID uint
-}
-
 type Order struct {
 	ID                uint               `json:"id"`
 	DateIn            time.Time          `json:"date_in"`
@@ -64,6 +55,6 @@ type Order struct {
 	User              User               `json:"user"`
 	CustomerVehicle   CustomerVehicle    `json:"customer_vehicle"`
 	Company           Company            `json:"company"`
-	Products          *[]ProductItem     `json:"products:omitempty"`
+	Products          *[]StockItem       `json:"products:omitempty"`
 	Maintenances      *[]MaintenanceItem `json:"maintenances:omitempty"`
 }

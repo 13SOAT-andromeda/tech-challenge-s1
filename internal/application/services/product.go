@@ -127,9 +127,9 @@ func (s *ProductService) CheckAvailability(ctx context.Context, productID uint, 
 	return true, nil
 }
 
-func (s *ProductService) UpdateStock(ctx context.Context, products []domain.ProductItem, operation domain.StockOperation) error {
+func (s *ProductService) UpdateStock(ctx context.Context, products []domain.StockItem) error {
 	for _, item := range products {
-		err := s.repo.UpdateStock(ctx, item.ID, int(item.Quantity), operation)
+		err := s.repo.UpdateStock(ctx, item.ID, item.Quantity, *item.Operation)
 		if err != nil {
 			return err
 		}
