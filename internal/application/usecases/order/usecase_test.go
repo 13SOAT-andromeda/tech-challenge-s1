@@ -465,3 +465,183 @@ func TestUseCase_ArchiveOrder(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 }
+
+func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("should complete analysis successfully", func(t *testing.T) {
+		mockOrder := new(mocks.MockOrderService)
+		mockProd := new(mocks.MockProductService)
+		mockMaint := new(mocks.MockMaintenanceService)
+		mockOrderRepo := new(mocks.MockOrderRepository)
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockOrderRepo)
+
+		orderID := uint(1)
+		userID := uint(2)
+		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
+
+		products := []domain.Product{p(1, 100), p(2, 150)}
+		maints := []domain.Maintenance{ma(3, 250)}
+
+		input := ports.CreateCompleteOrderAnalysisInput{
+			DiagnosticNote: ptrString("diagnostic"),
+			ProductIDs:     []uint{1, 2},
+			MaintenanceIDs: []uint{3},
+		}
+
+		mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
+		mockProd.On("GetByIds", ctx, input.ProductIDs).Return(products, nil)
+		mockMaint.On("GetByIDs", ctx, input.MaintenanceIDs).Return(maints, nil)
+		mockOrder.On("Update", ctx, mock.MatchedBy(func(o domain.Order) bool {
+			// Price should be set and status updated to AWAITING_APPROVAL and diagnostic note set
+			if o.ID != orderID {
+				return false
+			}
+			if o.Status != domain.OrderStatuses.AWAITING_APPROVAL {
+				return false
+			}
+			if o.DiagnosticNote == nil || *o.DiagnosticNote != *input.DiagnosticNote {
+				return false
+			}
+			if o.User.ID != userID {
+				return false
+			}
+			if o.Price == nil {
+				return false
+			}
+			// total price = 100 + 150 + 250 = 500
+			if *o.Price != 500 {
+				return false
+			}
+			return true
+		})).Return(nil)
+
+		err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)
+		assert.NoError(t, err)
+
+		mockOrder.AssertExpectations(t)
+		mockProd.AssertExpectations(t)
+		mockMaint.AssertExpectations(t)
+	})
+
+	t.Run("should return error when GetByID fails", func(t *testing.T) {
+		mockOrder := new(mocks.MockOrderService)
+		mockProd := new(mocks.MockProductService)
+		mockMaint := new(mocks.MockMaintenanceService)
+		mockOrderRepo := new(mocks.MockOrderRepository)
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockOrderRepo)
+
+		orderID := uint(1)
+		userID := uint(2)
+		input := ports.CreateCompleteOrderAnalysisInput{}
+
+		mockOrder.On("GetByID", ctx, orderID).Return(nil, errors.New("not found"))
+
+		err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "order with Id 1 not found")
+
+		mockOrder.AssertExpectations(t)
+	})
+
+	t.Run("should return error when order status is not IN_ANALYSIS", func(t *testing.T) {
+		mockOrder := new(mocks.MockOrderService)
+		mockProd := new(mocks.MockProductService)
+		mockMaint := new(mocks.MockMaintenanceService)
+		mockOrderRepo := new(mocks.MockOrderRepository)
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockOrderRepo)
+
+		orderID := uint(1)
+		userID := uint(2)
+		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.RECEIVED}
+		input := ports.CreateCompleteOrderAnalysisInput{}
+
+		mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
+
+		err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "order cannot complete analysis")
+
+		mockOrder.AssertExpectations(t)
+	})
+
+	t.Run("should return error when ProductService.GetByIds fails", func(t *testing.T) {
+		mockOrder := new(mocks.MockOrderService)
+		mockProd := new(mocks.MockProductService)
+		mockMaint := new(mocks.MockMaintenanceService)
+		mockOrderRepo := new(mocks.MockOrderRepository)
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockOrderRepo)
+
+		orderID := uint(1)
+		userID := uint(2)
+		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
+		input := ports.CreateCompleteOrderAnalysisInput{ProductIDs: []uint{1}}
+
+		mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
+		mockProd.On("GetByIds", ctx, input.ProductIDs).Return(nil, errors.New("product error"))
+
+		err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)
+		assert.Error(t, err)
+
+		mockOrder.AssertExpectations(t)
+		mockProd.AssertExpectations(t)
+	})
+
+	t.Run("should return error when MaintenanceService.GetByIDs fails", func(t *testing.T) {
+		mockOrder := new(mocks.MockOrderService)
+		mockProd := new(mocks.MockProductService)
+		mockMaint := new(mocks.MockMaintenanceService)
+		mockOrderRepo := new(mocks.MockOrderRepository)
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockOrderRepo)
+
+		orderID := uint(1)
+		userID := uint(2)
+		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
+		input := ports.CreateCompleteOrderAnalysisInput{MaintenanceIDs: []uint{1}}
+
+		mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
+		mockProd.On("GetByIds", ctx, mock.Anything).Return([]domain.Product{}, nil)
+		mockMaint.On("GetByIDs", ctx, input.MaintenanceIDs).Return(nil, errors.New("maintenance error"))
+
+		err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)
+		assert.Error(t, err)
+
+		mockOrder.AssertExpectations(t)
+		mockProd.AssertExpectations(t)
+		mockMaint.AssertExpectations(t)
+	})
+
+	t.Run("should return error when Update fails", func(t *testing.T) {
+		mockOrder := new(mocks.MockOrderService)
+		mockProd := new(mocks.MockProductService)
+		mockMaint := new(mocks.MockMaintenanceService)
+		mockOrderRepo := new(mocks.MockOrderRepository)
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockOrderRepo)
+
+		orderID := uint(1)
+		userID := uint(2)
+		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
+
+		products := []domain.Product{p(1, 100)}
+		maints := []domain.Maintenance{ma(2, 200)}
+
+		input := ports.CreateCompleteOrderAnalysisInput{
+			DiagnosticNote: ptrString("diag"),
+			ProductIDs:     []uint{1},
+			MaintenanceIDs: []uint{2},
+		}
+
+		mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
+		mockProd.On("GetByIds", ctx, input.ProductIDs).Return(products, nil)
+		mockMaint.On("GetByIDs", ctx, input.MaintenanceIDs).Return(maints, nil)
+		mockOrder.On("Update", ctx, mock.Anything).Return(errors.New("update error"))
+
+		err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to complete order analysis")
+
+		mockOrder.AssertExpectations(t)
+		mockProd.AssertExpectations(t)
+		mockMaint.AssertExpectations(t)
+	})
+}
