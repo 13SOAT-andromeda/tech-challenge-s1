@@ -20,6 +20,8 @@ func TestConfig_Init_LoadsEnvFile(t *testing.T) {
 		"ENV":                  "test",
 		"ADMIN_EMAIL":          "admin@admin.com.br",
 		"ADMIN_PASSWORD":       "Pass123@",
+		"MAILTRAP_TOKEN":       "mocktoken",
+		"MAILTRAP_URL":         "http://mockurl.com",
 	})
 	defer UnsetMockEnv([]string{"DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME", "DB_PORT", "DB_SSLMODE", "DB_TIMEZONE", "HTTP_ALLOWED_ORIGINS", "HTTP_PORT", "HTTP_URL", "ENV", "ADMIN_EMAIL", "ADMIN_PASSWORD"})
 

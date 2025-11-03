@@ -17,6 +17,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/repository"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/email"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
@@ -59,6 +60,7 @@ func main() {
 
 	accessExpiry, _ := time.ParseDuration(cfg.JWT.AccessTokenExpiry)
 	refreshExpiry, _ := time.ParseDuration(cfg.JWT.RefreshTokenExpiry)
+	apiUrl := cfg.Http.Url + ":" + cfg.Http.Port
 
 	// Repositories
 	customerRepository := repository.NewCustomerRepository(dbase)
@@ -81,6 +83,7 @@ func main() {
 	sessionService := services.NewSessionService(sessionRepository)
 	orderService := services.NewOrderService(orderRepository)
 	jwtService := jwt.NewService(cfg.JWT.Secret, accessExpiry, refreshExpiry)
+	emailService := email.NewSendtrap(cfg.MailTrap.ApiKey, cfg.MailTrap.ApiUrl)
 
 	// UseCases
 	createCustomerUseCase := customerUseCase.NewCustomerUseCase(customerRepository, customerVehicleRepository, vehicleService)
@@ -90,7 +93,7 @@ func main() {
 	refreshUseCase := sessionUseCase.NewRefreshUseCase(userService, sessionService, jwtService, cfg)
 	logoutUseCase := sessionUseCase.NewLogoutUseCase(sessionService)
 
-	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, orderRepository)
+	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, customerService, emailService, orderRepository, apiUrl)
 
 	// Handlers
 	customerHandler := handlers.NewCustomerHandler(customerService, createCustomerUseCase)

@@ -21,7 +21,8 @@ func NewOrderRepository(db *gorm.DB) ports.OrderRepository {
 func (r *OrderRepository) FindOrderByID(ctx context.Context, id uint) (*order.Model, error) {
 	var models order.Model
 	err := r.db.WithContext(ctx).
-		Preload("CustomerVehicle").
+		Preload("CustomerVehicle.Customer").
+		Preload("CustomerVehicle.Vehicle").
 		Preload("Company").
 		Preload("User").
 		Where("id = ?", id).
