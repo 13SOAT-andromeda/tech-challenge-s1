@@ -5,7 +5,6 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -39,16 +38,16 @@ func (m *MockProductService) GetByIds(ctx context.Context, productIDs []uint) ([
 	return args.Get(0).([]domain.Product), args.Error(1)
 }
 
-func (m *MockProductService) UpdateStock(ctx context.Context, p domain.Product) (*domain.Product, error) {
-	args := m.Called(ctx, p)
+func (m *MockProductService) UpdateStock(ctx context.Context, products []domain.ProductItem, operation domain.StockOperation) error {
+	args := m.Called(ctx, products, operation)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return args.Error(1)
 	}
-	return args.Get(0).(*domain.Product), args.Error(1)
+	return nil
 }
 
-func (m *MockProductService) GetAll(ctx context.Context, productFilter *filter.ProductFilter) ([]domain.Product, error) {
-	args := m.Called(ctx, productFilter)
+func (m *MockProductService) GetAll(ctx context.Context) ([]domain.Product, error) {
+	args := m.Called(ctx)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -71,26 +70,7 @@ func (m *MockProductService) Delete(ctx context.Context, productID uint) (*domai
 	return args.Get(0).(*domain.Product), args.Error(1)
 }
 
-func (m *MockProductService) ManageStockItem(ctx context.Context, productID uint, quantity uint, operation string) (*domain.Product, error) {
-	args := m.Called(ctx, productID, quantity, operation)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*domain.Product), args.Error(1)
-}
-
-func (m *MockProductService) AddStockItem(ctx context.Context, productID uint, quantity uint) (*domain.Product, error) {
+func (m *MockProductService) CheckAvailability(ctx context.Context, productID uint, quantity uint) (bool, error) {
 	args := m.Called(ctx, productID, quantity)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*domain.Product), args.Error(1)
-}
-
-func (m *MockProductService) RemoveStockItem(ctx context.Context, productID uint, quantity uint) (*domain.Product, error) {
-	args := m.Called(ctx, productID, quantity)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*domain.Product), args.Error(1)
+	return args.Bool(0), args.Error(1)
 }
