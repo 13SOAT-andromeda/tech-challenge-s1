@@ -26,7 +26,7 @@ type CreateOrderInput struct {
 type OrderRepository interface {
 	Repository[order.Model]
 	Search(ctx context.Context, params OrderSearch) ([]order.Model, error)
-	FindOrderByID(ctx context.Context, id uint) (order.Model, error)
+	FindOrderByID(ctx context.Context, id uint) (*order.Model, error)
 }
 
 type OrderService interface {

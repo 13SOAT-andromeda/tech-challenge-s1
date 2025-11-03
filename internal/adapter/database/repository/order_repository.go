@@ -18,7 +18,7 @@ func NewOrderRepository(db *gorm.DB) ports.OrderRepository {
 	}
 }
 
-func (r *OrderRepository) FindOrderByID(ctx context.Context, id uint) (order.Model, error) {
+func (r *OrderRepository) FindOrderByID(ctx context.Context, id uint) (*order.Model, error) {
 	var models order.Model
 	err := r.db.WithContext(ctx).
 		Preload("CustomerVehicle").
@@ -27,7 +27,7 @@ func (r *OrderRepository) FindOrderByID(ctx context.Context, id uint) (order.Mod
 		Where("id = ?", id).
 		Find(&models).Error
 
-	return models, err
+	return &models, err
 }
 
 func (r *OrderRepository) Search(ctx context.Context, params ports.OrderSearch) ([]order.Model, error) {
