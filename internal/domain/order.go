@@ -43,16 +43,27 @@ var OrderStatuses = struct {
 	DELIVERED:         DELIVERED,
 }
 
+type ProductItem struct {
+	ID       uint
+	Quantity uint
+}
+
+type MaintenanceItem struct {
+	ID uint
+}
+
 type Order struct {
-	ID                uint
-	DateIn            time.Time
-	DateOut           *time.Time
-	Status            OrderStatus
-	VehicleKilometers int
-	Note              *string
-	DiagnosticNote    *string
-	Price             *float64
-	User              User
-	CustomerVehicle   CustomerVehicle
-	Company           Company
+	ID                uint               `json:"id"`
+	DateIn            time.Time          `json:"date_in"`
+	DateOut           *time.Time         `json:"date_out"`
+	Status            OrderStatus        `json:"status"`
+	VehicleKilometers int                `json:"vehicle_kilometers"`
+	Note              *string            `json:"note"`
+	DiagnosticNote    *string            `json:"diagnostic_note"`
+	Price             *float64           `json:"price"`
+	User              User               `json:"user"`
+	CustomerVehicle   CustomerVehicle    `json:"customer_vehicle"`
+	Company           Company            `json:"company"`
+	Products          *[]ProductItem     `json:"products:omitempty"`
+	Maintenances      *[]MaintenanceItem `json:"maintenances:omitempty"`
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
 	"github.com/gin-gonic/gin"
 )
 
@@ -56,15 +55,8 @@ func (h *ProductHandler) CreateProduct(ctx *gin.Context) {
 	response.RespondCreated[any](ctx, nil, "Product created successfully")
 }
 
-func (h *ProductHandler) GetAllProducts(ctx *gin.Context) {
-
-	filter := &filter.ProductFilter{}
-
-	if name := ctx.Query("name"); name != "" {
-		filter.Name = &name
-	}
-
-	products, err := h.service.GetAll(ctx, filter)
+func (h *ProductHandler) GetProducts(ctx *gin.Context) {
+	products, err := h.service.GetAll(ctx)
 
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
@@ -147,37 +139,4 @@ func (h *ProductHandler) UpdateProduct(ctx *gin.Context) {
 	}
 
 	response.RespondSuccess[any](ctx, nil, "Product updated successfully")
-}
-
-func (h *ProductHandler) ManageStockItem(ctx *gin.Context) {
-
-	productIdStg := ctx.Param("id")
-
-	productId, err := strconv.ParseUint(productIdStg, 10, 64)
-
-	if err != nil {
-		response.RespondError(ctx, http.StatusBadRequest, "Invalid product ID")
-		return
-	}
-
-	var req updateStockRequest
-
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		response.RespondError(ctx, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	product, err := h.service.ManageStockItem(ctx, uint(productId), req.Quantity, req.Operation)
-
-	if err != nil {
-		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	if product == nil {
-		response.RespondError(ctx, http.StatusNotFound, "Customer not found")
-		return
-	}
-
-	response.RespondSuccess[domain.Product](ctx, *product, "")
 }

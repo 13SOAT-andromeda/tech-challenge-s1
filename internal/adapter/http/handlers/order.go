@@ -6,6 +6,7 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/converters"
 	"github.com/gin-gonic/gin"
 )
@@ -27,9 +28,9 @@ type createOrderRequest struct {
 }
 
 type CompleteAnalysisRequest struct {
-	DiagnosticNote string                  `json:"diagnostic_note"`
-	Products       []ports.ProductItem     `json:"products" binding:"required"`
-	Maintenances   []ports.MaintenanceItem `json:"maintenances" binding:"required"`
+	DiagnosticNote string                   `json:"diagnostic_note"`
+	Products       []domain.ProductItem     `json:"products" binding:"required"`
+	Maintenances   []domain.MaintenanceItem `json:"maintenances" binding:"required"`
 }
 
 func (h *OrderHandler) Create(ctx *gin.Context) {
@@ -224,4 +225,19 @@ func (h *OrderHandler) ArchiveOrder(ctx *gin.Context) {
 	}
 
 	response.RespondSuccess(ctx, id, "Order archived successfully")
+}
+
+func (h *OrderHandler) StartWork(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err = h.usecase.StartWorkOrder(ctx, uint(id)); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess(ctx, id, "Work started successfully")
 }

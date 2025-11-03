@@ -5,6 +5,7 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
 	"github.com/stretchr/testify/mock"
 )
@@ -67,8 +68,8 @@ func (m *MockProductRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *MockProductRepository) UpdateStock(ctx context.Context, id uint, quantity int) error {
-	args := m.Called(ctx, id, quantity)
+func (m *MockProductRepository) UpdateStock(ctx context.Context, id uint, quantity int, operation domain.StockOperation) error {
+	args := m.Called(ctx, id, quantity, operation)
 	return args.Error(0)
 }
 

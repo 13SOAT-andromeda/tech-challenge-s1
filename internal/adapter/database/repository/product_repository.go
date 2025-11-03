@@ -2,10 +2,11 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -20,7 +21,7 @@ func NewProductRepository(db *gorm.DB) ports.ProductRepository {
 	}
 }
 
-func (r *productRepository) UpdateStock(ctx context.Context, id uint, quantity int) error {
+func (r *productRepository) UpdateStock(ctx context.Context, id uint, quantity int, operation domain.StockOperation) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var model product.Model
 
@@ -29,7 +30,18 @@ func (r *productRepository) UpdateStock(ctx context.Context, id uint, quantity i
 			return err
 		}
 
-		model.Stock -= uint(quantity)
+		if operation == domain.StockOperationAdd {
+			model.Stock += uint(quantity)
+		} else if operation == domain.StockOperationRemove {
+			if model.Stock < uint(quantity) {
+				return fmt.Errorf("insufficient stock to remove %d items", quantity)
+			}
+
+			model.Stock -= uint(quantity)
+		} else {
+			return fmt.Errorf("unknown operation %q", operation)
+		}
+
 		return tx.Save(&model).Error
 	})
 }
@@ -43,19 +55,4 @@ func (r *productRepository) FindByIDs(ctx context.Context, productIDs []uint) ([
 	}
 
 	return products, nil
-}
-
-func (r *productRepository) Search(ctx context.Context, filters filter.ProductFilter) ([]product.Model, error) {
-	var model []product.Model
-
-	db := r.db.WithContext(ctx)
-
-	if filters.Name != nil {
-		db = db.Where("name LIKE ?", "%"+*filters.Name+"%")
-	}
-
-	err := db.Find(&model).Error
-
-	return model, err
-
 }

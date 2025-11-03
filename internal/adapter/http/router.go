@@ -87,12 +87,11 @@ func NewRouter(
 		productGroup := protected.Group("/products")
 		{
 			productGroup.POST("", productHandler.CreateProduct)
-			productGroup.GET("", productHandler.GetAllProducts) // Todo: implementar search
+			productGroup.GET("", productHandler.GetProducts)
 			productGroup.GET("/:id", productHandler.GetProductByID)
 			productGroup.DELETE("/:id", productHandler.DeleteProduct)
 			productGroup.PUT("/:id", productHandler.UpdateProduct)
-
-			productGroup.PATCH("/:id/stock", productHandler.ManageStockItem)
+			// @TODO: fazer add and remove productGroup.PATCH("/:id/stock", productHandler.ManageStockItem)
 		}
 
 		userGroup := protected.Group("/user")
@@ -124,6 +123,7 @@ func NewRouter(
 			orderGroup.POST("/:id/approve", orderHandler.ApproveOrder)
 			orderGroup.POST("/:id/reject", orderHandler.RejectOrder)
 			orderGroup.POST("/:id/request-approval", orderHandler.RequestApproval)
+			orderGroup.POST("/:id/start-work", orderHandler.StartWork)
 			orderGroup.POST("/:id/archive", orderHandler.ArchiveOrder)
 			orderGroup.DELETE("/:id", orderHandler.Delete)
 		}
