@@ -20,7 +20,7 @@ func NewMaintenanceHandler(service ports.MaintenanceService) *MaintenanceHandler
 type createMaintenanceRequest struct {
 	Name       string  `json:"name" binding:"required"`
 	Price      float64 `json:"price" binding:"required"`
-	CategoryID string  `json:"category" binding:"required"`
+	CategoryId string  `json:"category" binding:"required"`
 }
 
 func (h *MaintenanceHandler) CreateMaintenance(ctx *gin.Context) {
@@ -34,7 +34,7 @@ func (h *MaintenanceHandler) CreateMaintenance(ctx *gin.Context) {
 	c := domain.Maintenance{
 		Name:       json.Name,
 		Price:      monetary.ConvertToMinorUnitInt64(json.Price, 2),
-		CategoryID: domain.MaintenanceCategory(json.CategoryID),
+		CategoryId: domain.MaintenanceCategory(json.CategoryId),
 	}
 
 	if err := c.ValidateMaintenanceCategory(); err != nil {
@@ -84,7 +84,7 @@ func (h *MaintenanceHandler) UpdateMaintenance(ctx *gin.Context) {
 		ID:         uint(idUint),
 		Name:       json.Name,
 		Price:      monetary.ConvertToMinorUnitInt64(json.Price, 2),
-		CategoryID: domain.MaintenanceCategory(json.CategoryID),
+		CategoryId: domain.MaintenanceCategory(json.CategoryId),
 	}
 
 	if err := c.ValidateMaintenanceCategory(); err != nil {

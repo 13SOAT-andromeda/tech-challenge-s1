@@ -66,7 +66,7 @@ func TestMaintenanceService_GetByID_Success(t *testing.T) {
 		Model:      gorm.Model{ID: serviceID},
 		Name:       "Maintenance Test",
 		Price:      100,
-		CategoryID: "standard",
+		CategoryId: "standard",
 	}
 
 	mockRepo.On("FindByID", mock.Anything, serviceID).
@@ -105,8 +105,8 @@ func TestMaintenanceService_GetByIDs_Success(t *testing.T) {
 	ctx := context.Background()
 	serviceIDs := []uint{1, 2}
 	expected := []maintenance.Model{
-		{Model: gorm.Model{ID: 1}, Name: "Maintenance 1", Price: 100, CategoryID: "standard"},
-		{Model: gorm.Model{ID: 2}, Name: "Maintenance 2", Price: 150, CategoryID: "premium"},
+		{Model: gorm.Model{ID: 1}, Name: "Maintenance 1", Price: 100, CategoryId: "standard"},
+		{Model: gorm.Model{ID: 2}, Name: "Maintenance 2", Price: 150, CategoryId: "premium"},
 	}
 
 	mockRepo.On("FindByIDs", mock.Anything, serviceIDs).
