@@ -12,6 +12,11 @@ type MockOrderService struct {
 	mock.Mock
 }
 
+func (m *MockOrderService) Reject(ctx context.Context, id uint) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 var _ ports.OrderService = (*MockOrderService)(nil)
 
 func (m *MockOrderService) Create(ctx context.Context, input domain.Order) (*domain.Order, error) {

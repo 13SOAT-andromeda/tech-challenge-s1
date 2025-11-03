@@ -37,4 +37,6 @@ type OrderService interface {
 
 type OrderUseCase interface {
 	CreateOrder(ctx context.Context, input CreateOrderInput) (*domain.Order, error)
+	ApproveOrder(ctx context.Context, id uint) error
+	RejectOrder(ctx context.Context, id uint) error
 }

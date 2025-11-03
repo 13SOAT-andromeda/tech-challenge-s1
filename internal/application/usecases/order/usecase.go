@@ -2,6 +2,7 @@ package order
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
@@ -12,13 +13,15 @@ type UseCase struct {
 	orderService       ports.OrderService
 	productService     ports.ProductService
 	maintenanceService ports.MaintenanceService
+	orderRepository    ports.OrderRepository
 }
 
-func NewOrderUseCase(orderService ports.OrderService, productsService ports.ProductService, maintenanceService ports.MaintenanceService) *UseCase {
+func NewOrderUseCase(orderService ports.OrderService, productsService ports.ProductService, maintenanceService ports.MaintenanceService, orderRepository ports.OrderRepository) *UseCase {
 	return &UseCase{
 		orderService:       orderService,
 		productService:     productsService,
 		maintenanceService: maintenanceService,
+		orderRepository:    orderRepository,
 	}
 }
 
@@ -61,6 +64,48 @@ func (uc *UseCase) CreateOrder(ctx context.Context, input ports.CreateOrderInput
 	}
 
 	return created, nil
+}
+
+func (s *UseCase) ApproveOrder(ctx context.Context, id uint) error {
+
+	existentOrder, err := s.orderRepository.FindByID(ctx, id)
+
+	if err != nil {
+		return fmt.Errorf("Order with Id %d not found", id)
+	}
+
+	if domain.OrderStatus(existentOrder.Status) != domain.OrderStatuses.AWAITING_APPROVAL {
+		return fmt.Errorf("Order cannot be approved. Current status: %s", existentOrder.Status)
+	}
+
+	existentOrder.Status = string(domain.OrderStatuses.APPROVED)
+
+	if err := s.orderRepository.Update(ctx, existentOrder); err != nil {
+		return fmt.Errorf("Failed to approve order: %w", err)
+	}
+
+	return nil
+}
+
+func (s *UseCase) RejectOrder(ctx context.Context, id uint) error {
+
+	existentOrder, err := s.orderRepository.FindByID(ctx, id)
+
+	if err != nil {
+		return fmt.Errorf("Order with Id %d not found", id)
+	}
+
+	if domain.OrderStatus(existentOrder.Status) != domain.OrderStatuses.AWAITING_APPROVAL {
+		return fmt.Errorf("Order cannot be reject. Current status: %s", existentOrder.Status)
+	}
+
+	existentOrder.Status = string(domain.OrderStatuses.FINISHED)
+
+	if err := s.orderRepository.Update(ctx, existentOrder); err != nil {
+		return fmt.Errorf("Failed to reject order: %w", err)
+	}
+
+	return nil
 }
 
 //
