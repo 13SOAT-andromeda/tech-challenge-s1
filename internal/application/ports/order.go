@@ -48,10 +48,12 @@ type OrderService interface {
 	GetByID(ctx context.Context, id uint) (*domain.Order, error)
 	Update(ctx context.Context, u domain.Order) error
 	Delete(ctx context.Context, id uint) error
+	GetApprovalTemplate(order domain.Order, customer domain.Customer, apiUrl string) (string, error)
 }
 
 type OrderUseCase interface {
 	CreateOrder(ctx context.Context, userID uint, input CreateOrderInput) (*domain.Order, error)
+	RequestApproval(ctx context.Context, id uint) error
 	AssignOrder(ctx context.Context, orderID uint, userID uint) error
 	CompleteOrderAnalysis(ctx context.Context, id uint, userID uint, input CreateCompleteOrderAnalysisInput) error
 	ApproveOrder(ctx context.Context, id uint) error

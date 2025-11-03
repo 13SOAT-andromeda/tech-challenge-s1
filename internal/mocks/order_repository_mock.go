@@ -14,14 +14,6 @@ type MockOrderRepository struct {
 
 var _ ports.OrderRepository = (*MockOrderRepository)(nil)
 
-func (m *MockOrderRepository) FindOrderByID(ctx context.Context, id uint) (*order.Model, error) {
-	args := m.Called(ctx, id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*order.Model), args.Error(1)
-}
-
 func (m *MockOrderRepository) FindAll(ctx context.Context, includeDeleted bool) ([]order.Model, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
@@ -31,6 +23,14 @@ func (m *MockOrderRepository) FindAll(ctx context.Context, includeDeleted bool) 
 }
 
 func (m *MockOrderRepository) FindByID(ctx context.Context, id uint) (*order.Model, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*order.Model), args.Error(1)
+}
+
+func (m *MockOrderRepository) FindOrderByID(ctx context.Context, id uint) (*order.Model, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

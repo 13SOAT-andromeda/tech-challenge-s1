@@ -18,20 +18,28 @@ func NewMaintenanceHandler(service ports.MaintenanceService) *MaintenanceHandler
 }
 
 type createMaintenanceRequest struct {
-	Name  string  `json:"name" binding:"required"`
-	Price float64 `json:"price" binding:"required"`
+	Name       string  `json:"name" binding:"required"`
+	Price      float64 `json:"price" binding:"required"`
+	CategoryID string  `json:"category" binding:"required"`
 }
 
 func (h *MaintenanceHandler) CreateMaintenance(ctx *gin.Context) {
 	var json createMaintenanceRequest
+
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 		ctx.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
 	c := domain.Maintenance{
-		Name:  json.Name,
-		Price: monetary.ConvertToMinorUnitInt64(json.Price, 2),
+		Name:       json.Name,
+		Price:      monetary.ConvertToMinorUnitInt64(json.Price, 2),
+		CategoryID: domain.MaintenanceCategory(json.CategoryID),
+	}
+
+	if err := c.ValidateMaintenanceCategory(); err != nil {
+		ctx.JSON(400, gin.H{"error": err.Error()})
+		return
 	}
 
 	if _, err := h.service.Create(ctx.Request.Context(), c); err != nil {
@@ -54,6 +62,7 @@ func (h *MaintenanceHandler) GetMaintenanceByID(ctx *gin.Context) {
 		ctx.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
+
 	ctx.JSON(200, maintenance)
 }
 
@@ -72,9 +81,15 @@ func (h *MaintenanceHandler) UpdateMaintenance(ctx *gin.Context) {
 	}
 
 	c := domain.Maintenance{
-		ID:    uint(idUint),
-		Name:  json.Name,
-		Price: monetary.ConvertToMinorUnitInt64(json.Price, 2),
+		ID:         uint(idUint),
+		Name:       json.Name,
+		Price:      monetary.ConvertToMinorUnitInt64(json.Price, 2),
+		CategoryID: domain.MaintenanceCategory(json.CategoryID),
+	}
+
+	if err := c.ValidateMaintenanceCategory(); err != nil {
+		ctx.JSON(400, gin.H{"error": err.Error()})
+		return
 	}
 
 	if err := h.service.UpdateByID(ctx.Request.Context(), uint(idUint), c); err != nil {

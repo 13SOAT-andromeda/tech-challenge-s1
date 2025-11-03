@@ -13,15 +13,29 @@ type UseCase struct {
 	orderService       ports.OrderService
 	productService     ports.ProductService
 	maintenanceService ports.MaintenanceService
+	customerService    ports.CustomerService
+	emailService       ports.Email
 	orderRepository    ports.OrderRepository
+	apiUrl             string
 }
 
-func NewOrderUseCase(orderService ports.OrderService, productsService ports.ProductService, maintenanceService ports.MaintenanceService, orderRepository ports.OrderRepository) *UseCase {
+func NewOrderUseCase(
+	orderService ports.OrderService,
+	productsService ports.ProductService,
+	maintenanceService ports.MaintenanceService,
+	customerService ports.CustomerService,
+	emailService ports.Email,
+	orderRepository ports.OrderRepository,
+	apiUrl string,
+) *UseCase {
 	return &UseCase{
 		orderService:       orderService,
 		productService:     productsService,
 		maintenanceService: maintenanceService,
+		customerService:    customerService,
+		emailService:       emailService,
 		orderRepository:    orderRepository,
+		apiUrl:             apiUrl,
 	}
 }
 
@@ -182,75 +196,40 @@ func (uc *UseCase) ArchiveOrder(ctx context.Context, id uint) error {
 	return nil
 }
 
-//
-//import (
-//	"errors"
-//
-//	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
-//)
-//
-//var (
-//	ErrOrderNotFound         = errors.New("Order Not found")
-//	ErrOrderAlreadyApproved  = errors.New("Order Already Approved")
-//	ErrOrderAlreadyCancelled = errors.New("Order already cancelled")
-//	ErrInvalidOrderStatus    = errors.New("Order Status invalid")
-//)
-//
-//type UseCase struct {
-//	productService ports.ProductService
-//	orderService   ports.OrderService
-//}
-//
-//func NewUseCase(productService ports.ProductService) *UseCase {
-//	return &UseCase{productService: productService}
-//}
+func (uc *UseCase) RequestApproval(ctx context.Context, id uint) error {
+	existentOrder, err := uc.orderRepository.FindOrderByID(ctx, id)
 
-//func (uc *UseCase) ProcessPurchase(ctx context.Context, productID uint, quantity uint) error {
-//	if quantity == 0 {
-//		return ErrInvalidQuantity
-//	}
-//
-//	product, err := uc.productService.GetById(ctx, productID)
-//	if err != nil {
-//		return err
-//	}
-//
-//	if product == nil {
-//		return ErrProductNotFound
-//	}
-//
-//	if err := product.CanBePurchased(quantity); err != nil {
-//		return err
-//	}
-//
-//	if err := product.DecreaseStock(quantity); err != nil {
-//		return err
-//	}
-//
-//	_, err = uc.productService.Update(ctx, *product)
-//	return err
-//}
+	if err != nil {
+		return fmt.Errorf("order with Id %d not found", id)
+	}
 
-//func (uc *UseCase) CalculateOrderTotal(ctx context.Context, orderID uint) (float64, error) {
-//	order, err := uc.orderService.GetById(ctx, orderID)
-//	if err != nil {
-//		return 0, err
-//	}
-//
-//	if order == nil {
-//		return 0, ErrOrderNotFound
-//	}
-//
-//	var total float64
-//	for _, item := range order.Items {
-//		product, err := uc.productService.GetById(ctx, item.ProductID)
-//		if err != nil {
-//			return 0, err
-//		}
-//
-//		itemTotal := float64(product.Price) * float64(item.Quantity) / 100.0
-//		total += itemTotal
-//	}
-//
-//	return total, nil
-//}
+	if domain.OrderStatus(existentOrder.Status) != domain.OrderStatuses.ANALYSIS_FINISHED {
+		return fmt.Errorf("notification cannot be sent. Order should be in %s status. Current status: %s", domain.OrderStatuses.ANALYSIS_FINISHED, existentOrder.Status)
+	}
+
+	existentOrder.Status = string(domain.OrderStatuses.AWAITING_APPROVAL)
+
+	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
+		return fmt.Errorf("failed to update order status: %w", err)
+	}
+
+	c, err := uc.customerService.GetByID(ctx, existentOrder.CustomerVehicle.CustomerId)
+
+	if err != nil {
+		return fmt.Errorf("error on find order's customer: %w", err)
+	}
+
+	html, err := uc.orderService.GetApprovalTemplate(*existentOrder.ToDomain(), *c, uc.apiUrl)
+
+	if err != nil {
+		return fmt.Errorf("failed to parse mail template: %w", err)
+	}
+
+	err = uc.emailService.Send(c.Name, c.Email, "Aprovação de Ordem de Serviço", html)
+
+	if err != nil {
+		return fmt.Errorf("failed to send approval notification: %w", err)
+	}
+
+	return nil
+}
