@@ -154,6 +154,70 @@ func createMockOrder(id uint, status string) *order.Model {
 	}
 }
 
+func TestUseCase_AssignOrder(t *testing.T) {
+	ctx := context.Background()
+	t.Run("should assign order successfully", func(t *testing.T) {
+		mockOrderService := new(mocks.MockOrderService)
+		useCase := &UseCase{orderService: mockOrderService}
+
+		orderID := uint(1)
+		userID := uint(2)
+		existingOrder := &domain.Order{
+			ID:     orderID,
+			Status: domain.OrderStatuses.RECEIVED,
+		}
+
+		mockOrderService.On("GetByID", ctx, orderID).Return(existingOrder, nil)
+		mockOrderService.On("Update", ctx, mock.MatchedBy(func(o domain.Order) bool {
+			return o.ID == orderID && o.User.ID == userID && o.Status == domain.OrderStatuses.IN_ANALYSIS
+		})).Return(nil)
+
+		err := useCase.AssignOrder(ctx, orderID, userID)
+
+		assert.NoError(t, err)
+		assert.Equal(t, userID, existingOrder.User.ID)
+		assert.Equal(t, domain.OrderStatuses.IN_ANALYSIS, existingOrder.Status)
+		mockOrderService.AssertExpectations(t)
+	})
+
+	t.Run("should return error when order not found", func(t *testing.T) {
+		mockOrderService := new(mocks.MockOrderService)
+		useCase := &UseCase{orderService: mockOrderService}
+
+		orderID := uint(999)
+		userID := uint(2)
+
+		mockOrderService.On("GetByID", ctx, orderID).Return(nil, domain.ErrOrderNotFound)
+
+		err := useCase.AssignOrder(ctx, orderID, userID)
+
+		assert.Error(t, err)
+		assert.Equal(t, domain.ErrOrderNotFound, err)
+		mockOrderService.AssertExpectations(t)
+	})
+
+	t.Run("should return error when update fails", func(t *testing.T) {
+		mockOrderService := new(mocks.MockOrderService)
+		useCase := &UseCase{orderService: mockOrderService}
+
+		orderID := uint(1)
+		userID := uint(2)
+		existingOrder := &domain.Order{
+			ID:     orderID,
+			Status: domain.OrderStatuses.RECEIVED,
+		}
+
+		mockOrderService.On("GetByID", ctx, orderID).Return(existingOrder, nil)
+		mockOrderService.On("Update", ctx, mock.Anything).Return(errors.New("update error"))
+
+		err := useCase.AssignOrder(ctx, orderID, userID)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "update error")
+		mockOrderService.AssertExpectations(t)
+	})
+}
+
 func TestUseCase_ApproveOrder(t *testing.T) {
 	ctx := context.Background()
 
