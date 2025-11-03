@@ -108,6 +108,27 @@ func (s *UseCase) RejectOrder(ctx context.Context, id uint) error {
 	return nil
 }
 
+func (s *UseCase) ArchiveOrder(ctx context.Context, id uint) error {
+
+	existentOrder, err := s.orderRepository.FindByID(ctx, id)
+
+	if err != nil {
+		return fmt.Errorf("Order with Id %d not found", id)
+	}
+
+	if domain.OrderStatus(existentOrder.Status) != domain.OrderStatuses.FINISHED {
+		return fmt.Errorf("Order cannot be archived. Current status: %s", existentOrder.Status)
+	}
+
+	existentOrder.Status = string(domain.OrderStatuses.DELIVERED)
+
+	if err := s.orderRepository.Update(ctx, existentOrder); err != nil {
+		return fmt.Errorf("Failed to archive order: %w", err)
+	}
+
+	return nil
+}
+
 //
 //import (
 //	"errors"
