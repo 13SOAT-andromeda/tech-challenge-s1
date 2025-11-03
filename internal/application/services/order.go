@@ -2,11 +2,15 @@ package services
 
 import (
 	"context"
+	"strconv"
+	"strings"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/email"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/errors"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/monetary"
 )
 
 var (
@@ -80,4 +84,41 @@ func (s *OrderService) Delete(ctx context.Context, id uint) error {
 	}
 
 	return nil
+}
+
+func (s *OrderService) GetApprovalTemplate(order domain.Order, customer domain.Customer, apiUrl string) (string, error) {
+	html, err := email.LoadTemplate(email.ORDER_APPROVAL)
+
+	if err != nil {
+		return "", err
+	}
+
+	dateIn := order.DateIn.Format("02/01/2006")
+	price := ""
+	diagnosticNote := ""
+	note := ""
+	id := strconv.FormatUint(uint64(order.ID), 8)
+
+	if order.DiagnosticNote != nil {
+		diagnosticNote = *order.DiagnosticNote
+	}
+
+	if order.Price != nil {
+		price = monetary.FormatPtBrCurrency(*order.Price)
+	}
+
+	if order.Note != nil {
+		note = *order.Note
+	}
+
+	html = strings.ReplaceAll(html, "$Name", customer.Name)
+	html = strings.ReplaceAll(html, "$ID", id)
+	html = strings.ReplaceAll(html, "$DateIn", dateIn)
+	html = strings.ReplaceAll(html, "$DiagnosticNote", diagnosticNote)
+	html = strings.ReplaceAll(html, "$Value", price)
+	html = strings.ReplaceAll(html, "$Note", note)
+	html = strings.ReplaceAll(html, "$Approval_url", apiUrl+"/orders/"+id+"/approve")
+	html = strings.ReplaceAll(html, "$Repprove_url", apiUrl+"/orders/"+id+"/reject")
+
+	return html, nil
 }
