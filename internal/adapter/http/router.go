@@ -121,6 +121,8 @@ func NewRouter(
 			orderGroup.POST("", orderHandler.Create)
 			orderGroup.POST("/:id/assign", orderHandler.Assign)
 			orderGroup.DELETE("/:id", orderHandler.Delete)
+			orderGroup.POST("/:id/approve", orderHandler.ApproveOrder)
+			orderGroup.POST("/:id/reject", orderHandler.RejectOrder)
 		}
 	}
 
