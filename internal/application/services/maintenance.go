@@ -36,9 +36,7 @@ func (s *MaintenanceService) GetByID(ctx context.Context, id uint) (*domain.Main
 	}
 
 	result := response.ToDomain()
-	if result != nil {
-		result.CategoryID = domain.ParseCategoryName(string(result.CategoryID))
-	}
+	result.CategoryID = domain.ParseCategoryName(string(result.CategoryID))
 	
 	return result, nil
 }

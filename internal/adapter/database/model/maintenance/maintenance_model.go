@@ -9,7 +9,7 @@ type Model struct {
 	gorm.Model
 	Name       string `gorm:"not null"`
 	Price      int64  `gorm:"not null"`
-	CategoryID string
+	CategoryID string `gorm:"not null"`
 }
 
 func (*Model) TableName() string {
