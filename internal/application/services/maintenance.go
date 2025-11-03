@@ -36,6 +36,10 @@ func (s *MaintenanceService) GetByID(ctx context.Context, id uint) (*domain.Main
 	}
 
 	result := response.ToDomain()
+	if result != nil {
+		result.CategoryID = domain.ParseCategoryName(string(result.CategoryID))
+	}
+	
 	return result, nil
 }
 
@@ -51,7 +55,9 @@ func (s *MaintenanceService) GetByIDs(ctx context.Context, maintenanceIDs []uint
 
 	var result []domain.Maintenance
 	for _, record := range records {
-		result = append(result, *record.ToDomain())
+		toDomainRecord := *record.ToDomain()
+		toDomainRecord.CategoryID = domain.ParseCategoryName(string(toDomainRecord.CategoryID))
+		result = append(result, toDomainRecord)
 	}
 
 	return result, nil

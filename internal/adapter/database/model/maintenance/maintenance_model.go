@@ -7,8 +7,9 @@ import (
 
 type Model struct {
 	gorm.Model
-	Name  string `gorm:"not null"`
-	Price int64  `gorm:"not null"`
+	Name       string `gorm:"not null"`
+	Price      int64  `gorm:"not null"`
+	CategoryID string
 }
 
 func (*Model) TableName() string {
@@ -18,9 +19,10 @@ func (*Model) TableName() string {
 func (m *Model) ToDomain() *domain.Maintenance {
 
 	return &domain.Maintenance{
-		ID:    m.ID,
-		Name:  m.Name,
-		Price: m.Price,
+		ID:         m.ID,
+		Name:       m.Name,
+		Price:      m.Price,
+		CategoryID: domain.MaintenanceCategory(m.CategoryID),
 	}
 }
 
@@ -32,4 +34,5 @@ func (m *Model) FromDomain(d *domain.Maintenance) {
 	m.ID = d.ID
 	m.Name = d.Name
 	m.Price = d.Price
+	m.CategoryID = string(d.CategoryID)
 }

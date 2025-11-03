@@ -13,27 +13,23 @@ import (
 )
 
 func TestMaintenanceService_Create_Success(t *testing.T) {
-	// Arrange
 	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
-	inputService := domain.Maintenance{
+	input := domain.Maintenance{
 		Name:  "Maintenance Test",
 		Price: 150,
 	}
 
 	var mockModel maintenance.Model
-	mockModel.FromDomain(&inputService)
+	mockModel.FromDomain(&input)
 
-	// Configurar o mock para esperar a chamada Create e retornar sucesso
 	mockRepo.On("Create", mock.Anything, mock.Anything).
 		Return(&mockModel, nil)
 
-	// Act
-	result, err := service.Create(ctx, inputService)
+	result, err := service.Create(ctx, input)
 
-	// Assert
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, "Maintenance Test", result.Name)
@@ -41,12 +37,11 @@ func TestMaintenanceService_Create_Success(t *testing.T) {
 }
 
 func TestMaintenanceService_Create_RepositoryError(t *testing.T) {
-	// Arrange
 	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
-	inputService := domain.Maintenance{
+	input := domain.Maintenance{
 		Name:  "Maintenance Test",
 		Price: 150,
 	}
@@ -54,35 +49,31 @@ func TestMaintenanceService_Create_RepositoryError(t *testing.T) {
 	mockRepo.On("Create", mock.Anything, mock.Anything).
 		Return(nil, assert.AnError)
 
-	// Act
-	result, err := service.Create(ctx, inputService)
+	result, err := service.Create(ctx, input)
 
-	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
 	mockRepo.AssertExpectations(t)
 }
 
-func TestMaintenanceService_FindByID_Success(t *testing.T) {
-	// Arrange
+func TestMaintenanceService_GetByID_Success(t *testing.T) {
 	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	serviceID := uint(1)
-	expectedService := &maintenance.Model{
-		Model: gorm.Model{ID: serviceID},
-		Name:  "Maintenance Test",
-		Price: 100,
+	expected := &maintenance.Model{
+		Model:      gorm.Model{ID: serviceID},
+		Name:       "Maintenance Test",
+		Price:      100,
+		CategoryID: "standard",
 	}
 
 	mockRepo.On("FindByID", mock.Anything, serviceID).
-		Return(expectedService, nil)
+		Return(expected, nil)
 
-	// Act
 	result, err := service.GetByID(ctx, serviceID)
 
-	// Assert
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, uint(1), result.ID)
@@ -90,8 +81,7 @@ func TestMaintenanceService_FindByID_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestMaintenanceService_FindByID_NotFound(t *testing.T) {
-	// Arrange
+func TestMaintenanceService_GetByID_NotFound(t *testing.T) {
 	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
@@ -101,35 +91,29 @@ func TestMaintenanceService_FindByID_NotFound(t *testing.T) {
 	mockRepo.On("FindByID", mock.Anything, serviceID).
 		Return(nil, gorm.ErrRecordNotFound)
 
-	// Act
 	result, err := service.GetByID(ctx, serviceID)
 
-	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
 	mockRepo.AssertExpectations(t)
 }
 
-func TestMaintenanceService_FindByIDs_Success(t *testing.T) {
-	// Arrange
+func TestMaintenanceService_GetByIDs_Success(t *testing.T) {
 	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	serviceIDs := []uint{1, 2}
-	expectedServices := []maintenance.Model{
-		{Model: gorm.Model{ID: 1}, Name: "Maintenance 1", Price: 100},
-		{Model: gorm.Model{ID: 2}, Name: "Maintenance 2", Price: 150},
+	expected := []maintenance.Model{
+		{Model: gorm.Model{ID: 1}, Name: "Maintenance 1", Price: 100, CategoryID: "standard"},
+		{Model: gorm.Model{ID: 2}, Name: "Maintenance 2", Price: 150, CategoryID: "premium"},
 	}
 
-	// Use mock.Anything for the slice argument to avoid brittle slice-equality issues
-	mockRepo.On("FindByIDs", ctx, serviceIDs).
-		Return(expectedServices, nil)
+	mockRepo.On("FindByIDs", mock.Anything, serviceIDs).
+		Return(expected, nil)
 
-	// Act
 	result, err := service.GetByIDs(ctx, serviceIDs)
 
-	// Assert
 	assert.NoError(t, err)
 	assert.Len(t, result, 2)
 	assert.Equal(t, uint(1), result[0].ID)
@@ -139,103 +123,124 @@ func TestMaintenanceService_FindByIDs_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestMaintenanceService_FindByIDs_EmptyInput(t *testing.T) {
-	// Arrange
+func TestMaintenanceService_GetByIDs_EmptyInput(t *testing.T) {
 	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	serviceIDs := []uint{}
 
-	// Act
 	result, err := service.GetByIDs(ctx, serviceIDs)
 
-	// Assert
 	assert.NoError(t, err)
 	assert.Len(t, result, 0)
 	mockRepo.AssertNotCalled(t, "FindByIDs")
 }
 
+func TestMaintenanceService_GetByIDs_RepositoryError(t *testing.T) {
+	mockRepo := new(mocks.MockMaintenanceRepository)
+	service := NewMaintenanceService(mockRepo)
+
+	ctx := context.Background()
+	serviceIDs := []uint{1, 2}
+
+	mockRepo.On("FindByIDs", mock.Anything, serviceIDs).
+		Return([]maintenance.Model{}, assert.AnError)
+
+	result, err := service.GetByIDs(ctx, serviceIDs)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	mockRepo.AssertExpectations(t)
+}
+
 func TestMaintenanceService_UpdateByID_Success(t *testing.T) {
-	// Arrange
 	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	serviceID := uint(1)
-	updateService := domain.Maintenance{
+	update := domain.Maintenance{
 		ID:    serviceID,
 		Name:  "Updated Maintenance",
 		Price: 200,
 	}
 
 	var mockModel maintenance.Model
-	mockModel.FromDomain(&updateService)
+	mockModel.FromDomain(&update)
 
-	// Configurar o mock para esperar a chamada Update e retornar sucesso
 	mockRepo.On("Update", mock.Anything, mock.Anything).
 		Return(nil)
 
-	// Act
-	err := service.UpdateByID(ctx, serviceID, updateService)
+	err := service.UpdateByID(ctx, serviceID, update)
 
-	// Assert
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
 }
 
 func TestMaintenanceService_UpdateByID_NotFound(t *testing.T) {
-	// Arrange
 	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	serviceID := uint(1)
-	updateService := domain.Maintenance{
+	update := domain.Maintenance{
 		ID:    serviceID,
 		Name:  "Updated Maintenance",
 		Price: 200,
 	}
 
 	var mockModel maintenance.Model
-	mockModel.FromDomain(&updateService)
+	mockModel.FromDomain(&update)
 
-	// Configurar o mock para esperar a chamada Update e retornar um erro de não encontrado
 	mockRepo.On("Update", mock.Anything, mock.Anything).
 		Return(gorm.ErrRecordNotFound)
 
-	// Act
-	err := service.UpdateByID(ctx, serviceID, updateService)
+	err := service.UpdateByID(ctx, serviceID, update)
 
-	// Assert
 	assert.Error(t, err)
 	mockRepo.AssertExpectations(t)
 }
 
-func TestMaintenanceService_DeleteByID_Success(t *testing.T) {
-	// Arrange
+func TestMaintenanceService_UpdateByID_RepositoryError(t *testing.T) {
 	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	serviceID := uint(1)
-	existingService := &maintenance.Model{
+	update := domain.Maintenance{
+		ID:    serviceID,
+		Name:  "Updated Maintenance",
+		Price: 200,
+	}
+
+	mockRepo.On("Update", mock.Anything, mock.Anything).
+		Return(assert.AnError)
+
+	err := service.UpdateByID(ctx, serviceID, update)
+
+	assert.Error(t, err)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestMaintenanceService_DeleteByID_Success(t *testing.T) {
+	mockRepo := new(mocks.MockMaintenanceRepository)
+	service := NewMaintenanceService(mockRepo)
+
+	ctx := context.Background()
+	serviceID := uint(1)
+	existing := &maintenance.Model{
 		Model: gorm.Model{ID: serviceID},
 		Name:  "Maintenance to Delete",
 	}
 
-	// Configurar o mock para esperar a chamada FindByID e retornar o serviço existente
 	mockRepo.On("FindByID", mock.Anything, serviceID).
-		Return(existingService, nil)
-
-	// Configurar o mock para esperar a chamada Delete e retornar sucesso
+		Return(existing, nil)
 	mockRepo.On("Delete", mock.Anything, serviceID).
 		Return(nil)
 
-	// Act
 	result, err := service.DeleteByID(ctx, serviceID)
 
-	// Assert
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, uint(1), result.ID)
@@ -244,21 +249,40 @@ func TestMaintenanceService_DeleteByID_Success(t *testing.T) {
 }
 
 func TestMaintenanceService_DeleteByID_NotFound(t *testing.T) {
-	// Arrange
 	mockRepo := new(mocks.MockMaintenanceRepository)
 	service := NewMaintenanceService(mockRepo)
 
 	ctx := context.Background()
 	serviceID := uint(1)
 
-	// Configurar o mock para esperar a chamada FindByID e retornar um erro de não encontrado
 	mockRepo.On("FindByID", mock.Anything, serviceID).
 		Return(nil, gorm.ErrRecordNotFound)
 
-	// Act
 	result, err := service.DeleteByID(ctx, serviceID)
 
-	// Assert
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestMaintenanceService_DeleteByID_DeleteError(t *testing.T) {
+	mockRepo := new(mocks.MockMaintenanceRepository)
+	service := NewMaintenanceService(mockRepo)
+
+	ctx := context.Background()
+	serviceID := uint(1)
+	existing := &maintenance.Model{
+		Model: gorm.Model{ID: serviceID},
+		Name:  "Maintenance to Delete",
+	}
+
+	mockRepo.On("FindByID", mock.Anything, serviceID).
+		Return(existing, nil)
+	mockRepo.On("Delete", mock.Anything, serviceID).
+		Return(assert.AnError)
+
+	result, err := service.DeleteByID(ctx, serviceID)
+
 	assert.Error(t, err)
 	assert.Nil(t, result)
 	mockRepo.AssertExpectations(t)
