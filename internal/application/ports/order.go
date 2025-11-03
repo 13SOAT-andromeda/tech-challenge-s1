@@ -26,6 +26,7 @@ type CreateOrderInput struct {
 type OrderRepository interface {
 	Repository[order.Model]
 	Search(ctx context.Context, params OrderSearch) ([]order.Model, error)
+	FindOrderByID(ctx context.Context, id uint) (*order.Model, error)
 }
 
 type OrderService interface {
@@ -33,10 +34,12 @@ type OrderService interface {
 	GetAll(ctx context.Context, params map[string]interface{}) (*[]domain.Order, error)
 	GetByID(ctx context.Context, id uint) (*domain.Order, error)
 	Delete(ctx context.Context, id uint) error
+	GetApprovalTemplate(order domain.Order, customer domain.Customer, apiUrl string) (string, error)
 }
 
 type OrderUseCase interface {
 	CreateOrder(ctx context.Context, input CreateOrderInput) (*domain.Order, error)
 	ApproveOrder(ctx context.Context, id uint) error
 	RejectOrder(ctx context.Context, id uint) error
+	RequestApproval(ctx context.Context, id uint) error
 }

@@ -36,3 +36,12 @@ func (r *orderRepository) Search(ctx context.Context, params ports.OrderSearch) 
 	return model, err
 
 }
+
+func (r *orderRepository) FindOrderByID(ctx context.Context, id uint) (*order.Model, error) {
+	var order order.Model
+	err := r.db.WithContext(ctx).Preload("CustomerVehicle.Customer").Preload("CustomerVehicle.Vehicle").First(&order, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &order, nil
+}

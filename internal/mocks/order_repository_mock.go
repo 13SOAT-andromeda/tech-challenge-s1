@@ -30,6 +30,14 @@ func (m *MockOrderRepository) FindByID(ctx context.Context, id uint) (*order.Mod
 	return args.Get(0).(*order.Model), args.Error(1)
 }
 
+func (m *MockOrderRepository) FindOrderByID(ctx context.Context, id uint) (*order.Model, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*order.Model), args.Error(1)
+}
+
 func (m *MockOrderRepository) FindByIDs(ctx context.Context, ids []uint) ([]order.Model, error) {
 	args := m.Called(ctx, ids)
 	if args.Get(0) == nil {
