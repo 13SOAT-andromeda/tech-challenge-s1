@@ -66,6 +66,23 @@ func (uc *UseCase) CreateOrder(ctx context.Context, input ports.CreateOrderInput
 	return created, nil
 }
 
+func (uc *UseCase) AssignOrder(ctx context.Context, orderID uint, userID uint) error {
+	order, err := uc.orderService.GetByID(ctx, orderID)
+	if err != nil {
+		return err
+	}
+
+	if order == nil {
+		return domain.ErrOrderNotFound
+	}
+
+	order.User = domain.User{ID: userID}
+	order.Status = domain.OrderStatuses.IN_ANALYSIS
+
+	err = uc.orderService.Update(ctx, *order)
+	return err
+}
+
 func (s *UseCase) ApproveOrder(ctx context.Context, id uint) error {
 
 	existentOrder, err := s.orderRepository.FindByID(ctx, id)
