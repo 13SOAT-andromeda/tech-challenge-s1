@@ -101,3 +101,51 @@ func (h *OrderHandler) Delete(ctx *gin.Context) {
 
 	response.RespondSuccess(ctx, id, "Order deleted successfully")
 }
+
+func (h *OrderHandler) ApproveOrder(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.usecase.ApproveOrder(ctx, uint(id)); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess(ctx, id, "Order approved successfully")
+}
+
+func (h *OrderHandler) RejectOrder(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.usecase.RejectOrder(ctx, uint(id)); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess(ctx, id, "Order rejected successfully")
+}
+
+func (h *OrderHandler) ArchiveOrder(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.usecase.ArchiveOrder(ctx, uint(id)); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess(ctx, id, "Order archived successfully")
+}

@@ -90,7 +90,7 @@ func main() {
 	refreshUseCase := sessionUseCase.NewRefreshUseCase(userService, sessionService, jwtService, cfg)
 	logoutUseCase := sessionUseCase.NewLogoutUseCase(sessionService)
 
-	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService)
+	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, orderRepository)
 
 	// Handlers
 	customerHandler := handlers.NewCustomerHandler(customerService, createCustomerUseCase)
