@@ -10,13 +10,15 @@ import (
 
 func TestServiceModelInitialization(t *testing.T) {
 	s := Model{
-		Name:  "Maintenance A",
-		Price: 100,
+		Name:       "Maintenance A",
+		Price:      100,
+		CategoryID: "Standard",
 	}
 
 	assert.NotNil(t, s)
 	assert.Equal(t, "Maintenance A", s.Name)
 	assert.Equal(t, int64(100), s.Price)
+	assert.Equal(t, "Standard", s.CategoryID)
 }
 
 func TestServiceModel_ToFromDomain(t *testing.T) {
@@ -30,11 +32,15 @@ func TestServiceModel_ToFromDomain(t *testing.T) {
 			UpdatedAt: now,
 			DeletedAt: gorm.DeletedAt{Time: deletedAt, Valid: true},
 		},
-		Name:  "Service A",
-		Price: 100,
+		Name:       "Service A",
+		Price:      100,
+		CategoryID: "Standard",
 	}
 
 	domainService := modelService.ToDomain()
+
+	assert.NotNil(t, domainService.CategoryID)
+	assert.Equal(t, modelService.CategoryID, string(domainService.CategoryID))
 
 	assert.Equal(t, modelService.ID, domainService.ID)
 	assert.Equal(t, modelService.Name, domainService.Name)

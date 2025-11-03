@@ -80,6 +80,23 @@ func (uc *UseCase) CreateOrder(ctx context.Context, input ports.CreateOrderInput
 	return created, nil
 }
 
+func (uc *UseCase) AssignOrder(ctx context.Context, orderID uint, userID uint) error {
+	order, err := uc.orderService.GetByID(ctx, orderID)
+	if err != nil {
+		return err
+	}
+
+	if order == nil {
+		return domain.ErrOrderNotFound
+	}
+
+	order.User = domain.User{ID: userID}
+	order.Status = domain.OrderStatuses.IN_ANALYSIS
+
+	err = uc.orderService.Update(ctx, *order)
+	return err
+}
+
 func (s *UseCase) ApproveOrder(ctx context.Context, id uint) error {
 
 	existentOrder, err := s.orderRepository.FindByID(ctx, id)
@@ -117,6 +134,27 @@ func (s *UseCase) RejectOrder(ctx context.Context, id uint) error {
 
 	if err := s.orderRepository.Update(ctx, existentOrder); err != nil {
 		return fmt.Errorf("failed to reject order: %w", err)
+	}
+
+	return nil
+}
+
+func (s *UseCase) ArchiveOrder(ctx context.Context, id uint) error {
+
+	existentOrder, err := s.orderRepository.FindByID(ctx, id)
+
+	if err != nil {
+		return fmt.Errorf("order with Id %d not found", id)
+	}
+
+	if domain.OrderStatus(existentOrder.Status) != domain.OrderStatuses.FINISHED {
+		return fmt.Errorf("order cannot be archived. Current status: %s", existentOrder.Status)
+	}
+
+	existentOrder.Status = string(domain.OrderStatuses.DELIVERED)
+
+	if err := s.orderRepository.Update(ctx, existentOrder); err != nil {
+		return fmt.Errorf("failed to archive order: %w", err)
 	}
 
 	return nil

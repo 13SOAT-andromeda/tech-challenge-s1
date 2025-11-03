@@ -3,9 +3,9 @@ package domain
 import "errors"
 
 var (
-	ErrInvalidPrice      = errors.New("Price is invalid or equals 0")
-	ErrInvalidName       = errors.New("Product name is invalid")
-	ErrInsufficientStock = errors.New("Insufficient Stock")
+	ErrInvalidPrice      = errors.New("price is invalid or equals 0")
+	ErrInvalidName       = errors.New("product name is invalid")
+	ErrInsufficientStock = errors.New("insufficient Stock")
 )
 
 type Product struct {

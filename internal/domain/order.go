@@ -1,6 +1,14 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"errors"
+)
+
+var (
+	ErrOrderNotFound = errors.New("order not found")
+)
 
 type OrderStatus string
 

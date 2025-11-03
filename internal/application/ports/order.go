@@ -33,13 +33,16 @@ type OrderService interface {
 	Create(ctx context.Context, u domain.Order) (*domain.Order, error)
 	GetAll(ctx context.Context, params map[string]interface{}) (*[]domain.Order, error)
 	GetByID(ctx context.Context, id uint) (*domain.Order, error)
+	Update(ctx context.Context, u domain.Order) error
 	Delete(ctx context.Context, id uint) error
 	GetApprovalTemplate(order domain.Order, customer domain.Customer, apiUrl string) (string, error)
 }
 
 type OrderUseCase interface {
 	CreateOrder(ctx context.Context, input CreateOrderInput) (*domain.Order, error)
+	RequestApproval(ctx context.Context, id uint) error
+	AssignOrder(ctx context.Context, orderID uint, userID uint) error
 	ApproveOrder(ctx context.Context, id uint) error
 	RejectOrder(ctx context.Context, id uint) error
-	RequestApproval(ctx context.Context, id uint) error
+	ArchiveOrder(ctx context.Context, id uint) error
 }

@@ -8,24 +8,23 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
-	"gorm.io/gorm"
 )
 
-type useCase struct {
+type UseCase struct {
 	customerRepository  ports.CustomerRepository
 	customerVehicleRepo ports.CustomerVehicleRepository
 	vehicleService      ports.VehicleService
 }
 
-func NewCustomerUseCase(customerRepository ports.CustomerRepository, customerVehicleRepo ports.CustomerVehicleRepository, vehicleService ports.VehicleService) *useCase {
-	return &useCase{
+func NewCustomerUseCase(customerRepository ports.CustomerRepository, customerVehicleRepo ports.CustomerVehicleRepository, vehicleService ports.VehicleService) *UseCase {
+	return &UseCase{
 		customerRepository:  customerRepository,
 		customerVehicleRepo: customerVehicleRepo,
 		vehicleService:      vehicleService,
 	}
 }
 
-func (s *useCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleID uint) error {
+func (s *UseCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleID uint) error {
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 
 	if err != nil {
@@ -54,13 +53,18 @@ func (s *useCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 		return errors.New("vehicle is already associated with this customer")
 	}
 
-	customerVehicle := &customer_vehicle.Model{
-		Model:      gorm.Model{},
+	// @TODO: Passar para o service de customer-vehicle
+	customerVehicleDomain := &domain.CustomerVehicle{
 		CustomerId: customerID,
 		VehicleId:  vehicleID,
 	}
 
-	_, err = s.customerVehicleRepo.Create(ctx, customerVehicle)
+	model := customer_vehicle.Model{}
+	model.FromDomain(customerVehicleDomain)
+
+	customerVehicle := model
+
+	_, err = s.customerVehicleRepo.Create(ctx, &customerVehicle)
 	if err != nil {
 		return fmt.Errorf("error creating customer-vehicle association: %w", err)
 	}
@@ -68,7 +72,7 @@ func (s *useCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 	return nil
 }
 
-func (s *useCase) RemoveVehicleFromCustomer(ctx context.Context, customerID, vehicleID uint) error {
+func (s *UseCase) RemoveVehicleFromCustomer(ctx context.Context, customerID, vehicleID uint) error {
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 	if err != nil {
 		return fmt.Errorf("customer not found: %w", err)
@@ -93,7 +97,7 @@ func (s *useCase) RemoveVehicleFromCustomer(ctx context.Context, customerID, veh
 	return nil
 }
 
-func (s *useCase) GetCustomerVehicles(ctx context.Context, customerID uint) ([]domain.Vehicle, error) {
+func (s *UseCase) GetCustomerVehicles(ctx context.Context, customerID uint) ([]domain.Vehicle, error) {
 
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 

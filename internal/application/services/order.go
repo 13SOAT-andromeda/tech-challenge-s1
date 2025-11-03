@@ -43,7 +43,7 @@ func (s *OrderService) Create(ctx context.Context, o domain.Order) (*domain.Orde
 }
 
 func (s *OrderService) GetByID(ctx context.Context, id uint) (*domain.Order, error) {
-	result, err := s.repo.FindByID(ctx, id)
+	result, err := s.repo.FindOrderByID(ctx, id)
 
 	if err != nil {
 		return nil, err
@@ -81,6 +81,18 @@ func (s *OrderService) Delete(ctx context.Context, id uint) error {
 	err := s.repo.Delete(ctx, id)
 	if err != nil {
 		return ErrOrderDelete
+	}
+
+	return nil
+}
+
+func (s *OrderService) Update(ctx context.Context, o domain.Order) error {
+	model := order.Model{}
+	model.FromDomain(&o)
+
+	err := s.repo.Update(ctx, &model)
+	if err != nil {
+		return err
 	}
 
 	return nil

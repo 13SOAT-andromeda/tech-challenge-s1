@@ -50,3 +50,8 @@ func (m *MockOrderService) GetApprovalTemplate(order domain.Order, customer doma
 	}
 	return args.String(0), args.Error(1)
 }
+
+func (m *MockOrderService) Update(ctx context.Context, input domain.Order) error {
+	args := m.Called(ctx, input)
+	return args.Error(0)
+}
