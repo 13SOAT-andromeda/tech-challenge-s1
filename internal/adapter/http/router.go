@@ -120,9 +120,12 @@ func NewRouter(
 			orderGroup.GET("/:id", orderHandler.GetByID)
 			orderGroup.POST("", orderHandler.Create)
 			orderGroup.POST("/:id/assign", orderHandler.Assign)
-			orderGroup.DELETE("/:id", orderHandler.Delete)
+			orderGroup.POST("/:id/complete-analysis", orderHandler.CompleteAnalysis)
+			orderGroup.POST("/:id/approve", orderHandler.ApproveOrder)
+			orderGroup.POST("/:id/reject", orderHandler.RejectOrder)
 			orderGroup.POST("/:id/request-approval", orderHandler.RequestApproval)
 			orderGroup.POST("/:id/archive", orderHandler.ArchiveOrder)
+			orderGroup.DELETE("/:id", orderHandler.Delete)
 		}
 
 		unauthenticatedOrderGroup := router.Group("/orders")
