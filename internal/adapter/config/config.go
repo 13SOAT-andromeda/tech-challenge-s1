@@ -13,6 +13,7 @@ type Config struct {
 	JWT       *JWTConfig
 	Env       string
 	AdminUser *AdminUserConfig
+	MailTrap  *MailTrapConfig
 }
 
 type HttpConfig struct {
@@ -35,6 +36,11 @@ type JWTConfig struct {
 	Secret             string
 	AccessTokenExpiry  string
 	RefreshTokenExpiry string
+}
+
+type MailTrapConfig struct {
+	ApiKey string
+	ApiUrl string
 }
 
 type AdminUserConfig struct {
@@ -87,11 +93,17 @@ func Init() (*Config, error) {
 		Password: getEnv("ADMIN_PASSWORD", ""),
 	}
 
+	mailTrap := &MailTrapConfig{
+		ApiKey: getEnv("MAILTRAP_TOKEN", ""),
+		ApiUrl: getEnv("MAILTRAP_URL", ""),
+	}
+
 	return &Config{
 		Database:  database,
 		Http:      http,
 		JWT:       jwt,
 		Env:       getEnv("ENV", "development"),
 		AdminUser: adminUser,
+		MailTrap:  mailTrap,
 	}, nil
 }
