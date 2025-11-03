@@ -295,3 +295,106 @@ func TestUseCase_RejectOrder(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 }
+
+func TestUseCase_ArchiveOrder(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("should archive order successfully", func(t *testing.T) {
+		mockRepo := new(mocks.MockOrderRepository)
+		useCase := &UseCase{orderRepository: mockRepo}
+
+		orderID := uint(1)
+		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.FINISHED))
+
+		mockRepo.On("FindByID", ctx, orderID).Return(existingOrder, nil)
+		mockRepo.On("Update", ctx, mock.MatchedBy(func(o *order.Model) bool {
+			return o.ID == orderID && o.Status == string(domain.OrderStatuses.DELIVERED)
+		})).Return(nil)
+
+		err := useCase.ArchiveOrder(ctx, orderID)
+
+		assert.NoError(t, err)
+		assert.Equal(t, string(domain.OrderStatuses.DELIVERED), existingOrder.Status)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("should return error when order not found", func(t *testing.T) {
+		mockRepo := new(mocks.MockOrderRepository)
+		useCase := &UseCase{orderRepository: mockRepo}
+
+		orderID := uint(999)
+
+		mockRepo.On("FindByID", ctx, orderID).Return(nil, errors.New("not found"))
+
+		err := useCase.ArchiveOrder(ctx, orderID)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Order with Id 999 not found")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("should return error when order status is not FINISHED", func(t *testing.T) {
+		mockRepo := new(mocks.MockOrderRepository)
+		useCase := &UseCase{orderRepository: mockRepo}
+
+		orderID := uint(1)
+		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.AWAITING_APPROVAL))
+
+		mockRepo.On("FindByID", ctx, orderID).Return(existingOrder, nil)
+
+		err := useCase.ArchiveOrder(ctx, orderID)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Order cannot be archived. Current status:")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("should return error when order status is APPROVED", func(t *testing.T) {
+		mockRepo := new(mocks.MockOrderRepository)
+		useCase := &UseCase{orderRepository: mockRepo}
+
+		orderID := uint(1)
+		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.APPROVED))
+
+		mockRepo.On("FindByID", ctx, orderID).Return(existingOrder, nil)
+
+		err := useCase.ArchiveOrder(ctx, orderID)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Order cannot be archived. Current status:")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("should return error when order status is DELIVERED", func(t *testing.T) {
+		mockRepo := new(mocks.MockOrderRepository)
+		useCase := &UseCase{orderRepository: mockRepo}
+
+		orderID := uint(1)
+		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.DELIVERED))
+
+		mockRepo.On("FindByID", ctx, orderID).Return(existingOrder, nil)
+
+		err := useCase.ArchiveOrder(ctx, orderID)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Order cannot be archived. Current status:")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("should return error when update fails", func(t *testing.T) {
+		mockRepo := new(mocks.MockOrderRepository)
+		useCase := &UseCase{orderRepository: mockRepo}
+
+		orderID := uint(1)
+		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.FINISHED))
+
+		mockRepo.On("FindByID", ctx, orderID).Return(existingOrder, nil)
+		mockRepo.On("Update", ctx, mock.Anything).Return(errors.New("database error"))
+
+		err := useCase.ArchiveOrder(ctx, orderID)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Failed to archive order:")
+		mockRepo.AssertExpectations(t)
+	})
+}
