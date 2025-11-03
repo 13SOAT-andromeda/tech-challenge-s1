@@ -23,8 +23,17 @@ type CreateOrderInput struct {
 
 type CreateCompleteOrderAnalysisInput struct {
 	DiagnosticNote *string
-	ProductIDs     []uint
-	MaintenanceIDs []uint
+	Products       []ProductItem
+	Maintenances   []MaintenanceItem
+}
+
+type ProductItem struct {
+	ProductID uint
+	Quantity  uint
+}
+
+type MaintenanceItem struct {
+	MaintenanceID uint
 }
 
 type OrderRepository interface {

@@ -27,9 +27,9 @@ type createOrderRequest struct {
 }
 
 type CompleteAnalysisRequest struct {
-	DiagnosticNote string `json:"diagnostic_note"`
-	ProductIDs     []uint `json:"product_ids" binding:"required"`
-	MaintenanceIDs []uint `json:"maintenance_ids" binding:"required"`
+	DiagnosticNote string                  `json:"diagnostic_note"`
+	Products       []ports.ProductItem     `json:"products" binding:"required"`
+	Maintenances   []ports.MaintenanceItem `json:"maintenances" binding:"required"`
 }
 
 func (h *OrderHandler) Create(ctx *gin.Context) {
@@ -103,8 +103,8 @@ func (h *OrderHandler) CompleteAnalysis(ctx *gin.Context) {
 
 	input := ports.CreateCompleteOrderAnalysisInput{
 		DiagnosticNote: &request.DiagnosticNote,
-		ProductIDs:     request.ProductIDs,
-		MaintenanceIDs: request.MaintenanceIDs,
+		Products:       request.Products,
+		Maintenances:   request.Maintenances,
 	}
 
 	if err := h.usecase.CompleteOrderAnalysis(ctx, uint(orderID), userId.(uint), input); err != nil {

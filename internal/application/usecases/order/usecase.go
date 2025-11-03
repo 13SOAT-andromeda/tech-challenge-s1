@@ -65,7 +65,6 @@ func (uc *UseCase) AssignOrder(ctx context.Context, orderID uint, userID uint) e
 
 func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID uint, input ports.CreateCompleteOrderAnalysisInput) error {
 	order, err := uc.orderService.GetByID(ctx, id)
-
 	if err != nil {
 		return fmt.Errorf("order with Id %d not found", id)
 	}
@@ -74,20 +73,34 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 		return fmt.Errorf("order cannot complete analysis. Current status: %s", order.Status)
 	}
 
-	products, err := uc.productService.GetByIds(ctx, input.ProductIDs)
+	productIds := make([]uint, 0, len(input.Products))
+	productQuantities := make(map[uint]int, len(input.Products))
+
+	for _, item := range input.Products {
+		productIds = append(productIds, item.ProductID)
+		productQuantities[item.ProductID] = int(item.Quantity)
+	}
+
+	products, err := uc.productService.GetByIds(ctx, productIds)
 	if err != nil {
 		return err
 	}
 
-	maintenances, err := uc.maintenanceService.GetByIDs(ctx, input.MaintenanceIDs)
+	maintenanceIds := make([]uint, 0, len(input.Maintenances))
+	for _, v := range input.Maintenances {
+		maintenanceIds = append(maintenanceIds, v.MaintenanceID)
+	}
+
+	maintenances, err := uc.maintenanceService.GetByIDs(ctx, maintenanceIds)
 	if err != nil {
 		return err
 	}
 
 	totalPrice := 0.0
 
-	for _, v := range products {
-		totalPrice += float64(v.Price)
+	for _, product := range products {
+		quantity := productQuantities[product.ID]
+		totalPrice += float64(product.Price) * float64(quantity)
 	}
 
 	for _, v := range maintenances {
