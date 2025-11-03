@@ -147,5 +147,5 @@ func (h *OrderHandler) ArchiveOrder(ctx *gin.Context) {
 		return
 	}
 
-	response.RespondSuccess(ctx, id, "Order rejected successfully")
+	response.RespondSuccess(ctx, id, "Order archived successfully")
 }
