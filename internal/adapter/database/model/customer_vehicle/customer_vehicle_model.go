@@ -23,8 +23,8 @@ func (*Model) TableName() string {
 func (m *Model) ToDomain() *domain.CustomerVehicle {
 	return &domain.CustomerVehicle{
 		ID:         m.ID,
-		CustomerId: m.Customer.ID,
-		VehicleId:  m.Vehicle.ID,
+		CustomerId: m.CustomerId,
+		VehicleId:  m.VehicleId,
 	}
 }
 
