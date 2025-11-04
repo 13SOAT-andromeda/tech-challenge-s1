@@ -1,13 +1,11 @@
-﻿name: Go Security SAST
+﻿name: Complete Go SAST
 on:
   push:
     branches: [main, master]
-    tags:
-      - v*
   pull_request:
 
 jobs:
-  lint:
+  security-sast:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,45 +14,33 @@ jobs:
         with:
           go-version: '1.25'
 
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: v1.55.2
-          args: --out-format=json --issues-exit-code=1 ./...
-
-  sast:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4  # ✅ Corrigido
-
-      - uses: actions/setup-go@v4
-        with:
-          go-version: '1.25'
-
-      - name: Install SAST Tools
+      - name: Install Code Quality Tools
         run: |
-          # Scanner de segurança principal para Go
-          go install github.com/securego/gosec/v2/cmd/gosec@latest
-          # Scanner de vulnerabilidades em dependências
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          # Detector de dependências não utilizadas
-          go install github.com/tdakkota/asciicheck@latest
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.2
 
-      - name: Run Gosec SAST
+      - name: Run golangci-lint
+        run: golangci-lint run --out-format=json --issues-exit-code=1 ./...
+
+      - name: Install SAST Security Tools
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Run Gosec Security Scan
         run: gosec -fmt=sarif -out=gosec-report.sarif ./...
 
-      - name: Run Govulncheck
+      - name: Run Vulnerability Check
         run: govulncheck -json ./... > vulncheck-report.json 2>&1 || true
 
-      - name: Upload SAST Reports to GitHub Security
+      - name: Upload Security Reports
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: gosec-report.sarif
 
-      - name: Upload SAST Reports as Artifact
-        uses: actions/upload-artifact@v4  # ✅ Corrigido
+      - name: Store All Reports
+        uses: actions/upload-artifact@v4
         with:
-          name: comprehensive-sast-reports
+          name: security-sast-results
           path: |
             gosec-report.sarif
             vulncheck-report.json
