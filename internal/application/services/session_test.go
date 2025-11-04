@@ -350,6 +350,7 @@ func TestSessionService_DeleteByRefreshToken(t *testing.T) {
 			refreshToken: "refreshtoken",
 			setupMock: func(m *mocks.MockSessionRepository) {
 				m.On("DeleteByRefreshToken", mock.Anything, "refreshtoken").Return(nil)
+				m.On("FindByRefreshToken", mock.Anything, "refreshtoken").Return(domain.NewSession(1, "refreshtoken", time.Now()), nil)
 			},
 			expectError: false,
 		},
@@ -364,7 +365,7 @@ func TestSessionService_DeleteByRefreshToken(t *testing.T) {
 			name:         "session not found",
 			refreshToken: "refreshtoken",
 			setupMock: func(m *mocks.MockSessionRepository) {
-				m.On("DeleteByRefreshToken", mock.Anything, "refreshtoken").Return(errors.New("session not found"))
+				m.On("FindByRefreshToken", mock.Anything, "refreshtoken").Return(nil, errors.New("session not found"))
 			},
 			expectError: true,
 			errorMsg:    "session not found",
