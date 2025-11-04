@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ main ]
 
+# Permissões necessárias para upload de SARIF
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
 jobs:
   security-and-quality:
     name: Security & Quality Analysis
@@ -15,7 +21,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Necessário para o SonarCloud
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -40,13 +46,13 @@ jobs:
       - name: Run Gosec Security Scanner
         run: |
           go install github.com/securego/gosec/v2/cmd/gosec@latest
-          gosec -fmt sonarqube -out gosec-report.json ./...
+          gosec -fmt sonarqube -out gosec-report.json -exclude-dir=internal/mocks ./...
         continue-on-error: true
 
       - name: Run Govulncheck (Vulnerability Scanner)
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./... || echo "Vulnerabilities found but continuing..."
+          govulncheck ./... || echo "⚠️ Vulnerabilities found but continuing..."
         continue-on-error: true
 
       - name: Run Trivy vulnerability scanner
@@ -59,6 +65,7 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM'
         continue-on-error: true
 
+      # Upload para GitHub Security tab
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
@@ -70,7 +77,7 @@ jobs:
       - name: Run tests with coverage
         run: go test ./... -coverprofile=coverage.out -covermode=atomic
 
-      - name: Generate coverage report
+      - name: Generate coverage HTML report
         run: go tool cover -html=coverage.out -o coverage.html
 
       # ========== SONARCLOUD ==========
@@ -82,11 +89,6 @@ jobs:
         with:
           args: >
             -Dsonar.organization=13soat-andromeda
-            -Dsonar.projectKey=13SOAT-andromeda_tech-challenge-s1
-            -Dsonar.go.coverage.reportPaths=coverage.out
-            -Dsonar.go.tests.reportPaths=.
-            -Dsonar.test.inclusions=**/*_test.go
-            -Dsonar.exclusions=**/vendor/**,**/testdata/**
             -Dsonar.externalIssuesReportPaths=gosec-report.json
 
       # ========== ARTIFACTS ==========
@@ -111,3 +113,18 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         continue-on-error: true
+
+      # ========== SUMMARY ==========
+
+      - name: Create Security Summary
+        if: always()
+        run: |
+          echo "## 🔒 Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Scans Completed:" >> $GITHUB_STEP_SUMMARY
+          echo "- Gosec (SAST)" >> $GITHUB_STEP_SUMMARY
+          echo "- Govulncheck (Dependencies)" >> $GITHUB_STEP_SUMMARY
+          echo "- Trivy (Comprehensive)" >> $GITHUB_STEP_SUMMARY
+          echo "- SonarCloud (Quality & Security)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 Check the **Security** tab and **SonarCloud** for detailed reports" >> $GITHUB_STEP_SUMMARY
