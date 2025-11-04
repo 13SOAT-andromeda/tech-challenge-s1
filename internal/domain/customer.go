@@ -5,14 +5,14 @@ import (
 )
 
 type Customer struct {
-	ID        uint
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
-	Name      string
-	Email     string
-	Document  *Document
-	Type      string
-	Contact   string
-	Address   *Address
+	ID        uint       `json:"id"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
+	Name      string     `json:"name"`
+	Email     string     `json:"email"`
+	Document  *Document  `json:"document,omitempty"`
+	Type      string     `json:"type"`
+	Contact   string     `json:"contact"`
+	Address   *Address   `json:"address,omitempty"`
 }
