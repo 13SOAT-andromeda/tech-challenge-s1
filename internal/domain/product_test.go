@@ -7,10 +7,11 @@ import (
 )
 
 func TestProduct_Validate_Success(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -20,10 +21,11 @@ func TestProduct_Validate_Success(t *testing.T) {
 }
 
 func TestProduct_Validate_InvalidPrice(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: -100,
 	}
 
@@ -34,10 +36,11 @@ func TestProduct_Validate_InvalidPrice(t *testing.T) {
 }
 
 func TestProduct_Validate_ZeroPrice(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: 0,
 	}
 
@@ -47,10 +50,11 @@ func TestProduct_Validate_ZeroPrice(t *testing.T) {
 }
 
 func TestProduct_Validate_EmptyName(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -61,10 +65,11 @@ func TestProduct_Validate_EmptyName(t *testing.T) {
 }
 
 func TestProduct_Validate_WhitespaceName(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "   ",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -74,10 +79,11 @@ func TestProduct_Validate_WhitespaceName(t *testing.T) {
 }
 
 func TestProduct_CanBePurchased_Success(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -87,10 +93,11 @@ func TestProduct_CanBePurchased_Success(t *testing.T) {
 }
 
 func TestProduct_CanBePurchased_ExactStock(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -100,10 +107,11 @@ func TestProduct_CanBePurchased_ExactStock(t *testing.T) {
 }
 
 func TestProduct_CanBePurchased_InsufficientStock(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 5,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -114,10 +122,11 @@ func TestProduct_CanBePurchased_InsufficientStock(t *testing.T) {
 }
 
 func TestProduct_CanBePurchased_ZeroStock(t *testing.T) {
+	StockMock := uint(0)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 0,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -128,10 +137,11 @@ func TestProduct_CanBePurchased_ZeroStock(t *testing.T) {
 }
 
 func TestProduct_CanBePurchased_ZeroQuantity(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -141,10 +151,11 @@ func TestProduct_CanBePurchased_ZeroQuantity(t *testing.T) {
 }
 
 func TestProduct_DecreaseStock_Success(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -155,10 +166,11 @@ func TestProduct_DecreaseStock_Success(t *testing.T) {
 }
 
 func TestProduct_DecreaseStock_ToZero(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -169,10 +181,11 @@ func TestProduct_DecreaseStock_ToZero(t *testing.T) {
 }
 
 func TestProduct_DecreaseStock_InsufficientStock(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 5,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -184,10 +197,11 @@ func TestProduct_DecreaseStock_InsufficientStock(t *testing.T) {
 }
 
 func TestProduct_DecreaseStock_ZeroQuantity(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -198,10 +212,11 @@ func TestProduct_DecreaseStock_ZeroQuantity(t *testing.T) {
 }
 
 func TestProduct_DecreaseStock_MultipleOperations(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -220,10 +235,11 @@ func TestProduct_DecreaseStock_MultipleOperations(t *testing.T) {
 }
 
 func TestProduct_Initialization(t *testing.T) {
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 
@@ -235,11 +251,11 @@ func TestProduct_Initialization(t *testing.T) {
 }
 
 func TestProduct_JSONTags(t *testing.T) {
-
+	StockMock := uint(10)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
-		Stock: 10,
+		Stock: &StockMock,
 		Price: 10000,
 	}
 

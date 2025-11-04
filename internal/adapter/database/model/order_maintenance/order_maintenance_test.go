@@ -42,9 +42,9 @@ func TestModel_ToDomain(t *testing.T) {
 		Note:              &note,
 		DiagnosticNote:    &diag,
 		Price:             &price,
-		User:              domain.User{ID: 10, Name: "usr", Email: "e@x.com", Contact: "cont", Password: "hashed", Role: "role", Active: true},
-		CustomerVehicle:   domain.CustomerVehicle{ID: 20, CustomerId: 5, VehicleId: 6},
-		Company:           domain.Company{ID: 30, Name: "Comp", Contact: "123", Document: "doc"},
+		UserID:            10,
+		CustomerVehicleID: 20,
+		CompanyID:         30,
 	}
 
 	d := m.ToDomain(orderDomain)
@@ -85,14 +85,14 @@ func TestModel_ToDomain(t *testing.T) {
 	if d.Order.Price == nil || *d.Order.Price != price {
 		t.Fatalf("order price: expected %v got %v", price, d.Order.Price)
 	}
-	if d.Order.User.ID != 10 {
-		t.Fatalf("user id: expected 10 got %d", d.Order.User.ID)
+	if d.Order.UserID != 10 {
+		t.Fatalf("user id: expected 10 got %d", d.Order.UserID)
 	}
-	if d.Order.CustomerVehicle.ID != 20 {
-		t.Fatalf("customer vehicle id: expected 20 got %d", d.Order.CustomerVehicle.ID)
+	if d.Order.CustomerVehicleID != 20 {
+		t.Fatalf("customer vehicle id: expected 20 got %d", d.Order.CustomerVehicleID)
 	}
-	if d.Order.Company.ID != 30 {
-		t.Fatalf("company id: expected 30 got %d", d.Order.Company.ID)
+	if d.Order.CompanyID != 30 {
+		t.Fatalf("company id: expected 30 got %d", d.Order.CompanyID)
 	}
 }
 
@@ -117,9 +117,9 @@ func TestModel_FromDomain(t *testing.T) {
 			Note:              nil,
 			DiagnosticNote:    nil,
 			Price:             &price,
-			User:              domain.User{ID: 11},
-			CustomerVehicle:   domain.CustomerVehicle{ID: 21, CustomerId: 7, VehicleId: 8},
-			Company:           domain.Company{ID: 31},
+			UserID:            11,
+			CustomerVehicleID: 21,
+			CompanyID:         31,
 		},
 	}
 

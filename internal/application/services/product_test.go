@@ -18,11 +18,12 @@ func TestProductService_GetById_Success(t *testing.T) {
 	ctx := context.Background()
 	productID := uint(1)
 
+	stockMock := uint(100)
 	expectedProduct := &domain.Product{
 		ID:    productID,
 		Name:  "Test Product",
 		Price: 10.0,
-		Stock: 100,
+		Stock: &stockMock,
 	}
 
 	var productModel product.Model
@@ -117,9 +118,11 @@ func TestProductService_Update_Success(t *testing.T) {
 	service := NewProductService(mockRepo)
 
 	ctx := context.Background()
+	stockMock := uint(100)
 	productToUpdate := domain.Product{
-		ID:   1,
-		Name: "Updated Product",
+		ID:    1,
+		Name:  "Updated Product",
+		Stock: &stockMock,
 	}
 
 	var model product.Model
@@ -141,9 +144,11 @@ func TestProductService_Update_Fail(t *testing.T) {
 	service := NewProductService(mockRepo)
 
 	ctx := context.Background()
+	stockMock := uint(100)
 	productToUpdate := domain.Product{
-		ID:   1,
-		Name: "Updated Product",
+		ID:    1,
+		Name:  "Updated Product",
+		Stock: &stockMock,
 	}
 
 	var model product.Model
@@ -165,16 +170,19 @@ func TestProductService_Create_Success(t *testing.T) {
 	service := NewProductService(mockRepo)
 
 	ctx := context.Background()
+	stockMock := uint(100)
 	productToCreate := domain.Product{
-		Name: "New Product",
+		Name:  "New Product",
+		Stock: &stockMock,
 	}
 
 	var model product.Model
 	model.FromDomain(&productToCreate)
 
 	createdProduct := domain.Product{
-		ID:   1,
-		Name: "New Product",
+		ID:    1,
+		Name:  "New Product",
+		Stock: &stockMock,
 	}
 	var createdModel product.Model
 	createdModel.FromDomain(&createdProduct)
@@ -194,8 +202,10 @@ func TestProductService_Create_Fail(t *testing.T) {
 	service := NewProductService(mockRepo)
 
 	ctx := context.Background()
+	stockMock := uint(0)
 	productToCreate := domain.Product{
-		Name: "New Product",
+		Name:  "New Product",
+		Stock: &stockMock,
 	}
 
 	var model product.Model
@@ -218,8 +228,8 @@ func TestProductService_Delete_Success(t *testing.T) {
 
 	ctx := context.Background()
 	productID := uint(1)
-
-	deletedProduct := &domain.Product{ID: productID, Name: "Product to delete"}
+	stockMock := uint(100)
+	deletedProduct := &domain.Product{ID: productID, Name: "Product to delete", Stock: &stockMock}
 	var deletedModel product.Model
 	deletedModel.FromDomain(deletedProduct)
 
@@ -257,8 +267,8 @@ func TestProductService_Delete_Fail(t *testing.T) {
 
 	ctx := context.Background()
 	productID := uint(1)
-
-	productToDelete := &domain.Product{ID: productID, Name: "Product to delete"}
+	stockMock := uint(100)
+	productToDelete := &domain.Product{ID: productID, Name: "Product to delete", Stock: &stockMock}
 	var model product.Model
 	model.FromDomain(productToDelete)
 
@@ -281,8 +291,9 @@ func TestProductService_CheckAvailability_Success(t *testing.T) {
 	ctx := context.Background()
 	productID := uint(1)
 	quantity := uint(5)
+	stockMock := uint(100)
 
-	availableProduct := &domain.Product{ID: productID, Stock: 10}
+	availableProduct := &domain.Product{ID: productID, Stock: &stockMock}
 	var model product.Model
 	model.FromDomain(availableProduct)
 
@@ -302,8 +313,8 @@ func TestProductService_CheckAvailability_InsufficientStock(t *testing.T) {
 	ctx := context.Background()
 	productID := uint(1)
 	quantity := uint(15)
-
-	availableProduct := &domain.Product{ID: productID, Stock: 10}
+	stockMock := uint(10)
+	availableProduct := &domain.Product{ID: productID, Stock: &stockMock}
 	var model product.Model
 	model.FromDomain(availableProduct)
 

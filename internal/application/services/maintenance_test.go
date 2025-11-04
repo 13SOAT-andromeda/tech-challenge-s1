@@ -167,10 +167,10 @@ func TestMaintenanceService_CreateOrderMaintenances_Success(t *testing.T) {
 	ids := []uint{11, 12}
 
 	omrepo.On("Create", ctx, mock.MatchedBy(func(m *omodel.Model) bool {
-		return m != nil && m.Maintenance.ID == 11 && m.Order.ID == orderId
+		return m != nil && m.Maintenance.ID == 11 && m.OrderId == orderId
 	})).Return(&omodel.Model{}, nil)
 	omrepo.On("Create", ctx, mock.MatchedBy(func(m *omodel.Model) bool {
-		return m != nil && m.Maintenance.ID == 12 && m.Order.ID == orderId
+		return m != nil && m.Maintenance.ID == 12 && m.OrderId == orderId
 	})).Return(&omodel.Model{}, nil)
 
 	err := svc.CreateOrderMaintenances(ctx, orderId, ids)
@@ -189,7 +189,7 @@ func TestMaintenanceService_CreateOrderMaintenances_Error(t *testing.T) {
 
 	errExpected := errors.New("create fail")
 	omrepo.On("Create", ctx, mock.MatchedBy(func(m *omodel.Model) bool {
-		return m != nil && m.Maintenance.ID == 21 && m.Order.ID == orderId
+		return m != nil && m.Maintenance.ID == 21 && m.OrderId == orderId
 	})).Return((*omodel.Model)(nil), errExpected)
 
 	err := svc.CreateOrderMaintenances(ctx, orderId, ids)
