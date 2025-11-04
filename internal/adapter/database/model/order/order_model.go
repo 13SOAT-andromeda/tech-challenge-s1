@@ -41,10 +41,8 @@ func (m *Model) ToDomain() *domain.Order {
 	var products []domain.Product
 	for _, orderProduct := range m.OrderProducts {
 		if product := orderProduct.Product.ToDomain(); product != nil {
-			// Include Quantity from OrderProduct
 			quantity := orderProduct.Quantity
 			product.Quantity = &quantity
-			// Exclude Stock field
 			product.Stock = nil
 			products = append(products, *product)
 		}
@@ -67,7 +65,6 @@ func (m *Model) ToDomain() *domain.Order {
 		maintenancesPtr = &maintenances
 	}
 
-	// Include Vehicle information if available (only Plate, Name, Year, Brand, Color)
 	var vehicle *domain.Vehicle
 	if m.CustomerVehicle.Vehicle.ID != 0 {
 		fullVehicle := m.CustomerVehicle.Vehicle.ToDomain()
@@ -115,7 +112,4 @@ func (m *Model) FromDomain(d *domain.Order) {
 	m.UserID = d.UserID
 	m.CustomerVehicleID = d.CustomerVehicleID
 	m.CompanyID = d.CustomerVehicleID
-	m.User = user.Model{
-		ID: d.UserID,
-	}
 }
