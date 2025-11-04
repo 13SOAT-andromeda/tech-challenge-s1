@@ -5,9 +5,15 @@ on:
   pull_request:
 
 jobs:
+
+
   security-sast:
     runs-on: ubuntu-latest
     steps:
+      - name: Check Build
+        run: go build ./...
+
+
       # 1️⃣ Checkout do código
       - uses: actions/checkout@v4
 
