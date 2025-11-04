@@ -3,7 +3,7 @@ run:
   timeout: 5m
 
 linters-settings:
-  gosec:
+  gosec: {} # <-- FAÇA ESSA MUDANÇA
   # Configurações específicas do gosec, se necessário
   # Ex: excludes: [-G101] para ignorar segredos hardcoded
 
