@@ -6,8 +6,8 @@ import (
 )
 
 type Model struct {
-	MaintenanceId uint `gorm:"primaryKey"`
-	OrderId       uint `gorm:"primaryKey"`
+	MaintenanceId uint              `gorm:"primaryKey"`
+	OrderId       uint              `gorm:"primaryKey"`
 	Maintenance   maintenance.Model `gorm:"foreignKey:MaintenanceId;references:ID"`
 }
 

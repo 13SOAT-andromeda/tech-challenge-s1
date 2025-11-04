@@ -49,7 +49,3 @@ func (u *userRepository) GetByEmail(ctx context.Context, email string) (*user.Mo
 	}
 	return &user, nil
 }
-
-func (u *userRepository) Delete(ctx context.Context, id uint) error {
-	return u.db.Model(&user.Model{}).Where("id = ?", id).Update("active", false).Error
-}

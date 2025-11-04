@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"net/http"
 	"strconv"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/monetary"
@@ -17,17 +19,17 @@ func NewMaintenanceHandler(service ports.MaintenanceService) *MaintenanceHandler
 	return &MaintenanceHandler{service: service}
 }
 
-type createMaintenanceRequest struct {
+type CreateMaintenanceRequest struct {
 	Name       string  `json:"name" binding:"required"`
 	Price      float64 `json:"price" binding:"required"`
 	CategoryId string  `json:"category" binding:"required"`
 }
 
 func (h *MaintenanceHandler) CreateMaintenance(ctx *gin.Context) {
-	var json createMaintenanceRequest
+	var json CreateMaintenanceRequest
 
 	if err := ctx.ShouldBindJSON(&json); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -38,45 +40,50 @@ func (h *MaintenanceHandler) CreateMaintenance(ctx *gin.Context) {
 	}
 
 	if err := c.ValidateMaintenanceCategory(); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if _, err := h.service.Create(ctx.Request.Context(), c); err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(201, gin.H{"message": "Maintenance created successfully"})
+	response.RespondCreated[any](ctx, nil, "Maintenance created successfully")
 }
 
 func (h *MaintenanceHandler) GetMaintenanceByID(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	idUint, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "Invalid ID"})
+		response.RespondError(ctx, http.StatusBadRequest, "Invalid ID")
 		return
 	}
 	maintenance, err := h.service.GetByID(ctx.Request.Context(), uint(idUint))
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(200, maintenance)
+	if maintenance == nil {
+		response.RespondError(ctx, http.StatusNotFound, "Maintenance not found")
+		return
+	}
+
+	response.RespondSuccess[domain.Maintenance](ctx, *maintenance, "")
 }
 
 func (h *MaintenanceHandler) UpdateMaintenance(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	idUint, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "Invalid ID"})
+		response.RespondError(ctx, http.StatusBadRequest, "Invalid ID")
 		return
 	}
 
-	var json createMaintenanceRequest
+	var json CreateMaintenanceRequest
 	if err := ctx.ShouldBindJSON(&json); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -88,29 +95,36 @@ func (h *MaintenanceHandler) UpdateMaintenance(ctx *gin.Context) {
 	}
 
 	if err := c.ValidateMaintenanceCategory(); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := h.service.UpdateByID(ctx.Request.Context(), uint(idUint), c); err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(200, gin.H{"message": "Maintenance updated successfully"})
+	response.RespondSuccess[any](ctx, nil, "Maintenance updated successfully")
 }
 
 func (h *MaintenanceHandler) DeleteMaintenance(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	idUint, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "Invalid ID"})
+		response.RespondError(ctx, http.StatusBadRequest, "Invalid ID")
 		return
 	}
 
-	if _, err := h.service.DeleteByID(ctx.Request.Context(), uint(idUint)); err != nil {
-		ctx.JSON(500, gin.H{"error": "Failed to delete maintenance"})
+	maintenance, err := h.service.DeleteByID(ctx.Request.Context(), uint(idUint))
+	if err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
-	ctx.JSON(200, gin.H{"message": "Maintenance deleted successfully"})
+
+	if maintenance == nil {
+		response.RespondError(ctx, http.StatusNotFound, "Maintenance not found")
+		return
+	}
+
+	response.RespondSuccess[domain.Maintenance](ctx, *maintenance, "")
 }

@@ -9,11 +9,11 @@ import (
 
 type Model struct {
 	gorm.Model
-	VehicleId  uint
-	CustomerId uint
+	VehicleID  uint
+	CustomerID uint
 
-	Vehicle  vehicle.Model  `gorm:"foreignKey:VehicleId;references:ID"`
-	Customer customer.Model `gorm:"foreignKey:CustomerId;references:ID"`
+	Vehicle  vehicle.Model  `gorm:"foreignKey:VehicleID;references:ID"`
+	Customer customer.Model `gorm:"foreignKey:CustomerID;references:ID"`
 }
 
 func (*Model) TableName() string {
@@ -23,14 +23,26 @@ func (*Model) TableName() string {
 func (m *Model) ToDomain() *domain.CustomerVehicle {
 	return &domain.CustomerVehicle{
 		ID:         m.ID,
-		CustomerId: m.CustomerId,
-		VehicleId:  m.VehicleId,
+		CustomerId: m.CustomerID,
+		VehicleId:  m.VehicleID,
+		Vehicle:    *m.Vehicle.ToDomain(),
+		Customer:   *m.Customer.ToDomain(),
 	}
 }
 
 func (m *Model) FromDomain(d *domain.CustomerVehicle) {
+	if d == nil {
+		return
+	}
 
 	m.ID = d.ID
-	m.Customer.ID = d.CustomerId
-	m.Vehicle.ID = d.VehicleId
+	m.CustomerID = d.CustomerId
+	m.VehicleID = d.VehicleId
+
+	if d.Vehicle.ID != 0 {
+		m.Vehicle.FromDomain(&d.Vehicle)
+	}
+	if d.Customer.ID != 0 {
+		m.Customer.FromDomain(&d.Customer)
+	}
 }

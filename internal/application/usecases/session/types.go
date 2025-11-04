@@ -6,7 +6,6 @@ type UserOutput struct {
 	Email   string `json:"email"`
 	Contact string `json:"contact"`
 	Role    string `json:"role"`
-	Active  bool   `json:"active"`
 }
 
 type LoginInput struct {
