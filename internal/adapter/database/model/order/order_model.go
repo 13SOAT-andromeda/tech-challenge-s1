@@ -14,6 +14,8 @@ type Model struct {
 	gorm.Model
 	DateIn            time.Time `gorm:"not null"`
 	DateOut           *time.Time
+	DateApproved      *time.Time
+	DateRejected      *time.Time
 	Status            string
 	VehicleKilometers int
 	Note              *string
@@ -36,6 +38,8 @@ func (m *Model) ToDomain() *domain.Order {
 		ID:                m.ID,
 		DateIn:            m.DateIn,
 		DateOut:           m.DateOut,
+		DateApproved:      m.DateApproved,
+		DateRejected:      m.DateRejected,
 		Status:            domain.OrderStatus(m.Status),
 		VehicleKilometers: m.VehicleKilometers,
 		Note:              m.Note,

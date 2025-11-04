@@ -44,6 +44,15 @@ func (r *OrderRepository) Search(ctx context.Context, params ports.OrderSearch) 
 		db = db.Where("status = ?", params.Status)
 	}
 
+	if params.OrderBy != "" {
+		orderBy := params.OrderBy
+		if params.SortDesc {
+			db = db.Order(orderBy + " DESC")
+		} else {
+			db = db.Order(orderBy + " ASC")
+		}
+	}
+
 	err := db.Find(&model).Error
 
 	return model, err
