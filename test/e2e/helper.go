@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -88,4 +89,12 @@ func GetApiUrl(cfg config.Config) string {
 func ParseBody[T any](body []byte, data T) error {
 	bodyString := string(body)
 	return json.Unmarshal([]byte(bodyString), &data)
+}
+
+func BuildBody[T any](data T) (io.Reader, error) {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	return bytes.NewBuffer(jsonData), nil
 }
