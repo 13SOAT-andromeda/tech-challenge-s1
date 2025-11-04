@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"net/http"
 	"strconv"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/gin-gonic/gin"
@@ -32,7 +34,7 @@ type createCompanyRequest struct {
 func (h *CompanyHandler) CreateCompany(ctx *gin.Context) {
 	var json createCompanyRequest
 	if err := ctx.ShouldBindJSON(&json); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -51,39 +53,45 @@ func (h *CompanyHandler) CreateCompany(ctx *gin.Context) {
 	}
 
 	if _, err := h.service.Create(ctx.Request.Context(), c); err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(201, gin.H{"message": "Company created successfully"})
+	response.RespondCreated[any](ctx, nil, "Company created successfully")
 }
 
 func (h *CompanyHandler) GetCompanyByID(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	idUint, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "ID invalid"})
+		response.RespondError(ctx, http.StatusBadRequest, "ID invalid")
 		return
 	}
 	company, err := h.service.GetByID(ctx.Request.Context(), uint(idUint))
 	if err != nil {
-		ctx.JSON(404, gin.H{"error": "Company not found"})
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
-	ctx.JSON(200, company)
+
+	if company == nil {
+		response.RespondError(ctx, http.StatusNotFound, "Company not found")
+		return
+	}
+
+	response.RespondSuccess[domain.Company](ctx, *company, "")
 }
 
 func (h *CompanyHandler) UpdateCompany(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	idUint, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "ID invalid"})
+		response.RespondError(ctx, http.StatusBadRequest, "ID invalid")
 		return
 	}
 
 	var json createCompanyRequest
 	if err := ctx.ShouldBindJSON(&json); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -104,23 +112,28 @@ func (h *CompanyHandler) UpdateCompany(ctx *gin.Context) {
 	}
 
 	if err := h.service.UpdateByID(ctx.Request.Context(), uint(idUint), c); err != nil {
-		ctx.JSON(500, gin.H{"error": "Failed to update company", "details": err.Error()})
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	ctx.JSON(200, gin.H{"message": "Company updated successfully"})
+	response.RespondSuccess[any](ctx, nil, "Company updated successfully")
 }
 
 func (h *CompanyHandler) DeleteCompany(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	idUint, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "ID invalid"})
+		response.RespondError(ctx, http.StatusBadRequest, "ID invalid")
 		return
 	}
-	if _, err := h.service.DeleteByID(ctx.Request.Context(), uint(idUint)); err != nil {
-		ctx.JSON(500, gin.H{"error": "Failed to delete company"})
+	company, err := h.service.DeleteByID(ctx.Request.Context(), uint(idUint))
+	if err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
-	ctx.JSON(200, gin.H{"message": "Company deleted successfully"})
+	if company == nil {
+		response.RespondError(ctx, http.StatusNotFound, "Company not found")
+		return
+	}
+	response.RespondSuccess[domain.Company](ctx, *company, "")
 }

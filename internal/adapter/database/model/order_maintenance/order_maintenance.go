@@ -9,8 +9,8 @@ import (
 type Model struct {
 	MaintenanceId uint
 	OrderId       uint
-	Maintenance   maintenance.Model `gorm:"foreignkey:MaintenanceId;references:Id"`
-	Order         order.Model       `gorm:"foreignkey:OrderId;references:Id"`
+	Maintenance   maintenance.Model `gorm:"foreignKey:MaintenanceId;references:ID"`
+	Order         order.Model       `gorm:"foreignKey:OrderId;references:ID"`
 }
 
 func (*Model) TableName() string {
