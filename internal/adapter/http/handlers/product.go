@@ -29,6 +29,16 @@ type UpdateProductRequest struct {
 	Price int64  `json:"price" binding:"required,gt=0"`
 }
 
+type StockItem struct {
+	ID        uint   `json:"id" binding:"required"`
+	Quantity  uint   `json:"quantity" binding:"required"`
+	Operation string `json:"operation" binding:"required, oneof=INCREASE DECREASE"`
+}
+
+type updateStockRequest struct {
+	Items []StockItem `json:"items" binding:"required"`
+}
+
 func (h *ProductHandler) CreateProduct(ctx *gin.Context) {
 	var json CreateProductRequest
 	if err := ctx.ShouldBindJSON(&json); err != nil {
@@ -134,4 +144,30 @@ func (h *ProductHandler) UpdateProduct(ctx *gin.Context) {
 	}
 
 	response.RespondSuccess[any](ctx, nil, "Product updated successfully")
+}
+
+func (h *ProductHandler) UpdateStockBatch(ctx *gin.Context) {
+	var request updateStockRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	domainItems := make([]domain.StockItem, len(request.Items))
+	for i, item := range request.Items {
+		op := domain.StockOperation(item.Operation)
+		domainItems[i] = domain.StockItem{
+			ID:        item.ID,
+			Quantity:  item.Quantity,
+			Operation: &op,
+		}
+	}
+
+	err := h.service.UpdateStock(ctx.Request.Context(), domainItems)
+	if err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess[any](ctx, nil, "Product stock updated successfully")
 }

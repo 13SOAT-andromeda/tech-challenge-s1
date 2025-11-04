@@ -75,6 +75,11 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 		},
 	}
 
+	if err := u.ValidateRole(); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	user, err := h.service.Create(ctx, u)
 
 	if err != nil {

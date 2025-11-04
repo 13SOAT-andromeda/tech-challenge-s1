@@ -11,9 +11,15 @@ var (
 type StockOperation string
 
 const (
-	StockOperationAdd    StockOperation = "ADD"
-	StockOperationRemove StockOperation = "REMOVE"
+	StockOperationIncrease StockOperation = "INCREASE"
+	StockOperationDecrease StockOperation = "DECREASE"
 )
+
+type StockItem struct {
+	ID        uint
+	Quantity  uint
+	Operation *StockOperation
+}
 
 type Product struct {
 	ID    uint   `json:"id"`

@@ -91,7 +91,7 @@ func NewRouter(
 			productGroup.GET("/:id", productHandler.GetProductByID)
 			productGroup.DELETE("/:id", productHandler.DeleteProduct)
 			productGroup.PUT("/:id", productHandler.UpdateProduct)
-			// @TODO: fazer add and remove productGroup.PATCH("/:id/stock", productHandler.ManageStockItem)
+			productGroup.PATCH("/stock", productHandler.UpdateStockBatch)
 		}
 
 		userGroup := protected.Group("/users")
@@ -116,6 +116,7 @@ func NewRouter(
 		{
 			orderGroup.GET("", orderHandler.GetAll)
 			orderGroup.GET("/:id", orderHandler.GetByID)
+			orderGroup.GET("/in-progress", orderHandler.GetInProgress)
 			orderGroup.POST("", orderHandler.Create)
 			orderGroup.POST("/:id/assign", orderHandler.Assign)
 			orderGroup.POST("/:id/complete-analysis", orderHandler.CompleteAnalysis)
@@ -123,6 +124,7 @@ func NewRouter(
 			orderGroup.POST("/:id/reject", orderHandler.RejectOrder)
 			orderGroup.POST("/:id/request-approval", orderHandler.RequestApproval)
 			orderGroup.POST("/:id/start-work", orderHandler.StartWork)
+			orderGroup.POST("/:id/complete-work", orderHandler.CompleteWork)
 			orderGroup.POST("/:id/archive", orderHandler.ArchiveOrder)
 			orderGroup.DELETE("/:id", orderHandler.Delete)
 		}

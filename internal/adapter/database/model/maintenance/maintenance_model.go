@@ -9,7 +9,7 @@ type Model struct {
 	gorm.Model
 	Name       string `gorm:"not null"`
 	Price      int64  `gorm:"not null"`
-	CategoryID string `gorm:"not null"`
+	CategoryId string `gorm:"not null"`
 }
 
 func (*Model) TableName() string {
@@ -22,7 +22,7 @@ func (m *Model) ToDomain() *domain.Maintenance {
 		ID:         m.ID,
 		Name:       m.Name,
 		Price:      m.Price,
-		CategoryID: domain.MaintenanceCategory(m.CategoryID),
+		CategoryId: domain.MaintenanceCategory(m.CategoryId),
 	}
 }
 
@@ -34,5 +34,5 @@ func (m *Model) FromDomain(d *domain.Maintenance) {
 	m.ID = d.ID
 	m.Name = d.Name
 	m.Price = d.Price
-	m.CategoryID = string(d.CategoryID)
+	m.CategoryId = string(d.CategoryId)
 }

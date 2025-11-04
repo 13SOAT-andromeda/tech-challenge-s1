@@ -54,7 +54,7 @@ func (s *OrderService) GetByID(ctx context.Context, id uint) (*domain.Order, err
 }
 
 func (s *OrderService) GetAll(ctx context.Context, params map[string]interface{}) (*[]domain.Order, error) {
-	oSearch := ports.OrderSearch{Status: "", Enabled: true}
+	oSearch := ports.OrderSearch{Status: "", Enabled: true, OrderBy: "", SortDesc: false}
 
 	if params["status"] != nil {
 		oSearch.Status = params["status"].(string)
@@ -64,10 +64,22 @@ func (s *OrderService) GetAll(ctx context.Context, params map[string]interface{}
 		oSearch.Enabled = params["enabled"].(bool)
 	}
 
+	if params["orderby"] != nil {
+		oSearch.OrderBy = params["orderby"].(string)
+	}
+
+	if params["sortdesc"] != nil {
+		if sortDescStr, ok := params["sortdesc"].(string); ok {
+			oSearch.SortDesc = sortDescStr == "true" || sortDescStr == "1"
+		}
+	}
+
 	orders, err := s.repo.Search(ctx, oSearch)
+
 	if err != nil {
 		return nil, err
 	}
+
 	ordersD := make([]domain.Order, 0, len(orders))
 
 	for _, item := range orders {

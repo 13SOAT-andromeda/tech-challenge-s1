@@ -83,11 +83,6 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 		},
 	}
 
-	if err := c.ValidateCustomerType(); err != nil {
-		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
-		return
-	}
-
 	customer, err := h.service.Create(ctx, c)
 
 	if err != nil {
@@ -230,11 +225,6 @@ func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
 			Country:       json.Country,
 			ZipCode:       json.ZipCode,
 		},
-	}
-
-	if err := c.ValidateCustomerType(); err != nil {
-		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
-		return
 	}
 
 	if err := h.service.UpdateByID(ctx, uint(customerId), c); err != nil {

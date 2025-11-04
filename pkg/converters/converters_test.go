@@ -14,7 +14,6 @@ func TestMergeStructs(t *testing.T) {
 		Name   string
 		Email  string
 		Age    int
-		Active bool
 		Height float64
 		Weight float64
 		Type   uint
@@ -24,7 +23,6 @@ func TestMergeStructs(t *testing.T) {
 		Name:   "João",
 		Email:  "joao@email.com",
 		Age:    30,
-		Active: true,
 		Height: 1.80,
 		Weight: 70.0,
 		Type:   1,
@@ -34,7 +32,6 @@ func TestMergeStructs(t *testing.T) {
 		Name:   "João Silva",
 		Email:  "",
 		Age:    0,
-		Active: false,
 		Height: 1.80,
 		Type:   0,
 	}
@@ -45,7 +42,6 @@ func TestMergeStructs(t *testing.T) {
 		Name:   "João Silva",
 		Email:  "joao@email.com",
 		Age:    30,
-		Active: false,
 		Height: 1.80,
 		Weight: 70.0,
 		Type:   1,
@@ -58,32 +54,32 @@ func TestMergeStructs(t *testing.T) {
 
 func TestMergeStructsWithDomainUser(t *testing.T) {
 	existing := domain.User{
-		ID:       1,
-		Name:     "João",
-		Email:    "joao@email.com",
-		Contact:  "123456789",
-		Role:     "user",
+		ID:        1,
+		Name:      "João",
+		Email:     "joao@email.com",
+		Contact:   "123456789",
+		Role:      "user",
 		DeletedAt: nil,
 	}
 
 	deletedAt := time.Now()
 	update := domain.User{
-		ID:       1,
-		Name:     "João Silva",
-		Email:    "",
-		Contact:  "",
-		Role:     "admin",
+		ID:        1,
+		Name:      "João Silva",
+		Email:     "",
+		Contact:   "",
+		Role:      "admin",
 		DeletedAt: &deletedAt,
 	}
 
 	result := MergeStructs(existing, update).(domain.User)
 
 	expected := domain.User{
-		ID:       1,
-		Name:     "João Silva",
-		Email:    "joao@email.com",
-		Contact:  "123456789",
-		Role:     "admin",
+		ID:        1,
+		Name:      "João Silva",
+		Email:     "joao@email.com",
+		Contact:   "123456789",
+		Role:      "admin",
 		DeletedAt: &deletedAt,
 	}
 

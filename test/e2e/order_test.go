@@ -185,7 +185,7 @@ func TestOrder(t *testing.T) {
 
 		createMaintenanceReq.Name = "Manutenção Teste Order " + timestamp
 		createMaintenanceReq.Price = 500.00
-		createMaintenanceReq.CategoryID = "standard"
+		createMaintenanceReq.CategoryId = "standard"
 
 		payload, err = BuildBody(createMaintenanceReq)
 		require.NoError(t, err, "failed to build maintenance request")

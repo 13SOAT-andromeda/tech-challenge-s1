@@ -12,13 +12,13 @@ func TestServiceModelInitialization(t *testing.T) {
 	s := Model{
 		Name:       "Maintenance A",
 		Price:      100,
-		CategoryID: "Standard",
+		CategoryId: "Standard",
 	}
 
 	assert.NotNil(t, s)
 	assert.Equal(t, "Maintenance A", s.Name)
 	assert.Equal(t, int64(100), s.Price)
-	assert.Equal(t, "Standard", s.CategoryID)
+	assert.Equal(t, "Standard", s.CategoryId)
 }
 
 func TestServiceModel_ToFromDomain(t *testing.T) {
@@ -34,13 +34,13 @@ func TestServiceModel_ToFromDomain(t *testing.T) {
 		},
 		Name:       "Service A",
 		Price:      100,
-		CategoryID: "Standard",
+		CategoryId: "Standard",
 	}
 
 	domainService := modelService.ToDomain()
 
-	assert.NotNil(t, domainService.CategoryID)
-	assert.Equal(t, modelService.CategoryID, string(domainService.CategoryID))
+	assert.NotNil(t, domainService.CategoryId)
+	assert.Equal(t, modelService.CategoryId, string(domainService.CategoryId))
 
 	assert.Equal(t, modelService.ID, domainService.ID)
 	assert.Equal(t, modelService.Name, domainService.Name)
