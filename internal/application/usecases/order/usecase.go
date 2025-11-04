@@ -225,7 +225,9 @@ func (uc *UseCase) ArchiveOrder(ctx context.Context, id uint) error {
 		return fmt.Errorf("order cannot be archived. Current status: %s", existentOrder.Status)
 	}
 
+	now := time.Now()
 	existentOrder.Status = string(domain.OrderStatuses.DELIVERED)
+	existentOrder.DateOut = &now
 
 	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
 		return fmt.Errorf("failed to archive order: %w", err)

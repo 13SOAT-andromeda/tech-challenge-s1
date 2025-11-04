@@ -104,6 +104,8 @@ func (m *Model) FromDomain(d *domain.Order) {
 	m.ID = d.ID
 	m.DateIn = d.DateIn
 	m.DateOut = d.DateOut
+	m.DateApproved = d.DateApproved
+	m.DateRejected = d.DateRejected
 	m.Status = string(d.Status)
 	m.VehicleKilometers = d.VehicleKilometers
 	m.Note = d.Note
