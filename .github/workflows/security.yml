@@ -1,29 +1,49 @@
-﻿name: SAST Security Scan
+﻿name: Go Security SAST
 on:
   push:
     branches: [main, master]
+    tags:
+      - v*
   pull_request:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.25'
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.55.2
+          args: --out-format=json --issues-exit-code=1 ./...
+
   sast:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Run Semgrep SAST
-        uses: returntocorp/semgrep-action@v1
+      - uses: actions/setup-go@v4
         with:
-          config: p/golang
-          output: semgrep-results.sarif
+          go-version: '1.25'
 
-      - name: Run Gosec SAST
-        uses: securego/gosec@master
-        with:
-          args: -fmt=sarif -out=gosec.sarif
+      - name: Install Gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
 
-      - name: Upload all SAST results
+      - name: Run SAST Scan with Gosec
+        run: gosec -fmt=sarif -out=security-report.sarif ./...
+
+      - name: Upload SAST Report to GitHub Security
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: |
-            semgrep-results.sarif
-            gosec.sarif
+          sarif_file: security-report.sarif
+
+      - name: Upload SAST Report as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sast-security-report
+          path: security-report.sarif
