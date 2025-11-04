@@ -31,7 +31,9 @@ FROM golang:1.25 AS development
 WORKDIR /app
 
 # Install git and ca-certificates so `go install` can fetch remote modules
-RUN apt-get update && apt-get install -y --no-install-recommends build-essential git ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update 
+RUN apt-get install -y --no-install-recommends build-essential ca-certificates git 
+RUN rm -rf /var/lib/apt/lists/*
 
 # Ensure go binaries installed with `go install` are on PATH
 ENV PATH="/go/bin:${PATH}"
@@ -65,16 +67,13 @@ CMD ["air", "-c", "air.toml"]
 # Creates the minimal runtime image for the final deployment.
 # It only copies the compiled binary from the 'production_builder' stage.
 # ----------------------------------------------------------------------
-FROM alpine:latest AS production
+FROM alpine:3.22.2 AS production
 
 # Set the working directory
 WORKDIR /app
 
 # Create a non-root user to run the application
-RUN addgroup -S nonroot && adduser -S nonroot -G nonroot
-
-# Install ca-certificates (needed for SSL/TLS connections/health checks)
-RUN apk add --no-cache ca-certificates curl
+RUN addgroup -S nonroot && adduser -S nonroot -G nonroot && apk add --no-cache ca-certificates curl
 
 # Copy the optimized, statically linked binary from the builder stage
 COPY --from=production_builder /usr/local/bin/main /app/main
