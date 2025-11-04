@@ -2,288 +2,198 @@ package services
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
+	omodel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gorm.io/gorm"
 )
 
-func TestMaintenanceService_Create_Success(t *testing.T) {
-	mockRepo := new(mocks.MockMaintenanceRepository)
-	service := NewMaintenanceService(mockRepo)
-
+func TestMaintenanceService_Create(t *testing.T) {
 	ctx := context.Background()
-	input := domain.Maintenance{
-		Name:  "Maintenance Test",
-		Price: 150,
-	}
+	mrepo := &mocks.MockMaintenanceRepository{}
+	omrepo := &mocks.MockGenericRepository[omodel.Model]{}
+	svc := NewMaintenanceService(mrepo, omrepo)
 
-	var mockModel maintenance.Model
-	mockModel.FromDomain(&input)
+	input := domain.Maintenance{Name: "Oil change", Price: 1000, CategoryId: domain.MaintenanceCategory("standard")}
+	var inModel maintenance.Model
+	inModel.FromDomain(&input)
 
-	mockRepo.On("Create", mock.Anything, mock.Anything).
-		Return(&mockModel, nil)
+	returned := inModel
+	returned.ID = 10
 
-	result, err := service.Create(ctx, input)
+	mrepo.On("Create", ctx, &inModel).Return(&returned, nil)
 
+	res, err := svc.Create(ctx, input)
 	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Equal(t, "Maintenance Test", result.Name)
-	mockRepo.AssertExpectations(t)
+	assert.NotNil(t, res)
+	assert.Equal(t, uint(10), res.ID)
+	mrepo.AssertExpectations(t)
 }
 
-func TestMaintenanceService_Create_RepositoryError(t *testing.T) {
-	mockRepo := new(mocks.MockMaintenanceRepository)
-	service := NewMaintenanceService(mockRepo)
-
+func TestMaintenanceService_GetByID(t *testing.T) {
 	ctx := context.Background()
-	input := domain.Maintenance{
-		Name:  "Maintenance Test",
-		Price: 150,
-	}
+	mrepo := &mocks.MockMaintenanceRepository{}
+	omrepo := &mocks.MockGenericRepository[omodel.Model]{}
+	svc := NewMaintenanceService(mrepo, omrepo)
 
-	mockRepo.On("Create", mock.Anything, mock.Anything).
-		Return(nil, assert.AnError)
+	model := maintenance.Model{}
+	model.ID = 5
+	model.Name = "Brake"
+	model.Price = 2000
+	model.CategoryId = "standard"
 
-	result, err := service.Create(ctx, input)
+	mrepo.On("FindByID", mock.Anything, uint(5)).Return(&model, nil)
 
-	assert.Error(t, err)
-	assert.Nil(t, result)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestMaintenanceService_GetByID_Success(t *testing.T) {
-	mockRepo := new(mocks.MockMaintenanceRepository)
-	service := NewMaintenanceService(mockRepo)
-
-	ctx := context.Background()
-	serviceID := uint(1)
-	expected := &maintenance.Model{
-		Model:      gorm.Model{ID: serviceID},
-		Name:       "Maintenance Test",
-		Price:      100,
-		CategoryId: "standard",
-	}
-
-	mockRepo.On("FindByID", mock.Anything, serviceID).
-		Return(expected, nil)
-
-	result, err := service.GetByID(ctx, serviceID)
-
+	res, err := svc.GetByID(ctx, 5)
 	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Equal(t, uint(1), result.ID)
-	assert.Equal(t, "Maintenance Test", result.Name)
-	mockRepo.AssertExpectations(t)
+	assert.NotNil(t, res)
+	assert.Equal(t, uint(5), res.ID)
+	assert.NotEmpty(t, res.CategoryId)
+	mrepo.AssertExpectations(t)
 }
 
-func TestMaintenanceService_GetByID_NotFound(t *testing.T) {
-	mockRepo := new(mocks.MockMaintenanceRepository)
-	service := NewMaintenanceService(mockRepo)
-
+func TestMaintenanceService_GetByIDs_Empty(t *testing.T) {
 	ctx := context.Background()
-	serviceID := uint(1)
+	mrepo := &mocks.MockMaintenanceRepository{}
+	omrepo := &mocks.MockGenericRepository[omodel.Model]{}
+	svc := NewMaintenanceService(mrepo, omrepo)
 
-	mockRepo.On("FindByID", mock.Anything, serviceID).
-		Return(nil, gorm.ErrRecordNotFound)
-
-	result, err := service.GetByID(ctx, serviceID)
-
-	assert.Error(t, err)
-	assert.Nil(t, result)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestMaintenanceService_GetByIDs_Success(t *testing.T) {
-	mockRepo := new(mocks.MockMaintenanceRepository)
-	service := NewMaintenanceService(mockRepo)
-
-	ctx := context.Background()
-	serviceIDs := []uint{1, 2}
-	expected := []maintenance.Model{
-		{Model: gorm.Model{ID: 1}, Name: "Maintenance 1", Price: 100, CategoryId: "standard"},
-		{Model: gorm.Model{ID: 2}, Name: "Maintenance 2", Price: 150, CategoryId: "premium"},
-	}
-
-	mockRepo.On("FindByIDs", mock.Anything, serviceIDs).
-		Return(expected, nil)
-
-	result, err := service.GetByIDs(ctx, serviceIDs)
-
+	res, err := svc.GetByIDs(ctx, []uint{})
 	assert.NoError(t, err)
-	assert.Len(t, result, 2)
-	assert.Equal(t, uint(1), result[0].ID)
-	assert.Equal(t, "Maintenance 1", result[0].Name)
-	assert.Equal(t, uint(2), result[1].ID)
-	assert.Equal(t, "Maintenance 2", result[1].Name)
-	mockRepo.AssertExpectations(t)
+	assert.Empty(t, res)
 }
 
-func TestMaintenanceService_GetByIDs_EmptyInput(t *testing.T) {
-	mockRepo := new(mocks.MockMaintenanceRepository)
-	service := NewMaintenanceService(mockRepo)
-
+func TestMaintenanceService_GetByIDs(t *testing.T) {
 	ctx := context.Background()
-	serviceIDs := []uint{}
+	mrepo := &mocks.MockMaintenanceRepository{}
+	omrepo := &mocks.MockGenericRepository[omodel.Model]{}
+	svc := NewMaintenanceService(mrepo, omrepo)
 
-	result, err := service.GetByIDs(ctx, serviceIDs)
+	m1 := maintenance.Model{Name: "A", Price: 150, CategoryId: "standard"}
+	m1.ID = 1
+	m2 := maintenance.Model{Name: "B", Price: 200, CategoryId: "standard"}
+	m2.ID = 2
+	mrepo.On("FindByIDs", ctx, []uint{1, 2}).Return([]maintenance.Model{m1, m2}, nil)
 
+	res, err := svc.GetByIDs(ctx, []uint{1, 2})
 	assert.NoError(t, err)
-	assert.Len(t, result, 0)
-	mockRepo.AssertNotCalled(t, "FindByIDs")
+	assert.Len(t, res, 2)
+	assert.Equal(t, uint(1), res[0].ID)
+	assert.Equal(t, uint(2), res[1].ID)
+	mrepo.AssertExpectations(t)
 }
 
-func TestMaintenanceService_GetByIDs_RepositoryError(t *testing.T) {
-	mockRepo := new(mocks.MockMaintenanceRepository)
-	service := NewMaintenanceService(mockRepo)
-
+func TestMaintenanceService_UpdateByID(t *testing.T) {
 	ctx := context.Background()
-	serviceIDs := []uint{1, 2}
+	mrepo := &mocks.MockMaintenanceRepository{}
+	omrepo := &mocks.MockGenericRepository[omodel.Model]{}
+	svc := NewMaintenanceService(mrepo, omrepo)
 
-	mockRepo.On("FindByIDs", mock.Anything, serviceIDs).
-		Return([]maintenance.Model{}, assert.AnError)
+	input := domain.Maintenance{ID: 7, Name: "X", Price: 500, CategoryId: domain.MaintenanceCategory("standard")}
+	var model maintenance.Model
+	model.FromDomain(&input)
 
-	result, err := service.GetByIDs(ctx, serviceIDs)
+	mrepo.On("Update", ctx, &model).Return(nil)
 
-	assert.Error(t, err)
-	assert.Nil(t, result)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestMaintenanceService_UpdateByID_Success(t *testing.T) {
-	mockRepo := new(mocks.MockMaintenanceRepository)
-	service := NewMaintenanceService(mockRepo)
-
-	ctx := context.Background()
-	serviceID := uint(1)
-	update := domain.Maintenance{
-		ID:    serviceID,
-		Name:  "Updated Maintenance",
-		Price: 200,
-	}
-
-	var mockModel maintenance.Model
-	mockModel.FromDomain(&update)
-
-	mockRepo.On("Update", mock.Anything, mock.Anything).
-		Return(nil)
-
-	err := service.UpdateByID(ctx, serviceID, update)
-
+	err := svc.UpdateByID(ctx, 7, input)
 	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
+	mrepo.AssertExpectations(t)
 }
 
-func TestMaintenanceService_UpdateByID_NotFound(t *testing.T) {
-	mockRepo := new(mocks.MockMaintenanceRepository)
-	service := NewMaintenanceService(mockRepo)
-
+func TestMaintenanceService_UpdateByID_Error(t *testing.T) {
 	ctx := context.Background()
-	serviceID := uint(1)
-	update := domain.Maintenance{
-		ID:    serviceID,
-		Name:  "Updated Maintenance",
-		Price: 200,
-	}
+	mrepo := &mocks.MockMaintenanceRepository{}
+	omrepo := &mocks.MockGenericRepository[omodel.Model]{}
+	svc := NewMaintenanceService(mrepo, omrepo)
 
-	var mockModel maintenance.Model
-	mockModel.FromDomain(&update)
+	input := domain.Maintenance{ID: 7, Name: "X"}
+	var model maintenance.Model
+	model.FromDomain(&input)
 
-	mockRepo.On("Update", mock.Anything, mock.Anything).
-		Return(gorm.ErrRecordNotFound)
+	errExpected := errors.New("update failed")
+	mrepo.On("Update", ctx, &model).Return(errExpected)
 
-	err := service.UpdateByID(ctx, serviceID, update)
-
+	err := svc.UpdateByID(ctx, 7, input)
 	assert.Error(t, err)
-	mockRepo.AssertExpectations(t)
+	assert.Equal(t, errExpected, err)
+	mrepo.AssertExpectations(t)
 }
 
-func TestMaintenanceService_UpdateByID_RepositoryError(t *testing.T) {
-	mockRepo := new(mocks.MockMaintenanceRepository)
-	service := NewMaintenanceService(mockRepo)
-
+func TestMaintenanceService_DeleteByID(t *testing.T) {
 	ctx := context.Background()
-	serviceID := uint(1)
-	update := domain.Maintenance{
-		ID:    serviceID,
-		Name:  "Updated Maintenance",
-		Price: 200,
-	}
+	mrepo := &mocks.MockMaintenanceRepository{}
+	omrepo := &mocks.MockGenericRepository[omodel.Model]{}
+	svc := NewMaintenanceService(mrepo, omrepo)
 
-	mockRepo.On("Update", mock.Anything, mock.Anything).
-		Return(assert.AnError)
+	model := maintenance.Model{Name: "Del", Price: 300, CategoryId: "standard"}
+	model.ID = 9
 
-	err := service.UpdateByID(ctx, serviceID, update)
+	mrepo.On("FindByID", ctx, uint(9)).Return(&model, nil)
+	mrepo.On("Delete", ctx, uint(9)).Return(nil)
 
-	assert.Error(t, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestMaintenanceService_DeleteByID_Success(t *testing.T) {
-	mockRepo := new(mocks.MockMaintenanceRepository)
-	service := NewMaintenanceService(mockRepo)
-
-	ctx := context.Background()
-	serviceID := uint(1)
-	existing := &maintenance.Model{
-		Model: gorm.Model{ID: serviceID},
-		Name:  "Maintenance to Delete",
-	}
-
-	mockRepo.On("FindByID", mock.Anything, serviceID).
-		Return(existing, nil)
-	mockRepo.On("Delete", mock.Anything, serviceID).
-		Return(nil)
-
-	result, err := service.DeleteByID(ctx, serviceID)
-
+	res, err := svc.DeleteByID(ctx, 9)
 	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Equal(t, uint(1), result.ID)
-	assert.Equal(t, "Maintenance to Delete", result.Name)
-	mockRepo.AssertExpectations(t)
+	assert.Equal(t, uint(9), res.ID)
+	mrepo.AssertExpectations(t)
 }
 
-func TestMaintenanceService_DeleteByID_NotFound(t *testing.T) {
-	mockRepo := new(mocks.MockMaintenanceRepository)
-	service := NewMaintenanceService(mockRepo)
-
+func TestMaintenanceService_DeleteByID_FindError(t *testing.T) {
 	ctx := context.Background()
-	serviceID := uint(1)
+	mrepo := &mocks.MockMaintenanceRepository{}
+	omrepo := &mocks.MockGenericRepository[omodel.Model]{}
+	svc := NewMaintenanceService(mrepo, omrepo)
 
-	mockRepo.On("FindByID", mock.Anything, serviceID).
-		Return(nil, gorm.ErrRecordNotFound)
+	errExpected := errors.New("not found")
+	mrepo.On("FindByID", ctx, uint(99)).Return((*maintenance.Model)(nil), errExpected)
 
-	result, err := service.DeleteByID(ctx, serviceID)
-
+	res, err := svc.DeleteByID(ctx, 99)
 	assert.Error(t, err)
-	assert.Nil(t, result)
-	mockRepo.AssertExpectations(t)
+	assert.Nil(t, res)
+	mrepo.AssertExpectations(t)
 }
 
-func TestMaintenanceService_DeleteByID_DeleteError(t *testing.T) {
-	mockRepo := new(mocks.MockMaintenanceRepository)
-	service := NewMaintenanceService(mockRepo)
-
+func TestMaintenanceService_CreateOrderMaintenances_Success(t *testing.T) {
 	ctx := context.Background()
-	serviceID := uint(1)
-	existing := &maintenance.Model{
-		Model: gorm.Model{ID: serviceID},
-		Name:  "Maintenance to Delete",
-	}
+	mrepo := &mocks.MockMaintenanceRepository{}
+	omrepo := &mocks.MockGenericRepository[omodel.Model]{}
+	svc := NewMaintenanceService(mrepo, omrepo)
 
-	mockRepo.On("FindByID", mock.Anything, serviceID).
-		Return(existing, nil)
-	mockRepo.On("Delete", mock.Anything, serviceID).
-		Return(assert.AnError)
+	orderId := uint(3)
+	ids := []uint{11, 12}
 
-	result, err := service.DeleteByID(ctx, serviceID)
+	omrepo.On("Create", ctx, mock.MatchedBy(func(m *omodel.Model) bool {
+		return m != nil && m.Maintenance.ID == 11 && m.Order.ID == orderId
+	})).Return(&omodel.Model{}, nil)
+	omrepo.On("Create", ctx, mock.MatchedBy(func(m *omodel.Model) bool {
+		return m != nil && m.Maintenance.ID == 12 && m.Order.ID == orderId
+	})).Return(&omodel.Model{}, nil)
 
+	err := svc.CreateOrderMaintenances(ctx, orderId, ids)
+	assert.NoError(t, err)
+	omrepo.AssertExpectations(t)
+}
+
+func TestMaintenanceService_CreateOrderMaintenances_Error(t *testing.T) {
+	ctx := context.Background()
+	mrepo := &mocks.MockMaintenanceRepository{}
+	omrepo := &mocks.MockGenericRepository[omodel.Model]{}
+	svc := NewMaintenanceService(mrepo, omrepo)
+
+	orderId := uint(3)
+	ids := []uint{21, 22}
+
+	errExpected := errors.New("create fail")
+	omrepo.On("Create", ctx, mock.MatchedBy(func(m *omodel.Model) bool {
+		return m != nil && m.Maintenance.ID == 21 && m.Order.ID == orderId
+	})).Return((*omodel.Model)(nil), errExpected)
+
+	err := svc.CreateOrderMaintenances(ctx, orderId, ids)
 	assert.Error(t, err)
-	assert.Nil(t, result)
-	mockRepo.AssertExpectations(t)
+	assert.Contains(t, err.Error(), "failed to create order maintenance")
+	omrepo.AssertExpectations(t)
 }
