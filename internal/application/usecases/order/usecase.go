@@ -48,7 +48,6 @@ func NewOrderUseCase(
 }
 
 func (uc *UseCase) CreateOrder(ctx context.Context, userID uint, input ports.CreateOrderInput) (*domain.Order, error) {
-	//@TODO: ajustar aqui validações necessárias
 	order := domain.Order{
 		DateIn:            time.Now(),
 		DateOut:           nil,
@@ -56,9 +55,9 @@ func (uc *UseCase) CreateOrder(ctx context.Context, userID uint, input ports.Cre
 		VehicleKilometers: input.VehicleKilometers,
 		Note:              input.Note,
 		Price:             nil,
-		CustomerVehicle:   domain.CustomerVehicle{ID: input.CustomerVehicleID},
-		User:              domain.User{ID: userID},
-		Company:           domain.Company{ID: input.CompanyID},
+		CustomerVehicleID: input.CustomerVehicleID,
+		UserID:            userID,
+		CompanyID:         input.CompanyID,
 	}
 
 	created, err := uc.orderService.Create(ctx, order)
@@ -79,7 +78,7 @@ func (uc *UseCase) AssignOrder(ctx context.Context, orderID uint, userID uint) e
 		return domain.ErrOrderNotFound
 	}
 
-	order.User = domain.User{ID: userID}
+	order.UserID = userID
 	order.Status = domain.OrderStatuses.IN_ANALYSIS
 
 	err = uc.orderService.Update(ctx, *order)
@@ -122,6 +121,7 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 		totalPrice += float64(product.Price) * float64(quantity)
 
 		orderProducts = append(orderProducts, domain.OrderProduct{
+			Quantity:  uint(quantity),
 			OrderId:   id,
 			ProductId: product.ID,
 		})
@@ -159,7 +159,7 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 	order.DiagnosticNote = input.DiagnosticNote
 	order.Status = domain.OrderStatuses.AWAITING_APPROVAL
 	order.Price = &totalPrice
-	order.User.ID = userID
+	order.UserID = userID
 
 	if err := uc.orderService.Update(ctx, *order); err != nil {
 		return fmt.Errorf("failed to complete order analysis: %w", err)
@@ -286,18 +286,19 @@ func (uc *UseCase) StartWorkOrder(ctx context.Context, id uint) error {
 	operation := domain.StockOperationDecrease
 
 	for _, item := range *order.Products {
-		available, err := uc.productService.CheckAvailability(ctx, item.ID, item.)
+		orderedQuantity := *item.Quantity
+		available, err := uc.productService.CheckAvailability(ctx, item.ID, orderedQuantity)
 		if err != nil {
 			return fmt.Errorf("failed to check availability for product %d: %w", item.ID, err)
 		}
 
 		if !available {
-			return fmt.Errorf("cannot start work: product ID %d is not available in quantity %d", item.ID, item.Quantity)
+			return fmt.Errorf("cannot start work: product ID %d is not available in quantity %d", item.ID, orderedQuantity)
 		}
 
 		productItems = append(productItems, domain.StockItem{
 			ID:        item.ID,
-			Quantity:  item.Quantity,
+			Quantity:  orderedQuantity,
 			Operation: &operation,
 		})
 	}

@@ -26,11 +26,11 @@ type Model struct {
 	UserID            uint
 	CustomerVehicleID uint
 	CompanyID         uint
-	User              user.Model            `gorm:"foreignKey:UserID;references:ID"`
-	Company           company.Model         `gorm:"foreignKey:CompanyID;references:ID"`
-	CustomerVehicle   customerVehicle.Model `gorm:"foreignKey:CustomerVehicleID;references:ID"`
-	OrderProducts     order_product.Model
-	OrderMaintenances order_maintenance.Model
+	User              user.Model                `gorm:"foreignKey:UserID;references:ID"`
+	Company           company.Model             `gorm:"foreignKey:CompanyID;references:ID"`
+	CustomerVehicle   customerVehicle.Model     `gorm:"foreignKey:CustomerVehicleID;references:ID"`
+	OrderProducts     []order_product.Model     `gorm:"foreignKey:OrderId;references:ID"`
+	OrderMaintenances []order_maintenance.Model `gorm:"foreignKey:OrderId;references:ID"`
 }
 
 func (*Model) TableName() string {
@@ -38,6 +38,50 @@ func (*Model) TableName() string {
 }
 
 func (m *Model) ToDomain() *domain.Order {
+	var products []domain.Product
+	for _, orderProduct := range m.OrderProducts {
+		if product := orderProduct.Product.ToDomain(); product != nil {
+			// Include Quantity from OrderProduct
+			quantity := orderProduct.Quantity
+			product.Quantity = &quantity
+			// Exclude Stock field
+			product.Stock = nil
+			products = append(products, *product)
+		}
+	}
+
+	var maintenances []domain.Maintenance
+	for _, orderMaintenance := range m.OrderMaintenances {
+		if maintenance := orderMaintenance.Maintenance.ToDomain(); maintenance != nil {
+			maintenances = append(maintenances, *maintenance)
+		}
+	}
+
+	var productsPtr *[]domain.Product
+	if len(products) > 0 {
+		productsPtr = &products
+	}
+
+	var maintenancesPtr *[]domain.Maintenance
+	if len(maintenances) > 0 {
+		maintenancesPtr = &maintenances
+	}
+
+	// Include Vehicle information if available (only Plate, Name, Year, Brand, Color)
+	var vehicle *domain.Vehicle
+	if m.CustomerVehicle.Vehicle.ID != 0 {
+		fullVehicle := m.CustomerVehicle.Vehicle.ToDomain()
+		if fullVehicle != nil {
+			vehicle = &domain.Vehicle{
+				Plate: fullVehicle.Plate,
+				Name:  fullVehicle.Name,
+				Year:  fullVehicle.Year,
+				Brand: fullVehicle.Brand,
+				Color: fullVehicle.Color,
+			}
+		}
+	}
+
 	return &domain.Order{
 		ID:                m.ID,
 		DateIn:            m.DateIn,
@@ -49,12 +93,12 @@ func (m *Model) ToDomain() *domain.Order {
 		Note:              m.Note,
 		DiagnosticNote:    m.DiagnosticNote,
 		Price:             m.Price,
-		User:              *m.User.ToDomain(),
-		CustomerVehicle:   *m.CustomerVehicle.ToDomain(),
-		Company:           *m.Company.ToDomain(),
-		// @ FIX retorno de produtos e manutenções
-		Products:     *m.OrderProducts.Product.ToDomain(),
-		Maintenances: *m.OrderMaintenances.ToDomain(),
+		CustomerVehicleID: m.CustomerVehicleID,
+		UserID:            m.UserID,
+		CompanyID:         m.CompanyID,
+		Vehicle:           vehicle,
+		Products:          productsPtr,
+		Maintenances:      maintenancesPtr,
 	}
 }
 
@@ -68,12 +112,10 @@ func (m *Model) FromDomain(d *domain.Order) {
 	m.Note = d.Note
 	m.DiagnosticNote = d.DiagnosticNote
 	m.Price = d.Price
-	m.UserID = d.User.ID
-	m.CustomerVehicleID = d.CustomerVehicle.ID
-	m.CompanyID = d.Company.ID
+	m.UserID = d.UserID
+	m.CustomerVehicleID = d.CustomerVehicleID
+	m.CompanyID = d.CustomerVehicleID
 	m.User = user.Model{
-		ID: d.User.ID,
+		ID: d.UserID,
 	}
-	m.CustomerVehicle.FromDomain(&d.CustomerVehicle)
-	m.Company.FromDomain(&d.Company)
 }
