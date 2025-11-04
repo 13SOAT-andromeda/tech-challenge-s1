@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
 	"github.com/stretchr/testify/assert"
@@ -105,7 +106,7 @@ func TestOrderService_GetAll_Success(t *testing.T) {
 	ctx := context.Background()
 
 	models := []order.Model{*createTestOrderModel(1), *createTestOrderModel(2)}
-	mockRepo.On("Search", ctx, mock.Anything).Return(models, nil)
+	mockRepo.On("Search", mock.Anything, mock.Anything).Return(models, nil)
 
 	result, err := service.GetAll(ctx, map[string]interface{}{})
 
@@ -181,5 +182,198 @@ func TestOrderService_Update_RepositoryError(t *testing.T) {
 	err := service.Update(ctx, domainOrder)
 
 	assert.Error(t, err)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestOrderService_GetAll_WithStatusFilter(t *testing.T) {
+	mockRepo := new(mocks.MockOrderRepository)
+	service := NewOrderService(mockRepo)
+	ctx := context.Background()
+
+	models := []order.Model{*createTestOrderModel(1)}
+	mockRepo.On("Search", mock.Anything, mock.Anything).Return(models, nil)
+
+	params := map[string]interface{}{
+		"status": "completed",
+	}
+	result, err := service.GetAll(ctx, params)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, *result, 1)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestOrderService_GetAll_WithEnabledFalse(t *testing.T) {
+	mockRepo := new(mocks.MockOrderRepository)
+	service := NewOrderService(mockRepo)
+	ctx := context.Background()
+
+	expectedSearch := ports.OrderSearch{
+		Status:   "",
+		Enabled:  false,
+		OrderBy:  "",
+		SortDesc: false,
+	}
+
+	models := []order.Model{*createTestOrderModel(1)}
+	mockRepo.On("Search", ctx, expectedSearch).Return(models, nil)
+
+	params := map[string]interface{}{
+		"enabled": "false",
+	}
+	result, err := service.GetAll(ctx, params)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestOrderService_GetAll_WithOrderBy(t *testing.T) {
+	mockRepo := new(mocks.MockOrderRepository)
+	service := NewOrderService(mockRepo)
+	ctx := context.Background()
+
+	expectedSearch := ports.OrderSearch{
+		Status:   "",
+		Enabled:  true,
+		OrderBy:  "created_at",
+		SortDesc: false,
+	}
+
+	models := []order.Model{*createTestOrderModel(1), *createTestOrderModel(2)}
+	mockRepo.On("Search", ctx, expectedSearch).Return(models, nil)
+
+	params := map[string]interface{}{
+		"orderby": "created_at",
+	}
+	result, err := service.GetAll(ctx, params)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, *result, 2)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestOrderService_GetAll_WithSortDescTrue(t *testing.T) {
+	mockRepo := new(mocks.MockOrderRepository)
+	service := NewOrderService(mockRepo)
+	ctx := context.Background()
+
+	expectedSearch := ports.OrderSearch{
+		Status:   "",
+		Enabled:  true,
+		OrderBy:  "created_at",
+		SortDesc: true,
+	}
+
+	models := []order.Model{*createTestOrderModel(2), *createTestOrderModel(1)}
+	mockRepo.On("Search", ctx, expectedSearch).Return(models, nil)
+
+	params := map[string]interface{}{
+		"orderby":  "created_at",
+		"sortdesc": "true",
+	}
+	result, err := service.GetAll(ctx, params)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, *result, 2)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestOrderService_GetAll_WithSortDescOne(t *testing.T) {
+	mockRepo := new(mocks.MockOrderRepository)
+	service := NewOrderService(mockRepo)
+	ctx := context.Background()
+
+	expectedSearch := ports.OrderSearch{
+		Status:   "",
+		Enabled:  true,
+		OrderBy:  "",
+		SortDesc: true,
+	}
+
+	models := []order.Model{*createTestOrderModel(1)}
+	mockRepo.On("Search", ctx, expectedSearch).Return(models, nil)
+
+	params := map[string]interface{}{
+		"sortdesc": "1",
+	}
+	result, err := service.GetAll(ctx, params)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestOrderService_GetAll_WithAllParameters(t *testing.T) {
+	mockRepo := new(mocks.MockOrderRepository)
+	service := NewOrderService(mockRepo)
+	ctx := context.Background()
+
+	expectedSearch := ports.OrderSearch{
+		Status:   "pending",
+		Enabled:  false,
+		OrderBy:  "id",
+		SortDesc: true,
+	}
+
+	models := []order.Model{*createTestOrderModel(1)}
+	mockRepo.On("Search", ctx, expectedSearch).Return(models, nil)
+
+	params := map[string]interface{}{
+		"status":   "pending",
+		"enabled":  "false",
+		"orderby":  "id",
+		"sortdesc": "true",
+	}
+	result, err := service.GetAll(ctx, params)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, *result, 1)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestOrderService_GetAll_EmptyResult(t *testing.T) {
+	mockRepo := new(mocks.MockOrderRepository)
+	service := NewOrderService(mockRepo)
+	ctx := context.Background()
+
+	models := []order.Model{}
+	mockRepo.On("Search", ctx, mock.Anything).Return(models, nil)
+
+	result, err := service.GetAll(ctx, map[string]interface{}{})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, *result, 0)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestOrderService_GetAll_WithInvalidSortDesc(t *testing.T) {
+	mockRepo := new(mocks.MockOrderRepository)
+	service := NewOrderService(mockRepo)
+	ctx := context.Background()
+
+	// sortdesc com valor inválido deve manter o padrão false
+	expectedSearch := ports.OrderSearch{
+		Status:   "",
+		Enabled:  true,
+		OrderBy:  "",
+		SortDesc: false,
+	}
+
+	models := []order.Model{*createTestOrderModel(1)}
+	mockRepo.On("Search", ctx, expectedSearch).Return(models, nil)
+
+	params := map[string]interface{}{
+		"sortdesc": "invalid",
+	}
+	result, err := service.GetAll(ctx, params)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
 	mockRepo.AssertExpectations(t)
 }

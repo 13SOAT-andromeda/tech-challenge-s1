@@ -61,7 +61,9 @@ func (s *OrderService) GetAll(ctx context.Context, params map[string]interface{}
 	}
 
 	if params["enabled"] != nil {
-		oSearch.Enabled = params["enabled"].(bool)
+		if enabledStr, ok := params["enabled"].(string); ok {
+			oSearch.Enabled = enabledStr == "true" || enabledStr == "1"
+		}
 	}
 
 	if params["orderby"] != nil {
