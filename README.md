@@ -1,130 +1,162 @@
 # Tech Challenge S1
 
-A small Go HTTP API project that exposes a few customer-related endpoints and serves OpenAPI (Swagger) documentation.
+Uma API completa para gestão de oficina mecânica, desenvolvida em Go (Golang).
+Permite gerenciar clientes, veículos, produtos e ordens de serviço, com autenticação JWT, documentação via Swagger e deploy simplificado com Docker Compose.
 
-Key features
-- Simple REST endpoints under `/customer`.
-- Health check at `/health`.
-- Serves Swagger UI at `/docs` and the static OpenAPI spec at `/swagger/swagger.yaml`.
+Funcionalidades principais
 
----
+- Endpoints RESTful organizados por recursos (/customers, /vehicles, /orders, etc.)
 
-## Quick overview
-This project is a Go application (module `github.com/13SOAT-andromeda/tech-challenge-s1`) with the server entrypoint in `cmd/api/main.go`. By default it listens on port `8080` (configurable via `HTTP_PORT`).
+- Verificação de saúde (Health Check) em /health
 
-The Swagger UI is served by the application and points to the static spec file shipped in the `swagger/` folder.
+- UI interativa do Swagger em /docs
 
----
+- Especificação OpenAPI estática servida em /swagger/swagger.yaml
 
-## Run locally (without Docker)
-Prerequisites:
-- Go 1.25+ installed
-- A running PostgreSQL instance (local or remote) reachable with the credentials you provide
-
-Simple steps:
-1. Install Go (one-liner examples):
-   - Windows: download and run the installer from https://go.dev/dl/
-   - Ubuntu (WSL):
-     ```bash
-     sudo apt update && sudo apt install -y golang
-     ```
-2. From the project root, create a `.env` file or set environment variables. Example `.env` (place in project root):
-
-   ```env
-   DB_HOST=localhost
-   DB_USER=postgres
-   DB_PASSWORD=password
-   DB_NAME=postgres
-   DB_PORT=5432
-   DB_SSLMODE=disable
-   DB_TIMEZONE=UTC
-
-   HTTP_PORT=8080
-   HTTP_URL=http://localhost
-   HTTP_ALLOWED_ORIGINS=*
-   ENV=development
-   ```
-
-   Notes:
-   - The app reads environment variables defined in `internal/adapter/config/config.go`.
-   - If you don't want to install Postgres locally, you can temporarily start one using Docker (example below), but that uses Docker.
-
-3. Run the app:
-   - Run directly (use module-aware `go run`):
-     ```bash
-     go run ./cmd/api
-     ```
-
-   - Or build and run a binary:
-     ```bash
-     go build -o bin/app ./cmd/api
-     ./bin/app
-     ```
-
-4. Verify the app is running:
-   - Health: http://localhost:8080/health
-   - Swagger UI: http://localhost:8080/docs/index.html?url=/swagger/swagger.yaml
-
-Optional: quick Postgres (Docker) for local testing:
-```bash
-docker run --name tech-challenge-pg -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=postgres -p 5432:5432 -d postgres:15
-```
-(Stop/remove it when done with `docker stop tech-challenge-pg && docker rm tech-challenge-pg`)
+- Autenticação baseada em JWT e middleware de sessão
 
 ---
 
-## Run with Docker (recommended for a quick isolated setup)
-This repository includes a `Dockerfile` and a `docker-compose.yml` that start a Postgres DB and the application.
+## Visão Geral Rápida
 
-1. Install Docker Desktop (Windows) or Docker Engine + Compose (Linux). Simple pointers:
-   - Docker Desktop for Windows: https://docs.docker.com/desktop/
-   - Ubuntu (example):
-     ```bash
-     sudo apt update && sudo apt install -y docker.io docker-compose
-     sudo systemctl enable --now docker
-     ```
-2. From the project root, create or edit `.env` with DB credentials (same as above).
-3. Start services with compose:
+O projeto é uma aplicação Go (module github.com/13SOAT-andromeda/tech-challenge-s1) com ponto de entrada em
+cmd/api/main.go.
+
+Por padrão, o servidor escuta na porta 8080 (configurável via variável HTTP_PORT).
+A UI do Swagger é servida diretamente pela aplicação e aponta para o arquivo de especificação localizado na pasta swagger/.
+
+---
+
+## Executar com Docker (Recomendado)
+
+O repositório já inclui **Dockerfile** e **docker-compose.yml** para iniciar a aplicação e o banco de dados automaticamente.
+
+
+Passos
+
+1. Instale o Docker:
+    - Windows: https://docs.docker.com/desktop/
+    - Ubuntu (exemplo):
+      ```bash
+      sudo apt update && sudo apt install -y docker.io docker-compose
+      sudo systemctl enable --now docker
+      ```
+2. Crie/ajuste o arquivo .env (mesmo exemplo anterior).
+3. Suba os serviços:
    ```bash
    docker-compose up --build
    ```
-   Or run in background:
+   ou em background:
    ```bash
    docker-compose up --build -d
    ```
-4. Endpoints:
-   - App: http://localhost:8080/
-   - Health: http://localhost:8080/health
-   - Swagger UI: http://localhost:8080/docs/index.html?url=/swagger/swagger.yaml
+4. Acesse:
+    - API: http://localhost:8080/
+    - Health: http://localhost:8080/health
+    - Swagger UI: http://localhost:8080/docs/
+    - Redoc UI: http://localhost:8080/redoc/
 
-To stop and remove containers:
+Para encerrar:
+
 ```bash
 docker-compose down
 ```
 
 ---
 
-## Swagger / OpenAPI docs
-The Swagger UI is available once the app is running. Open this URL in your browser:
+## Executar localmente (sem Docker)
 
-http://localhost:8080/docs/index.html?url=/swagger/swagger.yaml
+Pré-requisitos:
 
-This points the Swagger UI to the static spec file served at `/swagger/swagger.yaml`.
+- Go 1.25+ instalado
+- Uma instância de PostgreSQL em execução (local ou remota) acessível com as credenciais fornecidas
+
+Passos simples:
+
+1. Instale o Go:
+    - Windows: baixe e execute o instalador em https://go.dev/dl/
+    - Ubuntu (WSL):
+      ```bash
+        sudo apt update && sudo apt install -y golang
+      ```
+   2. Crie um arquivo .env na raiz do projeto:
+
+      ```env
+
+       DB_HOST=db
+       DB_USER=postgres
+       DB_PASSWORD=postgres123
+       DB_NAME=myapp_db
+       DB_PORT=5432
+       DB_SSLMODE=disable
+       DB_TIMEZONE=America/Sao_Paulo
+       ENV=production
+       HTTP_ALLOWED_ORIGINS=*
+       GIN_MODE=release
+    
+       JWT_SECRET=5b9b178c235820c6e69fbf54876bc4df3ffb4f3ab5ec87305b8b42d2481358c3
+       JWT_ACCESS_TOKEN_EXPIRY=24h
+       JWT_REFRESH_TOKEN_EXPIRY=700h
+    
+       ADMIN_PASSWORD=Admin123!
+       ADMIN_EMAIL=admin@admin.com
+    
+       MAILTRAP_TOKEN=6a45f171cfc233e4edc93d8b847cf19f
+       MAILTRAP_URL="https://send.api.mailtrap.io/api"
+
+      ```
+
+      Notas:
+      - As variáveis são carregadas em `internal/adapter/config/config.go`.
+      - Caso não tenha o PostgreSQL instalado, você pode rodar um contêiner temporário (veja abaixo).
+
+3. Execute a aplicação:
+   - Execute diretamente (use `go run` com reconhecimento de módulo):
+     ```bash
+     go run ./cmd/api
+     ```
+
+   - ou:
+     ```bash
+     go build -o bin/app ./cmd/api
+     ./bin/app
+     ```
+
+4. Verifique se a aplicação está em execução:
+   - Health: http://localhost:8080/health
+   - Swagger UI: http://localhost:8080/docs/index.html
+   - Redoc: http://localhost:8080/redoc
+
+Banco de dados rápido com Docker
+```bash
+docker run --name tech-challenge-pg \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres123 \
+  -e POSTGRES_DB=myapp_db \
+  -p 5432:5432 -d postgres:15
+```
+
+Para parar e remover: 
+```bash
+`docker stop tech-challenge-pg && docker rm tech-challenge-pg`
+```
+---
+
+
+
+## Documentação Swagger / OpenAPI
+
+A documentação da API está disponível em::
+
+Swagger:
+http://localhost:8080/docs
+
+Redoc:
+http://localhost:8080/redoc
 
 ---
 
-## Example API endpoints
-- GET /health -> health check
-- GET /customer -> list customers
-- POST /customer -> create a customer
-- GET /customer/:id -> get customer by id
+## Solução de problemas
 
----
-
-## Troubleshooting
-- If the app fails to connect to the database, verify your Postgres is running and the `.env` values match.
-- Check logs printed to stdout/stderr for startup errors.
-
----
-
-If you'd like, I can add a minimal Makefile or scripts to simplify run commands, or add example curl requests for the endpoints.
+- Se a aplicação falhar ao conectar-se ao banco de dados, verifique se o seu Postgres está em execução e se os valores do `.env` correspondem.
+- Verifique os logs impressos em stdout/stderr para erros de inicialização.
