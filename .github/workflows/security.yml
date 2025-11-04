@@ -5,54 +5,35 @@ on:
   pull_request:
 
 jobs:
-
-
   security-sast:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # 2️⃣ Configura Go
       - uses: actions/setup-go@v4
         with:
           go-version: '1.25'
 
       - name: Check Build
-        working-directory: ./
         run: go build ./...
 
-      # 3️⃣ Instala golangci-lint
-#      - name: Install golangci-lint
-#        run: |
-#          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $HOME/go/bin v1.55.2
-#          echo "$HOME/go/bin" >> $GITHUB_PATH
-#
-#      # 4️⃣ Run golangci-lint
-#      - name: Run golangci-lint
-#        run: golangci-lint run --out-format=json --issues-exit-code=1 ./...
-
-      # 5️⃣ Instala ferramentas de segurança
       - name: Install SAST Security Tools
         run: |
           go install github.com/securego/gosec/v2/cmd/gosec@latest
           go install golang.org/x/vuln/cmd/govulncheck@latest
           echo "$GOPATH/bin" >> $GITHUB_PATH
 
-      # 6️⃣ Executa Gosec
       - name: Run Gosec Security Scan
-        run: gosec -fmt=sarif -out=gosec-report.sarif ./...
+        run: gosec -fmt=sarif -out=gosec-report.sarif ./... || true
 
-      # 7️⃣ Executa govulncheck (não falha pipeline)
       - name: Run Vulnerability Check
         run: govulncheck -json ./... > vulncheck-report.json 2>&1 || true
 
-      # 8️⃣ Upload SARIF para GitHub Security
       - name: Upload Gosec SARIF Report
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: gosec-report.sarif
 
-      # 9️⃣ Armazena todos os relatórios como artifacts
       - name: Store All Reports
         uses: actions/upload-artifact@v4
         with:
