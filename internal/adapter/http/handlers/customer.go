@@ -25,7 +25,7 @@ func NewCustomerHandler(service ports.CustomerService, useCase ports.CustomerUse
 	}
 }
 
-type createCustomerRequest struct {
+type CreateCustomerRequest struct {
 	Name          string `json:"name" binding:"required"`
 	Email         string `json:"email" binding:"required,email"`
 	Document      string `json:"document" binding:"required"`
@@ -41,7 +41,7 @@ type createCustomerRequest struct {
 
 func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 
-	var json createCustomerRequest
+	var json CreateCustomerRequest
 
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 
@@ -88,12 +88,14 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 		return
 	}
 
-	if _, err := h.service.Create(ctx, c); err != nil {
+	customer, err := h.service.Create(ctx, c)
+
+	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	response.RespondCreated[any](ctx, nil, "Customer created successfully")
+	response.RespondCreated(ctx, customer, "Customer created successfully")
 }
 
 func (h *CustomerHandler) Search(ctx *gin.Context) {
@@ -185,7 +187,7 @@ func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
 		return
 	}
 
-	var json createCustomerRequest
+	var json CreateCustomerRequest
 
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 

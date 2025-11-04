@@ -18,7 +18,7 @@ func NewCompanyHandler(service ports.CompanyService) *CompanyHandler {
 	return &CompanyHandler{service: service}
 }
 
-type createCompanyRequest struct {
+type CreateCompanyRequest struct {
 	Name          string `json:"name" binding:"required"`
 	Email         string `json:"email" binding:"required,email"`
 	Document      string `json:"document" binding:"required"`
@@ -32,7 +32,7 @@ type createCompanyRequest struct {
 }
 
 func (h *CompanyHandler) CreateCompany(ctx *gin.Context) {
-	var json createCompanyRequest
+	var json CreateCompanyRequest
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -85,7 +85,7 @@ func (h *CompanyHandler) UpdateCompany(ctx *gin.Context) {
 		return
 	}
 
-	var json createCompanyRequest
+	var json CreateCompanyRequest
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return

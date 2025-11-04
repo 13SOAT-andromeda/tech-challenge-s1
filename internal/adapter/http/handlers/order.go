@@ -20,7 +20,7 @@ func NewOrderHandler(service ports.OrderService, usecase ports.OrderUseCase) *Or
 	return &OrderHandler{service: service, usecase: usecase}
 }
 
-type createOrderRequest struct {
+type CreateOrderRequest struct {
 	VehicleKilometers int     `json:"vehicle_kilometers" binding:"required"`
 	Note              *string `json:"note"`
 	CustomerVehicleID uint    `json:"customer_vehicle_id" binding:"required"`
@@ -34,7 +34,7 @@ type CompleteAnalysisRequest struct {
 }
 
 func (h *OrderHandler) Create(ctx *gin.Context) {
-	var request createOrderRequest
+	var request CreateOrderRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
