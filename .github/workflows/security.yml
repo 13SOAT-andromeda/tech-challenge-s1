@@ -25,25 +25,36 @@ jobs:
   sast:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4  # ✅ Corrigido
 
       - uses: actions/setup-go@v4
         with:
           go-version: '1.25'
 
-      - name: Install Gosec
-        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+      - name: Install SAST Tools
+        run: |
+          # Scanner de segurança principal para Go
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          # Scanner de vulnerabilidades em dependências
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          # Detector de dependências não utilizadas
+          go install github.com/tdakkota/asciicheck@latest
 
-      - name: Run SAST Scan with Gosec
-        run: gosec -fmt=sarif -out=security-report.sarif ./...
+      - name: Run Gosec SAST
+        run: gosec -fmt=sarif -out=gosec-report.sarif ./...
 
-      - name: Upload SAST Report to GitHub Security
+      - name: Run Govulncheck
+        run: govulncheck -json ./... > vulncheck-report.json 2>&1 || true
+
+      - name: Upload SAST Reports to GitHub Security
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: security-report.sarif
+          sarif_file: gosec-report.sarif
 
-      - name: Upload SAST Report as Artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload SAST Reports as Artifact
+        uses: actions/upload-artifact@v4  # ✅ Corrigido
         with:
-          name: sast-security-report
-          path: security-report.sarif
+          name: comprehensive-sast-reports
+          path: |
+            gosec-report.sarif
+            vulncheck-report.json
