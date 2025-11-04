@@ -22,10 +22,11 @@ type StockItem struct {
 }
 
 type Product struct {
-	ID    uint   `json:"id"`
-	Name  string `json:"name"`
-	Stock uint   `json:"stock"`
-	Price int64  `json:"price"`
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	Stock    *uint  `json:"stock,omitempty"`
+	Price    int64  `json:"price"`
+	Quantity *uint  `json:"quantity,omitempty"` // Quantity in order context (nil when not in order)
 }
 
 func (p *Product) Validate() error {
@@ -41,7 +42,7 @@ func (p *Product) Validate() error {
 }
 
 func (p *Product) CanBePurchased(quantity uint) error {
-	if p.Stock < quantity {
+	if *p.Stock < quantity {
 		return ErrInsufficientStock
 	}
 
@@ -53,7 +54,7 @@ func (p *Product) DecreaseStock(quantity uint) error {
 		return err
 	}
 
-	p.Stock -= quantity
+	*p.Stock -= quantity
 
 	return nil
 }

@@ -222,7 +222,7 @@ func TestOrder(t *testing.T) {
 		assert.Equal(t, createOrderReq.VehicleKilometers, orderResponse.Data.VehicleKilometers)
 		assert.Equal(t, *createOrderReq.Note, *orderResponse.Data.Note)
 		assert.Equal(t, domain.OrderStatuses.RECEIVED, orderResponse.Data.Status)
-		assert.Equal(t, customerVehicleID, orderResponse.Data.CustomerVehicle.ID)
-		assert.Equal(t, companyID, orderResponse.Data.Company.ID)
+		assert.Equal(t, customerVehicleID, orderResponse.Data.CustomerVehicleID)
+		assert.Equal(t, companyID, orderResponse.Data.CompanyID)
 	})
 }

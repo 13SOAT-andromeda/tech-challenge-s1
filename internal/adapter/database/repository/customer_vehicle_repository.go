@@ -23,6 +23,8 @@ func (r *customerVehicleRepository) FindByCustomerAndVehicle(ctx context.Context
 	var model customer_vehicle.Model
 
 	err := r.db.WithContext(ctx).
+		Preload("Vehicle").
+		Preload("Customer").
 		Where("customer_id = ? AND vehicle_id = ?", customerID, vehicleID).
 		First(&model).Error
 
@@ -40,6 +42,7 @@ func (r *customerVehicleRepository) FindByCustomerID(ctx context.Context, custom
 	var models []customer_vehicle.Model
 	err := r.db.WithContext(ctx).
 		Preload("Vehicle").
+		Preload("Customer").
 		Where("customer_id = ?", customerID).
 		Find(&models).Error
 

@@ -32,9 +32,13 @@ func (r *productRepository) UpdateStock(ctx context.Context, id uint, quantity i
 			return errors.New("not enough stock")
 		}
 
-		model.Stock = uint(int(model.Stock) + quantity)
+		newStock := int(model.Stock) + quantity
+		if newStock < 0 {
+			return errors.New("stock would become negative")
+		}
 
-		return tx.Save(&model).Error
+		model.Stock = uint(newStock)
+		return tx.Model(&model).Where("id = ?", id).Select("Stock").Updates(&model).Error
 	})
 }
 

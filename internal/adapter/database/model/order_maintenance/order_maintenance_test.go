@@ -4,11 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"gorm.io/gorm"
 )
@@ -27,28 +23,31 @@ func TestModel_ToDomain(t *testing.T) {
 	diag := "diag"
 
 	m := &Model{
+		MaintenanceId: 1,
+		OrderId:       2,
 		Maintenance: maintenance.Model{
 			Model:      gorm.Model{ID: 1},
 			Name:       "Change oil",
 			Price:      1500,
 			CategoryId: "padrao",
 		},
-		Order: order.Model{
-			Model:             gorm.Model{ID: 2},
-			DateIn:            now,
-			DateOut:           nil,
-			Status:            string(domain.RECEIVED),
-			VehicleKilometers: 100,
-			Note:              &note,
-			DiagnosticNote:    &diag,
-			Price:             &price,
-			User:              user.Model{Model: gorm.Model{ID: 10}, Name: "usr", Email: "e@x.com", Contact: "cont", Password: "hashed", Role: "role"},
-			CustomerVehicle:   customer_vehicle.Model{Model: gorm.Model{ID: 20}, CustomerID: 5, VehicleID: 6},
-			Company:           company.Model{Model: gorm.Model{ID: 30}, Name: "Comp", Contact: "123", Document: "doc"},
-		},
 	}
 
-	d := m.ToDomain()
+	orderDomain := &domain.Order{
+		ID:                2,
+		DateIn:            now,
+		DateOut:           nil,
+		Status:            domain.RECEIVED,
+		VehicleKilometers: 100,
+		Note:              &note,
+		DiagnosticNote:    &diag,
+		Price:             &price,
+		UserID:            10,
+		CustomerVehicleID: 20,
+		CompanyID:         30,
+	}
+
+	d := m.ToDomain(orderDomain)
 
 	// Maintenance assertions
 	if d.Maintenance.ID != 1 {
@@ -86,14 +85,14 @@ func TestModel_ToDomain(t *testing.T) {
 	if d.Order.Price == nil || *d.Order.Price != price {
 		t.Fatalf("order price: expected %v got %v", price, d.Order.Price)
 	}
-	if d.Order.User.ID != 10 {
-		t.Fatalf("user id: expected 10 got %d", d.Order.User.ID)
+	if d.Order.UserID != 10 {
+		t.Fatalf("user id: expected 10 got %d", d.Order.UserID)
 	}
-	if d.Order.CustomerVehicle.ID != 20 {
-		t.Fatalf("customer vehicle id: expected 20 got %d", d.Order.CustomerVehicle.ID)
+	if d.Order.CustomerVehicleID != 20 {
+		t.Fatalf("customer vehicle id: expected 20 got %d", d.Order.CustomerVehicleID)
 	}
-	if d.Order.Company.ID != 30 {
-		t.Fatalf("company id: expected 30 got %d", d.Order.Company.ID)
+	if d.Order.CompanyID != 30 {
+		t.Fatalf("company id: expected 30 got %d", d.Order.CompanyID)
 	}
 }
 
@@ -102,6 +101,8 @@ func TestModel_FromDomain(t *testing.T) {
 	price := 200.0
 
 	d := &domain.OrderMaintenance{
+		MaintenanceId: 3,
+		OrderId:       4,
 		Maintenance: domain.Maintenance{
 			ID:         3,
 			Name:       "Filter",
@@ -116,15 +117,21 @@ func TestModel_FromDomain(t *testing.T) {
 			Note:              nil,
 			DiagnosticNote:    nil,
 			Price:             &price,
-			User:              domain.User{ID: 11},
-			CustomerVehicle:   domain.CustomerVehicle{ID: 21, CustomerId: 7, VehicleId: 8},
-			Company:           domain.Company{ID: 31},
+			UserID:            11,
+			CustomerVehicleID: 21,
+			CompanyID:         31,
 		},
 	}
 
 	m := &Model{}
 	m.FromDomain(d)
 
+	if m.MaintenanceId != 3 {
+		t.Fatalf("maintenance id: expected 3 got %d", m.MaintenanceId)
+	}
+	if m.OrderId != 4 {
+		t.Fatalf("order id: expected 4 got %d", m.OrderId)
+	}
 	if m.Maintenance.ID != 3 {
 		t.Fatalf("maintenance id: expected 3 got %d", m.Maintenance.ID)
 	}
@@ -137,43 +144,12 @@ func TestModel_FromDomain(t *testing.T) {
 	if m.Maintenance.CategoryId != "utilitario" {
 		t.Fatalf("maintenance category: expected %s got %s", "utilitario", m.Maintenance.CategoryId)
 	}
-
-	if m.Order.ID != 4 {
-		t.Fatalf("order id: expected 4 got %d", m.Order.ID)
-	}
-	if !m.Order.DateIn.Equal(now) {
-		t.Fatalf("order datein: expected %v got %v", now, m.Order.DateIn)
-	}
-	if m.Order.Status != string(domain.APPROVED) {
-		t.Fatalf("order status: expected %v got %v", domain.APPROVED, m.Order.Status)
-	}
-	if m.Order.VehicleKilometers != 200 {
-		t.Fatalf("vehicle kilometers: expected 200 got %d", m.Order.VehicleKilometers)
-	}
-	if m.Order.Price == nil || *m.Order.Price != price {
-		t.Fatalf("order price: expected %v got %v", price, m.Order.Price)
-	}
-	if m.Order.UserID != 11 {
-		t.Fatalf("user id: expected 11 got %d", m.Order.UserID)
-	}
-	if m.Order.CustomerVehicle.ID != 21 {
-		t.Fatalf("customer vehicle id: expected 21 got %d", m.Order.CustomerVehicle.ID)
-	}
-	if m.Order.CustomerVehicle.CustomerID != 7 {
-		t.Fatalf("customer id: expected 7 got %d", m.Order.CustomerVehicle.CustomerID)
-	}
-	if m.Order.CustomerVehicle.VehicleID != 8 {
-		t.Fatalf("vehicle id: expected 8 got %d", m.Order.CustomerVehicle.VehicleID)
-	}
-	if m.Order.CompanyID != 31 {
-		t.Fatalf("company id: expected 31 got %d", m.Order.CompanyID)
-	}
 }
 
 func TestModel_FromDomain_Nil(t *testing.T) {
 	m := &Model{}
 	m.FromDomain(nil)
-	if m.Maintenance.ID != 0 || m.Order.ID != 0 {
-		t.Fatalf("expected zero values after FromDomain(nil), got maintenance id %d order id %d", m.Maintenance.ID, m.Order.ID)
+	if m.Maintenance.ID != 0 || m.MaintenanceId != 0 || m.OrderId != 0 {
+		t.Fatalf("expected zero values after FromDomain(nil), got maintenance id %d maintenanceId %d orderId %d", m.Maintenance.ID, m.MaintenanceId, m.OrderId)
 	}
 }

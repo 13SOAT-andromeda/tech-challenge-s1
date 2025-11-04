@@ -44,19 +44,20 @@ var OrderStatuses = struct {
 }
 
 type Order struct {
-	ID                uint            `json:"id"`
-	DateIn            time.Time       `json:"date_in"`
-	DateOut           *time.Time      `json:"date_out"`
-	DateApproved      *time.Time      `json:"date_approved"`
-	DateRejected      *time.Time      `json:"date_rejected"`
-	Status            OrderStatus     `json:"status"`
-	VehicleKilometers int             `json:"vehicle_kilometers"`
-	Note              *string         `json:"note"`
-	DiagnosticNote    *string         `json:"diagnostic_note"`
-	Price             *float64        `json:"price"`
-	User              User            `json:"user"`
-	CustomerVehicle   CustomerVehicle `json:"customer_vehicle"`
-	Company           Company         `json:"company"`
-	Products          *[]StockItem    `json:"products:omitempty"`
-	Maintenances      *[]uint         `json:"maintenances:omitempty"`
+	ID                uint           `json:"id"`
+	DateIn            time.Time      `json:"date_in"`
+	DateOut           *time.Time     `json:"date_out"`
+	DateApproved      *time.Time     `json:"date_approved"`
+	DateRejected      *time.Time     `json:"date_rejected"`
+	Status            OrderStatus    `json:"status"`
+	VehicleKilometers int            `json:"vehicle_kilometers"`
+	Note              *string        `json:"note"`
+	DiagnosticNote    *string        `json:"diagnostic_note"`
+	Price             *float64       `json:"price"`
+	CustomerVehicleID uint           `json:"customer_vehicle_id"`
+	UserID            uint           `json:"user_id"`
+	CompanyID         uint           `json:"company_id"`
+	Vehicle           *Vehicle       `json:"vehicle,omitempty"`
+	Products          *[]Product     `json:"products,omitempty"`
+	Maintenances      *[]Maintenance `json:"maintenances,omitempty"`
 }

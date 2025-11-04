@@ -14,9 +14,7 @@ import (
 )
 
 var (
-	ErrOrderIdInvalid = &errors.ValidationError{Message: "Order Id invalid"}
-	ErrOrderNotFound  = &errors.ValidationError{Message: "Order not found"}
-	ErrOrderDelete    = &errors.ValidationError{Message: "An error occurred while trying to delete the order"}
+	ErrOrderDelete = &errors.ValidationError{Message: "An error occurred while trying to delete the order"}
 )
 
 type OrderService struct {
@@ -121,7 +119,7 @@ func (s *OrderService) GetApprovalTemplate(order domain.Order, customer domain.C
 	price := ""
 	diagnosticNote := ""
 	note := ""
-	id := strconv.FormatUint(uint64(order.ID), 8)
+	id := strconv.FormatUint(uint64(order.ID), 10)
 
 	if order.DiagnosticNote != nil {
 		diagnosticNote = *order.DiagnosticNote
