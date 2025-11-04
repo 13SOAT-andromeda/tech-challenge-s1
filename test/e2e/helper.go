@@ -1,8 +1,8 @@
 package e2e
 
 import (
-	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -44,8 +44,12 @@ func initProjectRoot() error {
 	return nil
 }
 
-func NewUnauthenticatedReq(method, url string, body *bytes.Buffer) (*http.Response, error) {
+func NewUnauthenticatedReq(method, url string, body io.Reader) (*http.Response, error) {
 	client := &http.Client{}
+
+	if body == nil {
+		body = http.NoBody
+	}
 
 	request, err := http.NewRequest(method, url, body)
 
@@ -58,8 +62,12 @@ func NewUnauthenticatedReq(method, url string, body *bytes.Buffer) (*http.Respon
 	return client.Do(request)
 }
 
-func NewAuthenticatedReq(method, url string, body *bytes.Buffer, token string) (*http.Response, error) {
+func NewAuthenticatedReq(method, url string, body io.Reader, token string) (*http.Response, error) {
 	client := &http.Client{}
+
+	if body == nil {
+		body = http.NoBody
+	}
 
 	request, err := http.NewRequest(method, url, body)
 
@@ -77,7 +85,7 @@ func GetApiUrl(cfg config.Config) string {
 	return cfg.Http.Url + ":" + cfg.Http.Port
 }
 
-func ParseBody[T any](body []byte, data T) {
+func ParseBody[T any](body []byte, data T) error {
 	bodyString := string(body)
-	json.Unmarshal([]byte(bodyString), &data)
+	return json.Unmarshal([]byte(bodyString), &data)
 }
