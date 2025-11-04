@@ -8,8 +8,10 @@ import (
 )
 
 type OrderSearch struct {
-	Status  string
-	Enabled bool
+	Status   string
+	Enabled  bool
+	OrderBy  string
+	SortDesc bool
 }
 
 type CreateOrderInput struct {
