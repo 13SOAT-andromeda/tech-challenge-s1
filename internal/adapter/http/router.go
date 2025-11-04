@@ -91,8 +91,7 @@ func NewRouter(
 			productGroup.GET("/:id", productHandler.GetProductByID)
 			productGroup.DELETE("/:id", productHandler.DeleteProduct)
 			productGroup.PUT("/:id", productHandler.UpdateProduct)
-			productGroup.PATCH("/stock", productHandler.UpdateStockItem)
-			// @TODO: fazer add and remove productGroup.PATCH("/:id/stock", productHandler.ManageStockItem)
+			productGroup.PATCH("/stock", productHandler.UpdateStockBatch)
 		}
 
 		userGroup := protected.Group("/user")

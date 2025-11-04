@@ -100,36 +100,29 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 		return err
 	}
 
-	maintenanceIds := make([]uint, 0, len(input.Maintenances))
-	for _, v := range input.Maintenances {
-		maintenanceIds = append(maintenanceIds, v.ID)
-	}
-
-	maintenances, err := uc.maintenanceService.GetByIDs(ctx, maintenanceIds)
+	maintenances, err := uc.maintenanceService.GetByIDs(ctx, input.Maintenances)
 	if err != nil {
 		return err
 	}
 
 	totalPrice := 0.0
 
-	orderProducts := make([]domain.ProductItem, 0, len(products))
+	orderProducts := make([]domain.StockItem, 0, len(products))
 	for _, product := range products {
 		quantity := productQuantities[product.ID]
 		totalPrice += float64(product.Price) * float64(quantity)
 
-		orderProducts = append(orderProducts, domain.ProductItem{
+		orderProducts = append(orderProducts, domain.StockItem{
 			ID:       product.ID,
 			Quantity: uint(quantity),
 		})
 	}
 
-	orderMaintenances := make([]domain.MaintenanceItem, 0, len(maintenances))
+	orderMaintenances := make([]uint, 0, len(maintenances))
 	for _, maintenance := range maintenances {
 		totalPrice += float64(maintenance.Price)
 
-		orderMaintenances = append(orderMaintenances, domain.MaintenanceItem{
-			ID: maintenance.ID,
-		})
+		orderMaintenances = append(orderMaintenances, maintenance.ID)
 	}
 
 	order.DiagnosticNote = input.DiagnosticNote
@@ -258,6 +251,7 @@ func (uc *UseCase) StartWorkOrder(ctx context.Context, id uint) error {
 	}
 
 	productItems := make([]domain.StockItem, 0, len(*order.Products))
+	operation := domain.StockOperationDecrease
 
 	for _, item := range *order.Products {
 		available, err := uc.productService.CheckAvailability(ctx, item.ID, item.Quantity)
@@ -272,7 +266,7 @@ func (uc *UseCase) StartWorkOrder(ctx context.Context, id uint) error {
 		productItems = append(productItems, domain.StockItem{
 			ID:        item.ID,
 			Quantity:  item.Quantity,
-			Operation: item.Operation,
+			Operation: &operation,
 		})
 	}
 

@@ -38,8 +38,8 @@ func (m *MockProductService) GetByIds(ctx context.Context, productIDs []uint) ([
 	return args.Get(0).([]domain.Product), args.Error(1)
 }
 
-func (m *MockProductService) UpdateStock(ctx context.Context, products []domain.ProductItem, operation domain.StockOperation) error {
-	args := m.Called(ctx, products, operation)
+func (m *MockProductService) UpdateStock(ctx context.Context, products []domain.StockItem) error {
+	args := m.Called(ctx, products)
 	if args.Get(0) == nil {
 		return args.Error(1)
 	}

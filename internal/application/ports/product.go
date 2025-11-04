@@ -9,7 +9,7 @@ import (
 
 type ProductRepository interface {
 	Repository[product.Model]
-	UpdateStock(ctx context.Context, productID uint, quantity uint, operation domain.StockOperation) error
+	UpdateStock(ctx context.Context, productID uint, quantity int) error
 	FindByIDs(ctx context.Context, productIDs []uint) ([]product.Model, error)
 }
 

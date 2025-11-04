@@ -2,11 +2,10 @@ package repository
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -21,26 +20,19 @@ func NewProductRepository(db *gorm.DB) ports.ProductRepository {
 	}
 }
 
-func (r *productRepository) UpdateStock(ctx context.Context, id uint, quantity int, operation domain.StockOperation) error {
+func (r *productRepository) UpdateStock(ctx context.Context, id uint, quantity int) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var model product.Model
-
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			First(&model, id).Error; err != nil {
 			return err
 		}
 
-		if operation == domain.StockOperationAdd {
-			model.Stock += uint(quantity)
-		} else if operation == domain.StockOperationRemove {
-			if model.Stock < uint(quantity) {
-				return fmt.Errorf("insufficient stock to remove %d items", quantity)
-			}
-
-			model.Stock -= uint(quantity)
-		} else {
-			return fmt.Errorf("unknown operation %q", operation)
+		if quantity < 0 && model.Stock < uint(-quantity) {
+			return errors.New("not enough stock")
 		}
+
+		model.Stock = uint(int(model.Stock) + quantity)
 
 		return tx.Save(&model).Error
 	})

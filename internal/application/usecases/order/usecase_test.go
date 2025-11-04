@@ -691,13 +691,11 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 
 		input := ports.CreateCompleteOrderAnalysisInput{
 			DiagnosticNote: ptrString("diagnostic"),
-			Products: []domain.ProductItem{
+			Products: []domain.StockItem{
 				{ID: 1, Quantity: 2},
 				{ID: 2, Quantity: 1},
 			},
-			Maintenances: []domain.MaintenanceItem{
-				{ID: 3},
-			},
+			Maintenances: []uint{3},
 		}
 
 		productsIds := []uint{1, 2}
@@ -791,7 +789,7 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		orderID := uint(1)
 		userID := uint(2)
 		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
-		input := ports.CreateCompleteOrderAnalysisInput{Products: []domain.ProductItem{
+		input := ports.CreateCompleteOrderAnalysisInput{Products: []domain.StockItem{
 			{ID: 1, Quantity: 2},
 		}}
 
@@ -817,9 +815,7 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		orderID := uint(1)
 		userID := uint(2)
 		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
-		input := ports.CreateCompleteOrderAnalysisInput{Maintenances: []domain.MaintenanceItem{
-			{ID: 1},
-		}}
+		input := ports.CreateCompleteOrderAnalysisInput{Maintenances: []uint{1}}
 
 		maintenanceIds := []uint{1}
 
@@ -852,8 +848,8 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 
 		input := ports.CreateCompleteOrderAnalysisInput{
 			DiagnosticNote: ptrString("diag"),
-			Products:       []domain.ProductItem{{ID: 1, Quantity: 1}},
-			Maintenances:   []domain.MaintenanceItem{{ID: 2}},
+			Products:       []domain.StockItem{{ID: 1, Quantity: 1}},
+			Maintenances:   []uint{2},
 		}
 
 		productIds := []uint{1}
@@ -877,7 +873,7 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 func TestUseCase_StartWorkOrder(t *testing.T) {
 	ctx := context.Background()
 	orderID := uint(1)
-	products := &[]domain.ProductItem{
+	products := &[]domain.StockItem{
 		{ID: 10, Quantity: 2},
 		{ID: 11, Quantity: 1},
 	}
@@ -898,7 +894,7 @@ func TestUseCase_StartWorkOrder(t *testing.T) {
 		mockOrderService.On("GetByID", ctx, orderID).Return(existingOrder, nil).Once()
 		mockProductService.On("CheckAvailability", ctx, uint(10), uint(2)).Return(true, nil).Once()
 		mockProductService.On("CheckAvailability", ctx, uint(11), uint(1)).Return(true, nil).Once()
-		mockProductService.On("UpdateStock", ctx, mock.AnythingOfType("[]domain.ProductItem"), domain.StockOperationRemove).Return(nil, nil).Once()
+		mockProductService.On("UpdateStock", ctx, mock.AnythingOfType("[]domain.StockItem")).Return(nil, nil).Once()
 		mockOrderService.On("Update", ctx, mock.MatchedBy(func(o domain.Order) bool {
 			return o.ID == orderID && o.Status == domain.OrderStatuses.IN_PROGRESS
 		})).Return(nil).Once()
@@ -1003,7 +999,7 @@ func TestUseCase_StartWorkOrder(t *testing.T) {
 		mockOrderService.On("GetByID", ctx, orderID).Return(existingOrder, nil).Once()
 		mockProductService.On("CheckAvailability", ctx, uint(10), uint(2)).Return(true, nil).Once()
 		mockProductService.On("CheckAvailability", ctx, uint(11), uint(1)).Return(true, nil).Once()
-		mockProductService.On("UpdateStock", ctx, mock.AnythingOfType("[]domain.ProductItem"), domain.StockOperationRemove).Return(nil, errors.New("db error")).Once()
+		mockProductService.On("UpdateStock", ctx, mock.AnythingOfType("[]domain.StockItem")).Return(nil, errors.New("db error")).Once()
 
 		err := uc.StartWorkOrder(ctx, orderID)
 
@@ -1029,7 +1025,7 @@ func TestUseCase_StartWorkOrder(t *testing.T) {
 		mockOrderService.On("GetByID", ctx, orderID).Return(existingOrder, nil).Once()
 		mockProductService.On("CheckAvailability", ctx, uint(10), uint(2)).Return(true, nil).Once()
 		mockProductService.On("CheckAvailability", ctx, uint(11), uint(1)).Return(true, nil).Once()
-		mockProductService.On("UpdateStock", ctx, mock.AnythingOfType("[]domain.ProductItem"), domain.StockOperationRemove).Return(nil, nil).Once()
+		mockProductService.On("UpdateStock", ctx, mock.AnythingOfType("[]domain.StockItem")).Return(nil, nil).Once()
 		mockOrderService.On("Update", ctx, mock.Anything).Return(errors.New("db error")).Once()
 
 		err := uc.StartWorkOrder(ctx, orderID)

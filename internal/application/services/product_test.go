@@ -322,16 +322,16 @@ func TestProductService_UpdateStock_Success(t *testing.T) {
 	service := NewProductService(mockRepo)
 
 	ctx := context.Background()
-	products := []domain.ProductItem{
-		{ID: 1, Quantity: 2},
-		{ID: 2, Quantity: 3},
+	operation := domain.StockOperationIncrease
+	products := []domain.StockItem{
+		{ID: 1, Quantity: 2, Operation: &operation},
+		{ID: 2, Quantity: 3, Operation: &operation},
 	}
-	operation := domain.StockOperationAdd
 
-	mockRepo.On("UpdateStock", ctx, uint(1), 2, operation).Return(nil)
-	mockRepo.On("UpdateStock", ctx, uint(2), 3, operation).Return(nil)
+	mockRepo.On("UpdateStock", ctx, uint(1), 2).Return(nil)
+	mockRepo.On("UpdateStock", ctx, uint(2), 3).Return(nil)
 
-	err := service.UpdateStock(ctx, products, operation)
+	err := service.UpdateStock(ctx, products)
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -342,15 +342,18 @@ func TestProductService_UpdateStock_Fail(t *testing.T) {
 	service := NewProductService(mockRepo)
 
 	ctx := context.Background()
-	products := []domain.ProductItem{
-		{ID: 1, Quantity: 2},
+
+	operation := domain.StockOperationIncrease
+
+	products := []domain.StockItem{
+		{ID: 1, Quantity: 2, Operation: &operation},
+		{ID: 2, Quantity: 3, Operation: &operation},
 	}
-	operation := domain.StockOperationRemove
 
 	dbErr := errors.New("db error")
-	mockRepo.On("UpdateStock", ctx, uint(1), 2, operation).Return(dbErr)
+	mockRepo.On("UpdateStock", ctx, uint(1), 2).Return(dbErr)
 
-	err := service.UpdateStock(ctx, products, operation)
+	err := service.UpdateStock(ctx, products)
 
 	assert.Error(t, err)
 	assert.Equal(t, dbErr, err)

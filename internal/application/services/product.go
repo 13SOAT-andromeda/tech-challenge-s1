@@ -129,7 +129,17 @@ func (s *ProductService) CheckAvailability(ctx context.Context, productID uint, 
 
 func (s *ProductService) UpdateStock(ctx context.Context, products []domain.StockItem) error {
 	for _, item := range products {
-		err := s.repo.UpdateStock(ctx, item.ID, item.Quantity, *item.Operation)
+		var stockChange int
+		switch *item.Operation {
+		case domain.StockOperationIncrease:
+			stockChange = int(item.Quantity)
+		case domain.StockOperationDecrease:
+			stockChange = -int(item.Quantity)
+		default:
+			return errors.New("invalid stock operation")
+		}
+
+		err := s.repo.UpdateStock(ctx, item.ID, stockChange)
 		if err != nil {
 			return err
 		}
