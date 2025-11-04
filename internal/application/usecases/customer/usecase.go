@@ -53,7 +53,6 @@ func (s *UseCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 		return errors.New("vehicle is already associated with this customer")
 	}
 
-	// @TODO: Passar para o service de customer-vehicle
 	customerVehicleDomain := &domain.CustomerVehicle{
 		CustomerId: customerID,
 		VehicleId:  vehicleID,
