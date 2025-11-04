@@ -25,6 +25,8 @@ func (m *Model) ToDomain() *domain.CustomerVehicle {
 		ID:         m.ID,
 		CustomerId: m.CustomerId,
 		VehicleId:  m.VehicleId,
+		Vehicle:    *m.Vehicle.ToDomain(),
+		Customer:   *m.Customer.ToDomain(),
 	}
 }
 
@@ -33,4 +35,6 @@ func (m *Model) FromDomain(d *domain.CustomerVehicle) {
 	m.ID = d.ID
 	m.Customer.ID = d.CustomerId
 	m.Vehicle.ID = d.VehicleId
+	m.Vehicle.FromDomain(&d.Vehicle)
+	m.Customer.FromDomain(&d.Customer)
 }
