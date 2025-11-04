@@ -289,3 +289,21 @@ func (uc *UseCase) StartWorkOrder(ctx context.Context, id uint) error {
 
 	return nil
 }
+
+func (uc *UseCase) CompleteWorkOrder(ctx context.Context, id uint) error {
+	order, err := uc.orderService.GetByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to get order with id %d: %w", id, err)
+	}
+
+	if order.Status != domain.OrderStatuses.IN_PROGRESS {
+		return fmt.Errorf("order cannot complete work. current status: %s", order.Status)
+	}
+
+	order.Status = domain.OrderStatuses.FINISHED
+	if err = uc.orderService.Update(ctx, *order); err != nil {
+		return fmt.Errorf("failed to update order status: %w", err)
+	}
+
+	return nil
+}

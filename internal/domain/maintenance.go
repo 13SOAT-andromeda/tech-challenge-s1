@@ -31,15 +31,11 @@ type Maintenance struct {
 	ID         uint                `json:"id"`
 	Name       string              `json:"name"`
 	Price      int64               `json:"price"`
-	CategoryID MaintenanceCategory `json:"category"`
+	CategoryId MaintenanceCategory `json:"category"`
 }
 
-type MaintenanceItem struct {
-	ID uint
-}
-
-func ParseCategoryName(categoryID string) MaintenanceCategory {
-	switch strings.TrimSpace(categoryID) {
+func ParseCategoryName(CategoryId string) MaintenanceCategory {
+	switch strings.TrimSpace(CategoryId) {
 	case "standard":
 		return MaintenanceCategories.STANDARD
 	case "utility":
@@ -49,19 +45,19 @@ func ParseCategoryName(categoryID string) MaintenanceCategory {
 	case "premium":
 		return MaintenanceCategories.PREMIUM
 	default:
-		panic(fmt.Sprintf("Maintenance Category '%s' is not valid.", categoryID))
+		panic(fmt.Sprintf("Maintenance Category '%s' is not valid.", CategoryId))
 	}
 }
 
 func (m *Maintenance) ValidateMaintenanceCategory() error {
-	acceptedCategoryID := []MaintenanceCategory{"standard", "utility", "commercial", "premium"}
+	acceptedCategoryId := []MaintenanceCategory{"standard", "utility", "commercial", "premium"}
 
-	if !slices.Contains(acceptedCategoryID, m.CategoryID) {
+	if !slices.Contains(acceptedCategoryId, m.CategoryId) {
 		var names []string
-		for _, c := range acceptedCategoryID {
+		for _, c := range acceptedCategoryId {
 			names = append(names, string(c))
 		}
-		return fmt.Errorf("Maintenance Category '%s' is not valid. Accepted types: %v", string(m.CategoryID), names)
+		return fmt.Errorf("Maintenance Category '%s' is not valid. Accepted types: %v", string(m.CategoryId), names)
 	}
 
 	return nil

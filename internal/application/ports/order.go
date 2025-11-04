@@ -53,4 +53,5 @@ type OrderUseCase interface {
 	RejectOrder(ctx context.Context, id uint) error
 	ArchiveOrder(ctx context.Context, id uint) error
 	StartWorkOrder(ctx context.Context, id uint) error
+	CompleteWorkOrder(ctx context.Context, id uint) error
 }
