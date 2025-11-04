@@ -1036,3 +1036,76 @@ func TestUseCase_StartWorkOrder(t *testing.T) {
 		mockProductService.AssertExpectations(t)
 	})
 }
+
+func TestUseCase_CompleteWorkOrder(t *testing.T) {
+	ctx := context.Background()
+	orderID := uint(1)
+
+	t.Run("should complete work order successfully", func(t *testing.T) {
+		mockOrderService := new(mocks.MockOrderService)
+		uc := &UseCase{orderService: mockOrderService}
+
+		existingOrder := &domain.Order{
+			ID:     orderID,
+			Status: domain.OrderStatuses.IN_PROGRESS,
+		}
+
+		mockOrderService.On("GetByID", ctx, orderID).Return(existingOrder, nil).Once()
+		mockOrderService.On("Update", ctx, mock.MatchedBy(func(o domain.Order) bool {
+			return o.ID == orderID && o.Status == domain.OrderStatuses.FINISHED
+		})).Return(nil).Once()
+
+		err := uc.CompleteWorkOrder(ctx, orderID)
+
+		assert.NoError(t, err)
+		mockOrderService.AssertExpectations(t)
+	})
+
+	t.Run("should return error when order not found", func(t *testing.T) {
+		mockOrderService := new(mocks.MockOrderService)
+		uc := &UseCase{orderService: mockOrderService}
+
+		mockOrderService.On("GetByID", ctx, orderID).Return(nil, errors.New("not found")).Once()
+
+		err := uc.CompleteWorkOrder(ctx, orderID)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to get order")
+		mockOrderService.AssertExpectations(t)
+	})
+
+	t.Run("should return error for wrong order status", func(t *testing.T) {
+		mockOrderService := new(mocks.MockOrderService)
+		uc := &UseCase{orderService: mockOrderService}
+		existingOrder := &domain.Order{
+			ID:     orderID,
+			Status: domain.OrderStatuses.APPROVED,
+		}
+
+		mockOrderService.On("GetByID", ctx, orderID).Return(existingOrder, nil).Once()
+
+		err := uc.CompleteWorkOrder(ctx, orderID)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "order cannot complete work")
+		mockOrderService.AssertExpectations(t)
+	})
+
+	t.Run("should return error on order update failure", func(t *testing.T) {
+		mockOrderService := new(mocks.MockOrderService)
+		uc := &UseCase{orderService: mockOrderService}
+		existingOrder := &domain.Order{
+			ID:     orderID,
+			Status: domain.OrderStatuses.IN_PROGRESS,
+		}
+
+		mockOrderService.On("GetByID", ctx, orderID).Return(existingOrder, nil).Once()
+		mockOrderService.On("Update", ctx, mock.Anything).Return(errors.New("db error")).Once()
+
+		err := uc.CompleteWorkOrder(ctx, orderID)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to update order status")
+		mockOrderService.AssertExpectations(t)
+	})
+}
