@@ -111,5 +111,5 @@ func (m *Model) FromDomain(d *domain.Order) {
 	m.Price = d.Price
 	m.UserID = d.UserID
 	m.CustomerVehicleID = d.CustomerVehicleID
-	m.CompanyID = d.CustomerVehicleID
+	m.CompanyID = d.CompanyID
 }

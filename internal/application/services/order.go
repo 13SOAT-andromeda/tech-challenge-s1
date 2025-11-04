@@ -119,7 +119,7 @@ func (s *OrderService) GetApprovalTemplate(order domain.Order, customer domain.C
 	price := ""
 	diagnosticNote := ""
 	note := ""
-	id := strconv.FormatUint(uint64(order.ID), 8)
+	id := strconv.FormatUint(uint64(order.ID), 10)
 
 	if order.DiagnosticNote != nil {
 		diagnosticNote = *order.DiagnosticNote

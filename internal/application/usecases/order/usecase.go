@@ -157,7 +157,7 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 	}
 
 	order.DiagnosticNote = input.DiagnosticNote
-	order.Status = domain.OrderStatuses.AWAITING_APPROVAL
+	order.Status = domain.OrderStatuses.ANALYSIS_FINISHED
 	order.Price = &totalPrice
 	order.UserID = userID
 
@@ -245,12 +245,6 @@ func (uc *UseCase) RequestApproval(ctx context.Context, id uint) error {
 		return fmt.Errorf("notification cannot be sent. Order should be in %s status. Current status: %s", domain.OrderStatuses.ANALYSIS_FINISHED, existentOrder.Status)
 	}
 
-	existentOrder.Status = string(domain.OrderStatuses.AWAITING_APPROVAL)
-
-	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
-		return fmt.Errorf("failed to update order status: %w", err)
-	}
-
 	c, err := uc.customerService.GetByID(ctx, existentOrder.CustomerVehicle.CustomerID)
 
 	if err != nil {
@@ -267,6 +261,12 @@ func (uc *UseCase) RequestApproval(ctx context.Context, id uint) error {
 
 	if err != nil {
 		return fmt.Errorf("failed to send approval notification: %w", err)
+	}
+
+	existentOrder.Status = string(domain.OrderStatuses.AWAITING_APPROVAL)
+
+	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
+		return fmt.Errorf("failed to update order status: %w", err)
 	}
 
 	return nil
