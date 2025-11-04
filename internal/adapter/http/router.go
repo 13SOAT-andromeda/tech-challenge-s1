@@ -94,7 +94,7 @@ func NewRouter(
 			// @TODO: fazer add and remove productGroup.PATCH("/:id/stock", productHandler.ManageStockItem)
 		}
 
-		userGroup := protected.Group("/user")
+		userGroup := protected.Group("/users")
 		{
 			userGroup.GET("", userHandler.GetAll)
 			userGroup.POST("", userHandler.Create)
