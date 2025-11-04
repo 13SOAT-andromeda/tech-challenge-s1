@@ -14,9 +14,7 @@ import (
 )
 
 var (
-	ErrOrderIdInvalid = &errors.ValidationError{Message: "Order Id invalid"}
-	ErrOrderNotFound  = &errors.ValidationError{Message: "Order not found"}
-	ErrOrderDelete    = &errors.ValidationError{Message: "An error occurred while trying to delete the order"}
+	ErrOrderDelete = &errors.ValidationError{Message: "An error occurred while trying to delete the order"}
 )
 
 type OrderService struct {

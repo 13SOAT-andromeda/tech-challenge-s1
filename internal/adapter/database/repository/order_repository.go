@@ -25,6 +25,8 @@ func (r *OrderRepository) FindOrderByID(ctx context.Context, id uint) (*order.Mo
 		Preload("CustomerVehicle.Vehicle").
 		Preload("Company").
 		Preload("User").
+		Preload("Products").
+		Preload("Maintenances").
 		Where("id = ?", id).
 		Find(&models).Error
 

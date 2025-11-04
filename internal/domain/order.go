@@ -57,6 +57,6 @@ type Order struct {
 	User              User            `json:"user"`
 	CustomerVehicle   CustomerVehicle `json:"customer_vehicle"`
 	Company           Company         `json:"company"`
-	Products          *[]StockItem    `json:"products:omitempty"`
-	Maintenances      *[]uint         `json:"maintenances:omitempty"`
+	Products          *[]Product      `json:"products:omitempty"`
+	Maintenances      *[]Maintenance  `json:"maintenances:omitempty"`
 }

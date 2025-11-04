@@ -75,6 +75,7 @@ func main() {
 	orderRepository := repository.NewOrderRepository(dbase)
 	customerVehicleRepository := repository.NewCustomerVehicleRepository(dbase)
 	orderMaintenanceRepository := repository.NewOrderMaintenanceRepository(dbase)
+	orderProductRepository := repository.NewOrderProductRepository(dbase)
 
 	// Services
 	vehicleService := services.NewVehicleService(vehicleRepository)
@@ -96,7 +97,7 @@ func main() {
 	refreshUseCase := sessionUseCase.NewRefreshUseCase(userService, sessionService, jwtService, cfg)
 	logoutUseCase := sessionUseCase.NewLogoutUseCase(sessionService)
 
-	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, customerService, emailService, orderRepository, apiUrl)
+	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, customerService, emailService, orderRepository, orderProductRepository, orderMaintenanceRepository, apiUrl)
 
 	// Handlers
 	customerHandler := handlers.NewCustomerHandler(customerService, createCustomerUseCase)

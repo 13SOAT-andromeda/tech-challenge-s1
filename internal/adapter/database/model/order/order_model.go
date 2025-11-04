@@ -5,6 +5,8 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	customerVehicle "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_maintenance"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"gorm.io/gorm"
@@ -25,8 +27,10 @@ type Model struct {
 	CustomerVehicleID uint
 	CompanyID         uint
 	User              user.Model            `gorm:"foreignKey:UserID;references:ID"`
-	CustomerVehicle   customerVehicle.Model `gorm:"foreignKey:CustomerVehicleID;references:ID"`
 	Company           company.Model         `gorm:"foreignKey:CompanyID;references:ID"`
+	CustomerVehicle   customerVehicle.Model `gorm:"foreignKey:CustomerVehicleID;references:ID"`
+	OrderProducts     order_product.Model
+	OrderMaintenances order_maintenance.Model
 }
 
 func (*Model) TableName() string {
@@ -48,6 +52,9 @@ func (m *Model) ToDomain() *domain.Order {
 		User:              *m.User.ToDomain(),
 		CustomerVehicle:   *m.CustomerVehicle.ToDomain(),
 		Company:           *m.Company.ToDomain(),
+		// @ FIX retorno de produtos e manutenções
+		Products:     *m.OrderProducts.Product.ToDomain(),
+		Maintenances: *m.OrderMaintenances.ToDomain(),
 	}
 }
 
