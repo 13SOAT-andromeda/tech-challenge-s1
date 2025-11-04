@@ -1,0 +1,7 @@
+﻿- name: golangci-lint
+  uses: golangci/golangci-lint-action@v3
+  with:
+    version: v1.29
+    # working-directory: .  # opcional, por padrão já é raiz
+    args: --out-format sarif --issues-exit-code=1
+    only-new-issues: true
