@@ -29,10 +29,17 @@ jobs:
       - name: Run Vulnerability Check
         run: govulncheck -json ./... > vulncheck-report.json 2>&1 || true
 
+      # ✅ Corrige SARIF inválido antes do upload
+      - name: Fix SARIF format
+        run: |
+          dotnet tool install --global Sarif.Multitool
+          sarif multitool rewrite gosec-report.sarif --output valid-gosec-report.sarif
+
+      # ✅ Upload SARIF para GitHub Security (v3)
       - name: Upload Gosec SARIF Report
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: gosec-report.sarif
+          sarif_file: valid-gosec-report.sarif
 
       - name: Store All Reports
         uses: actions/upload-artifact@v4
@@ -40,4 +47,4 @@ jobs:
           name: security-sast-results
           path: |
             gosec-report.sarif
-            vulncheck-report.json
+            valid-gosec-report.sarif
