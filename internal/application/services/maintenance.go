@@ -2,18 +2,21 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
 
 type MaintenanceService struct {
-	repo ports.MaintenanceRepository
+	repo   ports.MaintenanceRepository
+	repoOm ports.OrderMaintenanceRepository
 }
 
-func NewMaintenanceService(repo ports.MaintenanceRepository) *MaintenanceService {
-	return &MaintenanceService{repo: repo}
+func NewMaintenanceService(repo ports.MaintenanceRepository, repoOm ports.OrderMaintenanceRepository) *MaintenanceService {
+	return &MaintenanceService{repo: repo, repoOm: repoOm}
 }
 
 func (s *MaintenanceService) Create(ctx context.Context, c domain.Maintenance) (*domain.Maintenance, error) {
@@ -85,4 +88,19 @@ func (s *MaintenanceService) DeleteByID(ctx context.Context, id uint) (*domain.M
 
 	result := response.ToDomain()
 	return result, nil
+}
+
+func (s *MaintenanceService) CreateOrderMaintenances(ctx context.Context, orderId uint, maintenanceIds []uint) error {
+	for _, maintenanceId := range maintenanceIds {
+		var model order_maintenance.Model
+		model.Maintenance.ID = maintenanceId
+		model.Order.ID = orderId
+
+		_, err := s.repoOm.Create(ctx, &model)
+		if err != nil {
+			return fmt.Errorf("failed to create order maintenance: %w", err)
+		}
+	}
+
+	return nil
 }

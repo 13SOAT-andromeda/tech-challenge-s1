@@ -1,6 +1,8 @@
 package domain
 
 type OrderMaintenance struct {
-	Maintenance Maintenance
-	Order       Order
+	MaintenanceId uint
+	OrderId       uint
+	Maintenance   Maintenance
+	Order         Order
 }
