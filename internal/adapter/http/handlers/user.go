@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/converters"
@@ -19,7 +20,7 @@ func NewUserHandler(service ports.UserService) *UserHandler {
 	return &UserHandler{service: service}
 }
 
-type createUserRequest struct {
+type CreateUserRequest struct {
 	Name          string `json:"name" binding:"required"`
 	Email         string `json:"email" binding:"required,email"`
 	Password      string `json:"password" binding:"required"`
@@ -33,7 +34,7 @@ type createUserRequest struct {
 	ZipCode       string `json:"zip_code" binding:"required"`
 }
 
-type updateUserRequest struct {
+type UpdateUserRequest struct {
 	Name          string `json:"name"`
 	Contact       string `json:"contact"`
 	Address       string `json:"address"`
@@ -45,16 +46,16 @@ type updateUserRequest struct {
 }
 
 func (h *UserHandler) Create(ctx *gin.Context) {
-	var json createUserRequest
+	var json CreateUserRequest
 	if err := ctx.ShouldBindJSON(&json); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	p, err := domain.NewPassword(json.Password, encryption.NewBcryptHasher())
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -74,12 +75,13 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 		},
 	}
 
-	if _, err := h.service.Create(ctx, u); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	user, err := h.service.Create(ctx, u)
+
+	if err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
-
-	ctx.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
+	response.RespondCreated(ctx, user, "user created successfully")
 }
 
 func (h *UserHandler) GetAll(ctx *gin.Context) {
@@ -126,7 +128,7 @@ func (h *UserHandler) Search(ctx *gin.Context) {
 }
 
 func (h *UserHandler) Update(ctx *gin.Context) {
-	var json updateUserRequest
+	var json UpdateUserRequest
 	id, err := strconv.Atoi(ctx.Param("id"))
 
 	if err != nil {
