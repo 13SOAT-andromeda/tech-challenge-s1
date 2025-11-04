@@ -2,7 +2,6 @@ package customer
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
@@ -38,26 +37,26 @@ func (s *UseCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrCustomerNotFound, err)
+		return ErrCustomerNotFound
 	}
 
 	if customer == nil {
-		return fmt.Errorf("%w: customer with ID %d not found", ErrCustomerNotFound, customerID)
+		return ErrCustomerNotFound
 	}
 
 	vehicle, err := s.vehicleService.GetByID(ctx, vehicleID)
 
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrVehicleNotFound, err)
+		return ErrVehicleNotFound
 	}
 
 	if vehicle == nil {
-		return fmt.Errorf("%w: vehicle with ID %d not found", ErrVehicleNotFound, vehicleID)
+		return ErrVehicleNotFound
 	}
 
 	existing, err := s.customerVehicleRepo.FindByCustomerAndVehicle(ctx, customerID, vehicleID)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrAssociationCheckFailed, err)
+		return ErrAssociationCheckFailed
 	}
 	if existing != nil {
 		return ErrVehicleAlreadyAssociated
@@ -75,7 +74,7 @@ func (s *UseCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 
 	_, err = s.customerVehicleRepo.Create(ctx, &customerVehicle)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrAssociationCreationFailed, err)
+		return ErrAssociationCreationFailed
 	}
 
 	return nil
@@ -84,23 +83,23 @@ func (s *UseCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 func (s *UseCase) RemoveVehicleFromCustomer(ctx context.Context, customerID, vehicleID uint) error {
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrCustomerNotFound, err)
+		return ErrCustomerNotFound
 	}
 	if customer == nil {
-		return fmt.Errorf("%w: customer with ID %d not found", ErrCustomerNotFound, customerID)
+		return ErrCustomerNotFound
 	}
 
 	vehicle, err := s.vehicleService.GetByID(ctx, vehicleID)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrVehicleNotFound, err)
+		return ErrVehicleNotFound
 	}
 	if vehicle == nil {
-		return fmt.Errorf("%w: vehicle with ID %d not found", ErrVehicleNotFound, vehicleID)
+		return ErrVehicleNotFound
 	}
 
 	err = s.customerVehicleRepo.DeleteByCustomerAndVehicle(ctx, customerID, vehicleID)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrAssociationRemovalFailed, err)
+		return ErrAssociationRemovalFailed
 	}
 
 	return nil
@@ -111,16 +110,16 @@ func (s *UseCase) GetCustomerVehicles(ctx context.Context, customerID uint) ([]d
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrCustomerNotFound, err)
+		return nil, ErrCustomerNotFound
 	}
 
 	if customer == nil {
-		return nil, fmt.Errorf("%w: customer with ID %d not found", ErrCustomerNotFound, customerID)
+		return nil, ErrCustomerNotFound
 	}
 
 	customerVehicles, err := s.customerVehicleRepo.FindByCustomerID(ctx, customerID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFetchingCustomerVehiclesFailed, err)
+		return nil, ErrFetchingCustomerVehiclesFailed
 	}
 
 	cvDomain := make([]domain.CustomerVehicle, 0, len(customerVehicles))

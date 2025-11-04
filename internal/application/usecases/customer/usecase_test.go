@@ -86,7 +86,7 @@ func TestAddVehicleToCustomer_CustomerNil(t *testing.T) {
 	err := useCase.AddVehicleToCustomer(ctx, customerID, vehicleID)
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "customer with ID 999 not found")
+	assert.Contains(t, err.Error(), ErrCustomerNotFound.Message)
 	mockRepo.AssertExpectations(t)
 }
 
@@ -139,7 +139,7 @@ func TestAddVehicleToCustomer_VehicleNil(t *testing.T) {
 	err := useCase.AddVehicleToCustomer(ctx, customerID, vehicleID)
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "vehicle with ID 999 not found")
+	assert.Contains(t, err.Error(), ErrVehicleNotFound.Message)
 	mockRepo.AssertExpectations(t)
 	mockVehicleService.AssertExpectations(t)
 }
@@ -324,7 +324,7 @@ func TestRemoveVehicleFromCustomer_CustomerNil(t *testing.T) {
 	err := useCase.RemoveVehicleFromCustomer(ctx, customerID, vehicleID)
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "customer with ID 999 not found")
+	assert.Contains(t, err.Error(), ErrCustomerNotFound.Message)
 	mockRepo.AssertExpectations(t)
 }
 
@@ -376,7 +376,7 @@ func TestRemoveVehicleFromCustomer_VehicleNil(t *testing.T) {
 	err := useCase.RemoveVehicleFromCustomer(ctx, customerID, vehicleID)
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "vehicle with ID 999 not found")
+	assert.Contains(t, err.Error(), ErrVehicleNotFound.Message)
 	mockRepo.AssertExpectations(t)
 	mockVehicleService.AssertExpectations(t)
 }
@@ -516,7 +516,7 @@ func TestGetCustomerVehicles_CustomerNil(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Contains(t, err.Error(), "customer with ID 999 not found")
+	assert.Contains(t, err.Error(), ErrCustomerNotFound.Message)
 	mockRepo.AssertExpectations(t)
 }
 
