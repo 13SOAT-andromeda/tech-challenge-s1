@@ -36,5 +36,7 @@ func (m *Model) FromDomain(d *domain.OrderProduct) {
 	m.Quantity = d.Quantity
 	m.ProductId = d.ProductId
 	m.OrderId = d.OrderId
-	m.Product.FromDomain(&d.Product)
+	if d.Product.ID != 0 {
+		m.Product.FromDomain(&d.Product)
+	}
 }

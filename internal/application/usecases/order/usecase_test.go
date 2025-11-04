@@ -9,6 +9,8 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
+	orderMaintenanceModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_maintenance"
+	orderProductModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
@@ -711,6 +713,8 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
 		mockProd.On("GetByIds", ctx, productsIds).Return(products, nil)
 		mockMaint.On("GetByIDs", ctx, maintenanceIds).Return(maints, nil)
+		mockOrderProd.On("Create", ctx, mock.Anything).Return(&orderProductModel.Model{}, nil).Times(2)
+		mockOrderMaint.On("Create", ctx, mock.Anything).Return(&orderMaintenanceModel.Model{}, nil).Times(1)
 		mockOrder.On("Update", ctx, mock.MatchedBy(func(o domain.Order) bool {
 			// Price should be set and status updated to AWAITING_APPROVAL and diagnostic note set
 			if o.ID != orderID {
@@ -876,6 +880,8 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
 		mockProd.On("GetByIds", ctx, productIds).Return(products, nil)
 		mockMaint.On("GetByIDs", ctx, maintenanceIds).Return(maints, nil)
+		mockOrderProd.On("Create", ctx, mock.Anything).Return(&orderProductModel.Model{}, nil).Times(1)
+		mockOrderMaint.On("Create", ctx, mock.Anything).Return(&orderMaintenanceModel.Model{}, nil).Times(1)
 		mockOrder.On("Update", ctx, mock.Anything).Return(errors.New("update error"))
 
 		err := uc.CompleteOrderAnalysis(ctx, orderID, userID, input)
@@ -892,9 +898,11 @@ func TestUseCase_StartWorkOrder(t *testing.T) {
 	ctx := context.Background()
 	orderID := uint(1)
 	stockMock := uint(100)
+	quantity1 := uint(2)
+	quantity2 := uint(1)
 	products := []domain.Product{
-		{ID: 10, Name: "Product A", Price: 100, Stock: &stockMock},
-		{ID: 11, Name: "Product B", Price: 50, Stock: &stockMock},
+		{ID: 10, Name: "Product A", Price: 100, Stock: &stockMock, Quantity: &quantity1},
+		{ID: 11, Name: "Product B", Price: 50, Stock: &stockMock, Quantity: &quantity2},
 	}
 
 	t.Run("should start work order successfully", func(t *testing.T) {

@@ -115,7 +115,7 @@ func TestProduct_CanBePurchased_InsufficientStock(t *testing.T) {
 		Price: 10000,
 	}
 
-	err := product.CanBePurchased(10)
+	err := product.CanBePurchased(11)
 
 	assert.Error(t, err)
 	assert.Equal(t, ErrInsufficientStock, err)
@@ -162,7 +162,7 @@ func TestProduct_DecreaseStock_Success(t *testing.T) {
 	err := product.DecreaseStock(3)
 
 	assert.NoError(t, err)
-	assert.Equal(t, uint(7), product.Stock)
+	assert.Equal(t, uint(7), *product.Stock)
 }
 
 func TestProduct_DecreaseStock_ToZero(t *testing.T) {
@@ -177,11 +177,11 @@ func TestProduct_DecreaseStock_ToZero(t *testing.T) {
 	err := product.DecreaseStock(10)
 
 	assert.NoError(t, err)
-	assert.Equal(t, uint(0), product.Stock)
+	assert.Equal(t, uint(0), *product.Stock)
 }
 
 func TestProduct_DecreaseStock_InsufficientStock(t *testing.T) {
-	StockMock := uint(10)
+	StockMock := uint(5)
 	product := Product{
 		ID:    1,
 		Name:  "Test Product",
@@ -193,7 +193,7 @@ func TestProduct_DecreaseStock_InsufficientStock(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Equal(t, ErrInsufficientStock, err)
-	assert.Equal(t, uint(5), product.Stock)
+	assert.Equal(t, uint(5), *product.Stock)
 }
 
 func TestProduct_DecreaseStock_ZeroQuantity(t *testing.T) {
@@ -208,7 +208,7 @@ func TestProduct_DecreaseStock_ZeroQuantity(t *testing.T) {
 	err := product.DecreaseStock(0)
 
 	assert.NoError(t, err)
-	assert.Equal(t, uint(10), product.Stock) // estoque não deve mudar
+	assert.Equal(t, uint(10), *product.Stock) // estoque não deve mudar
 }
 
 func TestProduct_DecreaseStock_MultipleOperations(t *testing.T) {
@@ -222,16 +222,16 @@ func TestProduct_DecreaseStock_MultipleOperations(t *testing.T) {
 
 	err := product.DecreaseStock(3)
 	assert.NoError(t, err)
-	assert.Equal(t, uint(7), product.Stock)
+	assert.Equal(t, uint(7), *product.Stock)
 
 	err = product.DecreaseStock(2)
 	assert.NoError(t, err)
-	assert.Equal(t, uint(5), product.Stock)
+	assert.Equal(t, uint(5), *product.Stock)
 
 	err = product.DecreaseStock(10)
 	assert.Error(t, err)
 	assert.Equal(t, ErrInsufficientStock, err)
-	assert.Equal(t, uint(5), product.Stock) // estoque não muda na falha
+	assert.Equal(t, uint(5), *product.Stock) // estoque não muda na falha
 }
 
 func TestProduct_Initialization(t *testing.T) {
@@ -246,7 +246,7 @@ func TestProduct_Initialization(t *testing.T) {
 	assert.NotNil(t, product)
 	assert.Equal(t, uint(1), product.ID)
 	assert.Equal(t, "Test Product", product.Name)
-	assert.Equal(t, uint(10), product.Stock)
+	assert.Equal(t, uint(10), *product.Stock)
 	assert.Equal(t, int64(10000), product.Price)
 }
 
@@ -261,6 +261,6 @@ func TestProduct_JSONTags(t *testing.T) {
 
 	assert.Equal(t, uint(1), product.ID)
 	assert.Equal(t, "Test Product", product.Name)
-	assert.Equal(t, uint(10), product.Stock)
+	assert.Equal(t, uint(10), *product.Stock)
 	assert.Equal(t, int64(10000), product.Price)
 }

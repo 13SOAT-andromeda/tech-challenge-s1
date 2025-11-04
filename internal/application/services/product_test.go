@@ -9,6 +9,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestProductService_GetById_Success(t *testing.T) {
@@ -63,9 +64,10 @@ func TestProductService_GetByIds_Success(t *testing.T) {
 	ctx := context.Background()
 	productIDs := []uint{1, 2}
 
+	stockZero := uint(0)
 	expectedProducts := []domain.Product{
-		{ID: 1, Name: "Product 1"},
-		{ID: 2, Name: "Product 2"},
+		{ID: 1, Name: "Product 1", Stock: &stockZero},
+		{ID: 2, Name: "Product 2", Stock: &stockZero},
 	}
 
 	var productModels []product.Model
@@ -91,9 +93,10 @@ func TestProductService_GetAll_Success(t *testing.T) {
 
 	ctx := context.Background()
 
+	stockZero := uint(0)
 	expectedProducts := []domain.Product{
-		{ID: 1, Name: "Product 1"},
-		{ID: 2, Name: "Product 2"},
+		{ID: 1, Name: "Product 1", Stock: &stockZero},
+		{ID: 2, Name: "Product 2", Stock: &stockZero},
 	}
 
 	var productModels []product.Model
@@ -103,7 +106,7 @@ func TestProductService_GetAll_Success(t *testing.T) {
 		productModels = append(productModels, model)
 	}
 
-	mockRepo.On("FindAll", ctx).Return(productModels, nil)
+	mockRepo.On("FindAll", ctx, mock.Anything).Return(productModels, nil)
 
 	result, err := service.GetAll(ctx)
 
