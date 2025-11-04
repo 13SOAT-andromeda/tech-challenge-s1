@@ -34,6 +34,10 @@ type Maintenance struct {
 	CategoryID MaintenanceCategory `json:"category"`
 }
 
+type MaintenanceItem struct {
+	ID uint
+}
+
 func ParseCategoryName(categoryID string) MaintenanceCategory {
 	switch strings.TrimSpace(categoryID) {
 	case "standard":

@@ -28,9 +28,9 @@ type createOrderRequest struct {
 }
 
 type CompleteAnalysisRequest struct {
-	DiagnosticNote string                   `json:"diagnostic_note"`
-	Products       []domain.ProductItem     `json:"products" binding:"required"`
-	Maintenances   []domain.MaintenanceItem `json:"maintenances" binding:"required"`
+	DiagnosticNote string             `json:"diagnostic_note"`
+	Products       []domain.StockItem `json:"products" binding:"required"`
+	Maintenances   []uint             `json:"maintenances" binding:"required"`
 }
 
 func (h *OrderHandler) Create(ctx *gin.Context) {
