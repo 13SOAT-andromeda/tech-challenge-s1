@@ -1,7 +1,6 @@
 package e2e
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -37,11 +36,7 @@ func TestSession(t *testing.T) {
 		loginData.Email = cfg.AdminUser.Email
 		loginData.Password = cfg.AdminUser.Password
 
-		bodyBytes, resp := loginRequest(t, loginData, apiUrl)
-
-		err = ParseBody(bodyBytes, &baseResponse)
-
-		require.NoError(t, err, "Failed to parse response body")
+		resp := LoginRequest(t, loginData, apiUrl, &baseResponse)
 
 		assert.Equal(t, resp.StatusCode, http.StatusOK)
 		assert.True(t, baseResponse.Success)
@@ -63,11 +58,9 @@ func TestSession(t *testing.T) {
 		loginData.Email = "invalidmail@test.com"
 		loginData.Password = "invalidpass"
 
-		bodyBytes, resp := loginRequest(t, loginData, apiUrl)
+		resp := LoginRequest(t, loginData, apiUrl, &baseResponse)
 
-		err = ParseBody(bodyBytes, &baseResponse)
-
-		require.NoError(t, err, "Failed to parse response body")
+		defer resp.Body.Close()
 
 		assert.Equal(t, resp.StatusCode, http.StatusUnauthorized)
 		assert.False(t, baseResponse.Success)
@@ -80,11 +73,9 @@ func TestSession(t *testing.T) {
 
 		loginData.Email = "invalidmail@test.com"
 
-		bodyBytes, resp := loginRequest(t, loginData, apiUrl)
+		resp := LoginRequest(t, loginData, apiUrl, &baseResponse)
 
-		err = ParseBody(bodyBytes, &baseResponse)
-
-		require.NoError(t, err, "Failed to parse response body")
+		defer resp.Body.Close()
 
 		assert.Equal(t, resp.StatusCode, http.StatusBadRequest)
 		assert.False(t, baseResponse.Success)
@@ -98,11 +89,9 @@ func TestSession(t *testing.T) {
 		loginData.Email = cfg.AdminUser.Email
 		loginData.Password = cfg.AdminUser.Password
 
-		bodyBytes, resp := loginRequest(t, loginData, apiUrl)
+		resp := LoginRequest(t, loginData, apiUrl, &baseResponse)
 
-		err = ParseBody(bodyBytes, &baseResponse)
-
-		require.NoError(t, err, "Failed to parse response body")
+		defer resp.Body.Close()
 
 		assert.Equal(t, resp.StatusCode, http.StatusOK)
 		assert.True(t, baseResponse.Success)
@@ -120,13 +109,7 @@ func TestSession(t *testing.T) {
 
 		require.NoError(t, err, "Failed on make a validate request")
 
-		bodyBytes, err = io.ReadAll(resp.Body)
-
-		require.NoError(t, err, "Failed to parse validate body response")
-
-		defer resp.Body.Close()
-
-		err = ParseBody(bodyBytes, &baseResponseValidate)
+		err = ParseBody(resp, &baseResponseValidate)
 
 		require.NoError(t, err, "Failed to parse validate response body")
 
@@ -148,13 +131,9 @@ func TestSession(t *testing.T) {
 
 		require.NoError(t, err, "Failed on make a validate request")
 
-		bodyBytes, err := io.ReadAll(resp.Body)
-
-		require.NoError(t, err, "Failed to parse validate body response")
-
 		defer resp.Body.Close()
 
-		err = ParseBody(bodyBytes, &baseResponseValidate)
+		err = ParseBody(resp, &baseResponseValidate)
 
 		require.NoError(t, err, "Failed to parse validate response body")
 
@@ -172,11 +151,9 @@ func TestSession(t *testing.T) {
 		loginData.Email = cfg.AdminUser.Email
 		loginData.Password = cfg.AdminUser.Password
 
-		bodyBytes, resp := loginRequest(t, loginData, apiUrl)
+		resp := LoginRequest(t, loginData, apiUrl, &baseResponse)
 
-		err = ParseBody(bodyBytes, &baseResponse)
-
-		require.NoError(t, err, "Failed to parse response body")
+		defer resp.Body.Close()
 
 		assert.Equal(t, resp.StatusCode, http.StatusOK)
 		assert.True(t, baseResponse.Success)
@@ -200,13 +177,7 @@ func TestSession(t *testing.T) {
 
 		require.NoError(t, err, "Failed on make a refresh request")
 
-		bodyBytes, err = io.ReadAll(resp.Body)
-
-		require.NoError(t, err, "Failed to parse refresh body response")
-
-		defer resp.Body.Close()
-
-		err = ParseBody(bodyBytes, &baseResponseRefresh)
+		err = ParseBody(resp, &baseResponseRefresh)
 
 		require.NoError(t, err, "Failed to parse refresh response body")
 
@@ -231,13 +202,9 @@ func TestSession(t *testing.T) {
 
 		require.NoError(t, err, "Failed on make a refresh validate request")
 
-		bodyBytes, err := io.ReadAll(resp.Body)
-
-		require.NoError(t, err, "Failed to parse refresh validate body response")
-
 		defer resp.Body.Close()
 
-		err = ParseBody(bodyBytes, &baseResponseRefresh)
+		err = ParseBody(resp, &baseResponseRefresh)
 
 		require.NoError(t, err, "Failed to parse refresh validate response body")
 
@@ -255,11 +222,9 @@ func TestSession(t *testing.T) {
 		loginData.Email = cfg.AdminUser.Email
 		loginData.Password = cfg.AdminUser.Password
 
-		bodyBytes, resp := loginRequest(t, loginData, apiUrl)
+		resp := LoginRequest(t, loginData, apiUrl, &baseResponse)
 
-		err = ParseBody(bodyBytes, &baseResponse)
-
-		require.NoError(t, err, "Failed to parse response body")
+		defer resp.Body.Close()
 
 		assert.Equal(t, resp.StatusCode, http.StatusOK)
 		assert.True(t, baseResponse.Success)
@@ -275,13 +240,7 @@ func TestSession(t *testing.T) {
 
 		require.NoError(t, err, "Failed on make a logout request")
 
-		bodyBytes, err = io.ReadAll(resp.Body)
-
-		require.NoError(t, err, "Failed to parse logout body response")
-
-		defer resp.Body.Close()
-
-		err = ParseBody(bodyBytes, &baseResponseLogout)
+		err = ParseBody(resp, &baseResponseLogout)
 
 		require.NoError(t, err, "Failed to parse logout response body")
 
@@ -304,13 +263,9 @@ func TestSession(t *testing.T) {
 
 		require.NoError(t, err, "Failed on make a logout request")
 
-		bodyBytes, err := io.ReadAll(resp.Body)
-
-		require.NoError(t, err, "Failed to parse logout body response")
-
 		defer resp.Body.Close()
 
-		err = ParseBody(bodyBytes, &baseResponseLogout)
+		err = ParseBody(resp, &baseResponseLogout)
 
 		require.NoError(t, err, "Failed to parse logout response body")
 
@@ -320,21 +275,26 @@ func TestSession(t *testing.T) {
 	})
 }
 
-func loginRequest(t *testing.T, loginData handlers.LoginRequest, apiUrl string) ([]byte, *http.Response) {
-	payloadJson, err := json.Marshal(loginData)
+func LoginRequest[T any](t *testing.T, loginData handlers.LoginRequest, apiUrl string, output *response.BaseResponse[T]) *http.Response {
+	payload, err := BuildBody(loginData)
 
-	require.NoError(t, err, "Failed to marshal login request")
+	require.NoError(t, err, "Failed to build login request")
 
-	payload := bytes.NewBuffer(payloadJson)
 	resp, err := NewUnauthenticatedReq("POST", apiUrl+"/sessions", payload)
 
 	require.NoError(t, err, "Failed on make a request")
+
+	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 
 	require.NoError(t, err, "Failed to parse body response")
 
-	defer resp.Body.Close()
+	bodyString := string(bodyBytes)
 
-	return bodyBytes, resp
+	err = json.Unmarshal([]byte(bodyString), &output)
+
+	require.NoError(t, err, "Failed to unmarshal body response")
+
+	return resp
 }

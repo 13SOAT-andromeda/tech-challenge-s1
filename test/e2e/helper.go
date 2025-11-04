@@ -86,8 +86,13 @@ func GetApiUrl(cfg config.Config) string {
 	return cfg.Http.Url + ":" + cfg.Http.Port
 }
 
-func ParseBody[T any](body []byte, data T) error {
-	bodyString := string(body)
+func ParseBody[T any](resp *http.Response, data *T) error {
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	bodyString := string(bodyBytes)
 	return json.Unmarshal([]byte(bodyString), &data)
 }
 
