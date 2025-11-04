@@ -169,8 +169,8 @@ func TestAddVehicleToCustomer_AlreadyAssociated(t *testing.T) {
 	}
 
 	existingAssociation := &customer_vehicle.Model{
-		CustomerId: customerID,
-		VehicleId:  vehicleID,
+		CustomerID: customerID,
+		VehicleID:  vehicleID,
 	}
 
 	mockRepo.On("FindByID", ctx, customerID).Return(expectedCustomer, nil)
@@ -449,13 +449,13 @@ func TestGetCustomerVehicles_Success(t *testing.T) {
 
 	customerVehicles := []customer_vehicle.Model{
 		{
-			CustomerId: customerID,
-			VehicleId:  1,
+			CustomerID: customerID,
+			VehicleID:  1,
 			Vehicle:    vehicleModel1,
 		},
 		{
-			CustomerId: customerID,
-			VehicleId:  2,
+			CustomerID: customerID,
+			VehicleID:  2,
 			Vehicle:    vehicleModel2,
 		},
 	}
@@ -608,13 +608,13 @@ func TestGetCustomerVehicles_SkipsInvalidVehicles(t *testing.T) {
 
 	customerVehicles := []customer_vehicle.Model{
 		{
-			CustomerId: customerID,
-			VehicleId:  1,
+			CustomerID: customerID,
+			VehicleID:  1,
 			Vehicle:    validVehicle,
 		},
 		{
-			CustomerId: customerID,
-			VehicleId:  0,
+			CustomerID: customerID,
+			VehicleID:  0,
 			Vehicle:    invalidVehicle,
 		},
 	}

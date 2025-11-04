@@ -226,7 +226,7 @@ func (uc *UseCase) RequestApproval(ctx context.Context, id uint) error {
 		return fmt.Errorf("failed to update order status: %w", err)
 	}
 
-	c, err := uc.customerService.GetByID(ctx, existentOrder.CustomerVehicle.CustomerId)
+	c, err := uc.customerService.GetByID(ctx, existentOrder.CustomerVehicle.CustomerID)
 
 	if err != nil {
 		return fmt.Errorf("error on find order's customer: %w", err)

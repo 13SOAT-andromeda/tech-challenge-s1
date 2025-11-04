@@ -392,7 +392,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 		orderID := uint(1)
 		customerID := uint(10)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.ANALYSIS_FINISHED))
-		existingOrder.CustomerVehicle.CustomerId = customerID
+		existingOrder.CustomerVehicle.CustomerID = customerID
 
 		customer := &domain.Customer{
 			ID:    customerID,
@@ -478,7 +478,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 		orderID := uint(1)
 		customerID := uint(10)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.ANALYSIS_FINISHED))
-		existingOrder.CustomerVehicle.CustomerId = customerID
+		existingOrder.CustomerVehicle.CustomerID = customerID
 
 		mockRepo.On("FindOrderByID", ctx, orderID).Return(existingOrder, nil)
 		mockRepo.On("Update", ctx, mock.Anything).Return(nil)
@@ -506,7 +506,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 		orderID := uint(1)
 		customerID := uint(10)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.ANALYSIS_FINISHED))
-		existingOrder.CustomerVehicle.CustomerId = customerID
+		existingOrder.CustomerVehicle.CustomerID = customerID
 
 		customer := &domain.Customer{
 			ID:    customerID,
@@ -544,7 +544,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 		orderID := uint(1)
 		customerID := uint(10)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.ANALYSIS_FINISHED))
-		existingOrder.CustomerVehicle.CustomerId = customerID
+		existingOrder.CustomerVehicle.CustomerID = customerID
 
 		customer := &domain.Customer{
 			ID:    customerID,

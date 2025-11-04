@@ -5,5 +5,5 @@ type CustomerVehicle struct {
 	CustomerId uint
 	VehicleId  uint
 	Vehicle    Vehicle  `json:"Vehicle,omitempty"`
-	Customer   Customer `json:"-"`
+	Customer   Customer `json:"Customer,omitempty"`
 }
