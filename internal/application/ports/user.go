@@ -22,7 +22,6 @@ type UserRepository interface {
 type UserService interface {
 	Create(ctx context.Context, u domain.User) (*domain.User, error)
 	CreateAdminUser(ctx context.Context, email, password string) error
-	GetAll(ctx context.Context) ([]domain.User, error)
 	GetByID(ctx context.Context, id uint) (*domain.User, error)
 	GetByEmail(ctx context.Context, email string) (*domain.User, error)
 	Search(ctx context.Context, params map[string]interface{}) (*[]domain.User, error)

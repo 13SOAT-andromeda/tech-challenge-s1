@@ -84,15 +84,6 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 	response.RespondCreated(ctx, user, "user created successfully")
 }
 
-func (h *UserHandler) GetAll(ctx *gin.Context) {
-	users, err := h.service.GetAll(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	ctx.JSON(http.StatusOK, users)
-}
-
 func (h *UserHandler) GetByID(ctx *gin.Context) {
 
 	id, err := strconv.Atoi(ctx.Param("id"))

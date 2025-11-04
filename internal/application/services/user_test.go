@@ -228,68 +228,6 @@ func TestUserService_CreateAdminUser_CreateError(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestUserService_GetAll_Success(t *testing.T) {
-	// Arrange
-	mockRepo := new(mocks.MockUserRepository)
-	service := NewUserService(mockRepo)
-
-	ctx := context.Background()
-
-	expectedUsers := []user.Model{
-		{
-			Model: gorm.Model{
-				ID: 1,
-			},
-			Name:  "João Silva",
-			Email: "joao@test.com",
-			Role:  "administrator",
-		},
-		{
-			Model: gorm.Model{
-				ID: 2,
-			},
-			Name:  "Maria Santos",
-			Email: "maria@test.com",
-			Role:  "user",
-		},
-	}
-
-	mockRepo.On("FindAll", ctx, false).Return(expectedUsers, nil)
-
-	// Act
-	result, err := service.GetAll(ctx)
-
-	// Assert
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Len(t, result, 2)
-	assert.Equal(t, "João Silva", result[0].Name)
-	assert.Equal(t, "joao@test.com", result[0].Email)
-	assert.Equal(t, "Maria Santos", result[1].Name)
-	assert.Equal(t, "maria@test.com", result[1].Email)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestUserService_GetAll_RepositoryError(t *testing.T) {
-	// Arrange
-	mockRepo := new(mocks.MockUserRepository)
-	service := NewUserService(mockRepo)
-
-	ctx := context.Background()
-	expectedError := errors.New("database error")
-
-	mockRepo.On("FindAll", ctx, false).Return(nil, expectedError)
-
-	// Act
-	result, err := service.GetAll(ctx)
-
-	// Assert
-	assert.Error(t, err)
-	assert.Nil(t, result)
-	assert.Equal(t, expectedError, err)
-	mockRepo.AssertExpectations(t)
-}
-
 func TestUserService_GetByID_Success(t *testing.T) {
 	// Arrange
 	mockRepo := new(mocks.MockUserRepository)
@@ -438,11 +376,11 @@ func TestUserService_Update_Success(t *testing.T) {
 	}
 
 	updatedUser := domain.User{
-		ID:       userID,
-		Name:     "João Silva Santos",
-		Email:    "joao@test.com",
-		Contact:  "11988888888",
-		Role:     "administrator",
+		ID:        userID,
+		Name:      "João Silva Santos",
+		Email:     "joao@test.com",
+		Contact:   "11988888888",
+		Role:      "administrator",
 		DeletedAt: nil,
 	}
 
@@ -516,10 +454,10 @@ func TestUserService_Update_EmailAlreadyExists(t *testing.T) {
 	}
 
 	updatedUser := domain.User{
-		ID:       userID,
-		Name:     "João Silva Santos",
-		Email:    "new@test.com",
-		Role:     "administrator",
+		ID:        userID,
+		Name:      "João Silva Santos",
+		Email:     "new@test.com",
+		Role:      "administrator",
 		DeletedAt: nil,
 	}
 
