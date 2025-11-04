@@ -241,3 +241,20 @@ func (h *OrderHandler) StartWork(ctx *gin.Context) {
 
 	response.RespondSuccess(ctx, id, "Work started successfully")
 }
+
+func (h *OrderHandler) GetInProgress(ctx *gin.Context) {
+	u := ctx.Request.URL.Query()
+
+	u.Add("sortdesc", "false")
+	u.Add("orderby", "date_approved")
+	u.Add("status", string(domain.OrderStatuses.IN_PROGRESS))
+
+	params := converters.ParamsToMap(u)
+
+	orders, err := h.service.GetAll(ctx, params)
+	if err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.RespondSuccess(ctx, orders, "")
+}

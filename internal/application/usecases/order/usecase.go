@@ -151,7 +151,10 @@ func (uc *UseCase) ApproveOrder(ctx context.Context, id uint) error {
 		return fmt.Errorf("order cannot be approved. Current status: %s", existentOrder.Status)
 	}
 
+	now := time.Now()
+
 	existentOrder.Status = string(domain.OrderStatuses.APPROVED)
+	existentOrder.DateApproved = &now
 
 	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
 		return fmt.Errorf("failed to approve order: %w", err)
@@ -172,7 +175,10 @@ func (uc *UseCase) RejectOrder(ctx context.Context, id uint) error {
 		return fmt.Errorf("order cannot be reject. Current status: %s", existentOrder.Status)
 	}
 
+	now := time.Now()
+
 	existentOrder.Status = string(domain.OrderStatuses.FINISHED)
+	existentOrder.DateRejected = &now
 
 	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
 		return fmt.Errorf("failed to reject order: %w", err)

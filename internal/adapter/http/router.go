@@ -117,6 +117,7 @@ func NewRouter(
 		{
 			orderGroup.GET("", orderHandler.GetAll)
 			orderGroup.GET("/:id", orderHandler.GetByID)
+			orderGroup.GET("/in-progress", orderHandler.GetInProgress)
 			orderGroup.POST("", orderHandler.Create)
 			orderGroup.POST("/:id/assign", orderHandler.Assign)
 			orderGroup.POST("/:id/complete-analysis", orderHandler.CompleteAnalysis)
