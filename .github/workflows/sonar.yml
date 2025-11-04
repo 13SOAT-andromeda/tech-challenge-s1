@@ -47,3 +47,4 @@ jobs:
             -Dsonar.organization=13soat-andromeda
             -Dsonar.projectKey=13SOAT-andromeda_tech-challenge-s1
             -Dsonar.go.coverage.reportPaths=coverage.out
+
