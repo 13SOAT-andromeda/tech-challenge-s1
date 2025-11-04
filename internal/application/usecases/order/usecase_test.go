@@ -164,7 +164,9 @@ func createMockOrder(id uint, status string) *order.Model {
 			Email: "test@example.com",
 		},
 		CustomerVehicle: customer_vehicle.Model{
-			Model: gorm.Model{ID: 1},
+			Model:      gorm.Model{ID: 1},
+			CustomerID: 1,
+			VehicleID:  1,
 		},
 		Company: company.Model{
 			Model: gorm.Model{ID: 1},
@@ -460,12 +462,32 @@ func TestUseCase_RequestApproval(t *testing.T) {
 
 	t.Run("should return error when update fails", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		mockOrderService := new(mocks.MockOrderService)
+		mockCustomerService := new(mocks.MockCustomerService)
+		mockEmail := new(mocks.MockEmail)
+
+		useCase := &UseCase{
+			orderRepository: mockRepo,
+			orderService:    mockOrderService,
+			customerService: mockCustomerService,
+			emailService:    mockEmail,
+			apiUrl:          "http://localhost:8080",
+		}
 
 		orderID := uint(1)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.ANALYSIS_FINISHED))
 
+		customerID := uint(1)
+		customer := &domain.Customer{
+			ID:    customerID,
+			Name:  "Test Customer",
+			Email: "customer@test.com",
+		}
+
 		mockRepo.On("FindOrderByID", ctx, orderID).Return(existingOrder, nil)
+		mockCustomerService.On("GetByID", ctx, customerID).Return(customer, nil)
+		mockOrderService.On("GetApprovalTemplate", mock.Anything, *customer, "http://localhost:8080").Return("<h1>template</h1>", nil)
+		mockEmail.On("Send", customer.Name, customer.Email, "Aprovação de Ordem de Serviço", "<h1>template</h1>").Return(nil)
 		mockRepo.On("Update", ctx, mock.Anything).Return(errors.New("database error"))
 
 		err := useCase.RequestApproval(ctx, orderID)
@@ -477,10 +499,16 @@ func TestUseCase_RequestApproval(t *testing.T) {
 
 	t.Run("should return error when customer not found", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
+		mockOrderService := new(mocks.MockOrderService)
 		mockCustomerService := new(mocks.MockCustomerService)
+		mockEmail := new(mocks.MockEmail)
+
 		useCase := &UseCase{
 			orderRepository: mockRepo,
+			orderService:    mockOrderService,
 			customerService: mockCustomerService,
+			emailService:    mockEmail,
+			apiUrl:          "http://localhost:8080",
 		}
 
 		orderID := uint(1)
@@ -489,7 +517,6 @@ func TestUseCase_RequestApproval(t *testing.T) {
 		existingOrder.CustomerVehicle.CustomerID = customerID
 
 		mockRepo.On("FindOrderByID", ctx, orderID).Return(existingOrder, nil)
-		mockRepo.On("Update", ctx, mock.Anything).Return(nil)
 		mockCustomerService.On("GetByID", ctx, customerID).Return(nil, errors.New("customer not found"))
 
 		err := useCase.RequestApproval(ctx, orderID)
@@ -523,7 +550,6 @@ func TestUseCase_RequestApproval(t *testing.T) {
 		}
 
 		mockRepo.On("FindOrderByID", ctx, orderID).Return(existingOrder, nil)
-		mockRepo.On("Update", ctx, mock.Anything).Return(nil)
 		mockCustomerService.On("GetByID", ctx, customerID).Return(customer, nil)
 		mockOrderService.On("GetApprovalTemplate", mock.Anything, *customer, "http://localhost:8080").Return("", errors.New("template error"))
 
@@ -561,7 +587,6 @@ func TestUseCase_RequestApproval(t *testing.T) {
 		}
 
 		mockRepo.On("FindOrderByID", ctx, orderID).Return(existingOrder, nil)
-		mockRepo.On("Update", ctx, mock.Anything).Return(nil)
 		mockCustomerService.On("GetByID", ctx, customerID).Return(customer, nil)
 		mockOrderService.On("GetApprovalTemplate", mock.Anything, *customer, "http://localhost:8080").Return("<h1>template</h1>", nil)
 		mockEmail.On("Send", customer.Name, customer.Email, "Aprovação de Ordem de Serviço", "<h1>template</h1>").Return(errors.New("email error"))
@@ -722,7 +747,7 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 			if o.ID != orderID {
 				return false
 			}
-			if o.Status != domain.OrderStatuses.AWAITING_APPROVAL {
+			if o.Status != domain.OrderStatuses.ANALYSIS_FINISHED {
 				return false
 			}
 			if o.DiagnosticNote == nil || *o.DiagnosticNote != *input.DiagnosticNote {
