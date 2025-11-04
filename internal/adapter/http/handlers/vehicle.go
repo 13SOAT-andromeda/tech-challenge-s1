@@ -19,7 +19,7 @@ func NewVehicleHandler(service ports.VehicleService) *VehicleHandler {
 	return &VehicleHandler{service: service}
 }
 
-type createVehicleRequest struct {
+type CreateVehicleRequest struct {
 	Name  string `json:"name" binding:"required"`
 	Color string `json:"color" binding:"required"`
 	Brand string `json:"brand" binding:"required"`
@@ -27,7 +27,7 @@ type createVehicleRequest struct {
 	Year  int    `json:"year" binding:"required"`
 }
 
-type updateVehicleRequest struct {
+type UpdateVehicleRequest struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
 	Brand string `json:"brand"`
@@ -36,7 +36,7 @@ type updateVehicleRequest struct {
 }
 
 func (h *VehicleHandler) Create(ctx *gin.Context) {
-	var json createVehicleRequest
+	var json CreateVehicleRequest
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -102,7 +102,7 @@ func (h *VehicleHandler) GetByID(ctx *gin.Context) {
 }
 
 func (h *VehicleHandler) Update(ctx *gin.Context) {
-	var json updateVehicleRequest
+	var json UpdateVehicleRequest
 	id, err := strconv.Atoi(ctx.Param("id"))
 
 	if err != nil {

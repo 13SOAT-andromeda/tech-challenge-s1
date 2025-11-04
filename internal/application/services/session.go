@@ -102,6 +102,13 @@ func (s *sessionService) DeleteByRefreshToken(ctx context.Context, refreshToken 
 	if refreshToken == "" {
 		return ErrSessionRefreshTokenEmpty
 	}
+
+	_, err := s.repo.FindByRefreshToken(ctx, refreshToken)
+
+	if err != nil {
+		return err
+	}
+
 	return s.repo.DeleteByRefreshToken(ctx, refreshToken)
 }
 

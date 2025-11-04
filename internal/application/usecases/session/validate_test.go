@@ -40,12 +40,12 @@ func TestValidateUseCase_Execute_ValidToken(t *testing.T) {
 
 	// Mock user
 	user := &domain.User{
-		ID:      userID,
-		Name:    "Test User",
-		Email:   email,
-		Contact: "123456789",
-		Role:    role,
-		Active:  true,
+		ID:       userID,
+		Name:     "Test User",
+		Email:    email,
+		Contact:  "123456789",
+		Role:     role,
+		DeletedAt: nil,
 	}
 
 	// Mock valid session

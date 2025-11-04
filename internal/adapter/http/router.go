@@ -94,12 +94,11 @@ func NewRouter(
 			productGroup.PATCH("/stock", productHandler.UpdateStockBatch)
 		}
 
-		userGroup := protected.Group("/user")
+		userGroup := protected.Group("/users")
 		{
-			userGroup.GET("", userHandler.GetAll)
+			userGroup.GET("", userHandler.Search)
 			userGroup.POST("", userHandler.Create)
 			userGroup.GET("/:id", userHandler.GetByID)
-			userGroup.GET("/search", userHandler.Search)
 			userGroup.PUT("/:id", userHandler.Update)
 			userGroup.DELETE("/:id", userHandler.Delete)
 		}

@@ -19,14 +19,14 @@ func NewMaintenanceHandler(service ports.MaintenanceService) *MaintenanceHandler
 	return &MaintenanceHandler{service: service}
 }
 
-type createMaintenanceRequest struct {
+type CreateMaintenanceRequest struct {
 	Name       string  `json:"name" binding:"required"`
 	Price      float64 `json:"price" binding:"required"`
 	CategoryId string  `json:"category" binding:"required"`
 }
 
 func (h *MaintenanceHandler) CreateMaintenance(ctx *gin.Context) {
-	var json createMaintenanceRequest
+	var json CreateMaintenanceRequest
 
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
@@ -81,7 +81,7 @@ func (h *MaintenanceHandler) UpdateMaintenance(ctx *gin.Context) {
 		return
 	}
 
-	var json createMaintenanceRequest
+	var json CreateMaintenanceRequest
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return

@@ -70,12 +70,12 @@ func (s *userService) CreateAdminUser(ctx context.Context, email, password strin
 	}
 
 	u := domain.User{
-		Name:     "Admin",
-		Email:    email,
-		Password: p,
-		Contact:  "",
-		Role:     "administrator",
-		Active:   true,
+		Name:      "Admin",
+		Email:     email,
+		Password:  p,
+		Contact:   "",
+		Role:      "administrator",
+		DeletedAt: nil,
 	}
 
 	u.Address = &domain.Address{}
@@ -90,23 +90,6 @@ func (s *userService) CreateAdminUser(ctx context.Context, email, password strin
 	}
 
 	return nil
-}
-
-func (s *userService) GetAll(ctx context.Context) ([]domain.User, error) {
-
-	users, err := s.repo.FindAll(ctx, false)
-
-	if err != nil {
-		return nil, err
-	}
-
-	usersD := make([]domain.User, 0, len(users))
-
-	for _, user := range users {
-		usersD = append(usersD, *user.ToDomain())
-	}
-
-	return usersD, nil
 }
 
 func (s *userService) GetByID(ctx context.Context, id uint) (*domain.User, error) {

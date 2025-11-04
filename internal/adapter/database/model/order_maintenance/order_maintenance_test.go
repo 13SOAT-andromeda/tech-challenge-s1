@@ -42,8 +42,8 @@ func TestModel_ToDomain(t *testing.T) {
 			Note:              &note,
 			DiagnosticNote:    &diag,
 			Price:             &price,
-			User:              user.Model{ID: 10, Name: "usr", Email: "e@x.com", Contact: "cont", Password: "hashed", Role: "role", Active: true},
-			CustomerVehicle:   customer_vehicle.Model{Model: gorm.Model{ID: 20}, CustomerId: 5, VehicleId: 6},
+			User:              user.Model{Model: gorm.Model{ID: 10}, Name: "usr", Email: "e@x.com", Contact: "cont", Password: "hashed", Role: "role"},
+			CustomerVehicle:   customer_vehicle.Model{Model: gorm.Model{ID: 20}, CustomerID: 5, VehicleID: 6},
 			Company:           company.Model{Model: gorm.Model{ID: 30}, Name: "Comp", Contact: "123", Document: "doc"},
 		},
 	}
@@ -159,11 +159,11 @@ func TestModel_FromDomain(t *testing.T) {
 	if m.Order.CustomerVehicle.ID != 21 {
 		t.Fatalf("customer vehicle id: expected 21 got %d", m.Order.CustomerVehicle.ID)
 	}
-	if m.Order.CustomerVehicle.Customer.ID != 7 {
-		t.Fatalf("customer id: expected 7 got %d", m.Order.CustomerVehicle.Customer.ID)
+	if m.Order.CustomerVehicle.CustomerID != 7 {
+		t.Fatalf("customer id: expected 7 got %d", m.Order.CustomerVehicle.CustomerID)
 	}
-	if m.Order.CustomerVehicle.Vehicle.ID != 8 {
-		t.Fatalf("vehicle id: expected 8 got %d", m.Order.CustomerVehicle.Vehicle.ID)
+	if m.Order.CustomerVehicle.VehicleID != 8 {
+		t.Fatalf("vehicle id: expected 8 got %d", m.Order.CustomerVehicle.VehicleID)
 	}
 	if m.Order.CompanyID != 31 {
 		t.Fatalf("company id: expected 31 got %d", m.Order.CompanyID)

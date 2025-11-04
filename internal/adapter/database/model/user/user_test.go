@@ -8,6 +8,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
 // MockHasher é um mock para o hasher do Password
@@ -56,7 +57,7 @@ func TestNewUserModelFromDomain(t *testing.T) {
 		Role:     "admin",
 		Password: password,
 		Address:  address,
-		Active:   true,
+		DeletedAt: nil,
 	}
 
 	userModel := &Model{}
@@ -68,7 +69,7 @@ func TestNewUserModelFromDomain(t *testing.T) {
 	assert.Equal(t, domainUser.Contact, userModel.Contact)
 	assert.Equal(t, domainUser.Role, userModel.Role)
 	assert.Equal(t, domainUser.Password.GetHashed(), userModel.Password)
-	assert.Equal(t, domainUser.Active, userModel.Active)
+	assert.False(t, userModel.DeletedAt.Valid)
 	assert.Equal(t, domainUser.Address.Address, userModel.Address.Address)
 	assert.Equal(t, domainUser.Address.AddressNumber, userModel.Address.AddressNumber)
 	assert.Equal(t, domainUser.Address.Neighborhood, userModel.Address.Neighborhood)
@@ -81,13 +82,14 @@ func TestNewUserModelFromDomain(t *testing.T) {
 
 func TestUserModel_ToDomain(t *testing.T) {
 	userModel := Model{
-		ID:       1,
+		Model: gorm.Model{
+			ID: 1,
+		},
 		Name:     "João Silva",
 		Email:    "joao@test.com",
 		Contact:  "11999999999",
 		Password: "hashed_password",
 		Role:     "admin",
-		Active:   true,
 		Address: &address.Model{
 			Address:       "Rua Teste",
 			AddressNumber: "123",
@@ -106,7 +108,7 @@ func TestUserModel_ToDomain(t *testing.T) {
 	assert.Equal(t, userModel.Contact, domainUser.Contact)
 	assert.Equal(t, userModel.Role, domainUser.Role)
 	assert.Equal(t, userModel.Password, domainUser.Password.GetHashed())
-	assert.Equal(t, userModel.Active, domainUser.Active)
+	assert.Nil(t, domainUser.DeletedAt)
 	assert.Equal(t, userModel.Address.Address, domainUser.Address.Address)
 	assert.Equal(t, userModel.Address.AddressNumber, domainUser.Address.AddressNumber)
 	assert.Equal(t, userModel.Address.Neighborhood, domainUser.Address.Neighborhood)
@@ -132,7 +134,7 @@ func TestNewUserModelFromDomain_WithNilAddress(t *testing.T) {
 		Role:     "admin",
 		Password: password,
 		Address:  nil,
-		Active:   true,
+		DeletedAt: nil,
 	}
 
 	userModel := &Model{}
@@ -144,7 +146,7 @@ func TestNewUserModelFromDomain_WithNilAddress(t *testing.T) {
 	assert.Equal(t, domainUser.Contact, userModel.Contact)
 	assert.Equal(t, domainUser.Role, userModel.Role)
 	assert.Equal(t, domainUser.Password.GetHashed(), userModel.Password)
-	assert.Equal(t, domainUser.Active, userModel.Active)
+	assert.False(t, userModel.DeletedAt.Valid)
 	assert.Equal(t, "", userModel.Address.Address)
 	assert.Equal(t, "", userModel.Address.AddressNumber)
 	assert.Equal(t, "", userModel.Address.Neighborhood)
@@ -157,13 +159,14 @@ func TestNewUserModelFromDomain_WithNilAddress(t *testing.T) {
 
 func TestUserModel_ToDomain_WithEmptyAddress(t *testing.T) {
 	userModel := Model{
-		ID:       1,
+		Model: gorm.Model{
+			ID: 1,
+		},
 		Name:     "João Silva",
 		Email:    "joao@test.com",
 		Contact:  "11999999999",
 		Password: "hashed_password",
 		Role:     "admin",
-		Active:   true,
 		Address:  &address.Model{},
 	}
 
@@ -175,7 +178,7 @@ func TestUserModel_ToDomain_WithEmptyAddress(t *testing.T) {
 	assert.Equal(t, userModel.Contact, domainUser.Contact)
 	assert.Equal(t, userModel.Role, domainUser.Role)
 	assert.Equal(t, userModel.Password, domainUser.Password.GetHashed())
-	assert.Equal(t, userModel.Active, domainUser.Active)
+	assert.Nil(t, domainUser.DeletedAt)
 	assert.NotNil(t, domainUser.Address)
 	assert.Equal(t, "", domainUser.Address.Address)
 	assert.Equal(t, "", domainUser.Address.AddressNumber)
@@ -202,7 +205,7 @@ func TestNewUserModelFromDomain_WithPasswordHashError(t *testing.T) {
 		Role:     "admin",
 		Password: password,
 		Address:  nil,
-		Active:   true,
+		DeletedAt: nil,
 	}
 
 	userModel := &Model{}

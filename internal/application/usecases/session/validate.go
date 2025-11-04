@@ -52,7 +52,6 @@ func (uc *validateUseCase) Execute(ctx context.Context, input ValidateInput) (*V
 		Email:   user.Email,
 		Contact: user.Contact,
 		Role:    user.Role,
-		Active:  user.Active,
 	}
 
 	output := &ValidateOutput{

@@ -38,7 +38,7 @@ func (uc *loginUseCase) Execute(ctx context.Context, input LoginInput) (*LoginOu
 		return nil, services.ErrUserNotFound
 	}
 
-	if err := user.Password.Compare(input.Password); err != nil || !user.Active {
+	if err := user.Password.Compare(input.Password); err != nil || user.DeletedAt != nil {
 		return nil, services.ErrUserNotFound
 	}
 
@@ -68,7 +68,6 @@ func (uc *loginUseCase) Execute(ctx context.Context, input LoginInput) (*LoginOu
 		Email:   user.Email,
 		Contact: user.Contact,
 		Role:    user.Role,
-		Active:  user.Active,
 	}
 
 	output := &LoginOutput{

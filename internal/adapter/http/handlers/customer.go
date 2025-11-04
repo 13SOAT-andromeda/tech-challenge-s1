@@ -25,7 +25,7 @@ func NewCustomerHandler(service ports.CustomerService, useCase ports.CustomerUse
 	}
 }
 
-type createCustomerRequest struct {
+type CreateCustomerRequest struct {
 	Name          string `json:"name" binding:"required"`
 	Email         string `json:"email" binding:"required,email"`
 	Document      string `json:"document" binding:"required"`
@@ -41,7 +41,7 @@ type createCustomerRequest struct {
 
 func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 
-	var json createCustomerRequest
+	var json CreateCustomerRequest
 
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 
@@ -49,7 +49,7 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 		if errors.As(err, &validationErrors) {
 			for _, fieldError := range validationErrors {
 				if fieldError.Field() == "Type" && fieldError.Tag() == "oneof" {
-					response.RespondError(ctx, http.StatusBadRequest, "type must be one of: administrator, mechanic, attendant'")
+					response.RespondError(ctx, http.StatusBadRequest, "type must be one of: pf, pj'")
 
 					return
 				}
@@ -83,12 +83,14 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 		},
 	}
 
-	if _, err := h.service.Create(ctx, c); err != nil {
+	customer, err := h.service.Create(ctx, c)
+
+	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	response.RespondCreated[any](ctx, nil, "Customer created successfully")
+	response.RespondCreated(ctx, customer, "Customer created successfully")
 }
 
 func (h *CustomerHandler) Search(ctx *gin.Context) {
@@ -180,7 +182,7 @@ func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
 		return
 	}
 
-	var json createCustomerRequest
+	var json CreateCustomerRequest
 
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 
@@ -188,7 +190,7 @@ func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
 		if errors.As(err, &validationErrors) {
 			for _, fieldError := range validationErrors {
 				if fieldError.Field() == "Type" && fieldError.Tag() == "oneof" {
-					response.RespondError(ctx, http.StatusBadRequest, "type must be one of: administrator, mechanic, attendant")
+					response.RespondError(ctx, http.StatusBadRequest, "type must be one of: pf, pj")
 
 					return
 				}
@@ -296,5 +298,5 @@ func (h *CustomerHandler) GetCustomerVehicles(ctx *gin.Context) {
 		return
 	}
 
-	response.RespondSuccess[[]domain.Vehicle](ctx, vehicles, "")
+	response.RespondSuccess[[]domain.CustomerVehicle](ctx, vehicles, "")
 }

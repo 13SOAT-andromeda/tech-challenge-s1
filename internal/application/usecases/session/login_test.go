@@ -153,12 +153,12 @@ func TestLoginUseCase_Execute_Success(t *testing.T) {
 
 	// Mock user
 	user := &domain.User{
-		ID:      1,
-		Name:    "Test User",
-		Email:   "test@example.com",
-		Contact: "123456789",
-		Role:    "user",
-		Active:  true,
+		ID:       1,
+		Name:     "Test User",
+		Email:    "test@example.com",
+		Contact:  "123456789",
+		Role:     "user",
+		DeletedAt: nil,
 	}
 	user.Password, _ = domain.NewPassword("Password123!", mockHasher)
 	user.Password.Hash()
@@ -244,12 +244,12 @@ func TestLoginUseCase_Execute_InvalidPassword(t *testing.T) {
 
 	// Mock user
 	user := &domain.User{
-		ID:      1,
-		Name:    "Test User",
-		Email:   "test@example.com",
-		Contact: "123456789",
-		Role:    "user",
-		Active:  true,
+		ID:       1,
+		Name:     "Test User",
+		Email:    "test@example.com",
+		Contact:  "123456789",
+		Role:     "user",
+		DeletedAt: nil,
 	}
 
 	hasher.On("Compare", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("[]uint8")).Return(errors.New("invalid password"))
@@ -290,13 +290,14 @@ func TestLoginUseCase_Execute_InactiveUser(t *testing.T) {
 	useCase := NewLoginUseCase(userService, sessionService, jwtService, config)
 
 	// Mock inactive user
+	deletedAt := time.Now()
 	user := &domain.User{
-		ID:      1,
-		Name:    "Test User",
-		Email:   "test@example.com",
-		Contact: "123456789",
-		Role:    "user",
-		Active:  false, // Inactive user
+		ID:       1,
+		Name:     "Test User",
+		Email:    "test@example.com",
+		Contact:  "123456789",
+		Role:     "user",
+		DeletedAt: &deletedAt,
 	}
 	hasher.On("Generate", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte("Password123!"), nil)
 	hasher.On("Compare", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("[]uint8")).Return(nil)
@@ -340,12 +341,12 @@ func TestLoginUseCase_Execute_SessionCreationError(t *testing.T) {
 
 	// Mock user
 	user := &domain.User{
-		ID:      1,
-		Name:    "Test User",
-		Email:   "test@example.com",
-		Contact: "123456789",
-		Role:    "user",
-		Active:  true,
+		ID:       1,
+		Name:     "Test User",
+		Email:    "test@example.com",
+		Contact:  "123456789",
+		Role:     "user",
+		DeletedAt: nil,
 	}
 	user.Password, _ = domain.NewPassword("Password123!", mockHasher)
 	user.Password.Hash()

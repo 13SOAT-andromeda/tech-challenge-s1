@@ -65,7 +65,9 @@ func (m *Model) FromDomain(d *domain.Order) {
 	m.CustomerVehicleID = d.CustomerVehicle.ID
 	m.CompanyID = d.Company.ID
 	m.User = user.Model{
-		ID: d.User.ID,
+		Model: gorm.Model{
+			ID: d.User.ID,
+		},
 	}
 	m.CustomerVehicle.FromDomain(&d.CustomerVehicle)
 	m.Company.FromDomain(&d.Company)

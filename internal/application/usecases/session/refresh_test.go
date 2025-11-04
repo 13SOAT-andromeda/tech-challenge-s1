@@ -53,12 +53,12 @@ func TestRefreshUseCase_Execute_Success(t *testing.T) {
 
 	// Mock user
 	user := &domain.User{
-		ID:      1,
-		Name:    "Test User",
-		Email:   "test@example.com",
-		Contact: "123456789",
-		Role:    "user",
-		Active:  true,
+		ID:       1,
+		Name:     "Test User",
+		Email:    "test@example.com",
+		Contact:  "123456789",
+		Role:     "user",
+		DeletedAt: nil,
 	}
 
 	// Setup mocks

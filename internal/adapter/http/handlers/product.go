@@ -18,13 +18,13 @@ func NewProductHandler(service ports.ProductService) *ProductHandler {
 	return &ProductHandler{service: service}
 }
 
-type createProductRequest struct {
+type CreateProductRequest struct {
 	Name  string `json:"name" binding:"required"`
 	Price int64  `json:"price" binding:"required,gt=0"`
 	Stock int64  `json:"stock" binding:"required"`
 }
 
-type updateProductRequest struct {
+type UpdateProductRequest struct {
 	Name  string `json:"name" binding:"required"`
 	Price int64  `json:"price" binding:"required,gt=0"`
 }
@@ -40,7 +40,7 @@ type updateStockRequest struct {
 }
 
 func (h *ProductHandler) CreateProduct(ctx *gin.Context) {
-	var json createProductRequest
+	var json CreateProductRequest
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -115,7 +115,8 @@ func (h *ProductHandler) DeleteProduct(ctx *gin.Context) {
 }
 
 func (h *ProductHandler) UpdateProduct(ctx *gin.Context) {
-	var json updateProductRequest
+
+	var json UpdateProductRequest
 
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
