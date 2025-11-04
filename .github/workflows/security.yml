@@ -10,17 +10,16 @@ jobs:
   security-sast:
     runs-on: ubuntu-latest
     steps:
-      - name: Check Build
-        run: go build ./...
-
-
-      # 1️⃣ Checkout do código
       - uses: actions/checkout@v4
 
       # 2️⃣ Configura Go
       - uses: actions/setup-go@v4
         with:
           go-version: '1.25'
+
+      - name: Check Build
+        working-directory: ./
+        run: go build ./...
 
       # 3️⃣ Instala golangci-lint
       - name: Install golangci-lint
