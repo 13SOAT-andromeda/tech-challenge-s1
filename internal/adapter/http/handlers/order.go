@@ -28,9 +28,9 @@ type createOrderRequest struct {
 }
 
 type CompleteAnalysisRequest struct {
-	DiagnosticNote string                   `json:"diagnostic_note"`
-	Products       []domain.ProductItem     `json:"products" binding:"required"`
-	Maintenances   []domain.MaintenanceItem `json:"maintenances" binding:"required"`
+	DiagnosticNote string             `json:"diagnostic_note"`
+	Products       []domain.StockItem `json:"products" binding:"required"`
+	Maintenances   []uint             `json:"maintenances" binding:"required"`
 }
 
 func (h *OrderHandler) Create(ctx *gin.Context) {
@@ -240,4 +240,36 @@ func (h *OrderHandler) StartWork(ctx *gin.Context) {
 	}
 
 	response.RespondSuccess(ctx, id, "Work started successfully")
+}
+
+func (h *OrderHandler) GetInProgress(ctx *gin.Context) {
+	u := ctx.Request.URL.Query()
+
+	u.Add("sortdesc", "false")
+	u.Add("orderby", "date_approved")
+	u.Add("status", string(domain.OrderStatuses.IN_PROGRESS))
+
+	params := converters.ParamsToMap(u)
+
+	orders, err := h.service.GetAll(ctx, params)
+	if err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.RespondSuccess(ctx, orders, "")
+}
+
+func (h *OrderHandler) CompleteWork(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err = h.usecase.CompleteWorkOrder(ctx, uint(id)); err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess(ctx, id, "Work completed successfully")
 }

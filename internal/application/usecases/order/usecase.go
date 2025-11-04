@@ -100,36 +100,29 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 		return err
 	}
 
-	maintenanceIds := make([]uint, 0, len(input.Maintenances))
-	for _, v := range input.Maintenances {
-		maintenanceIds = append(maintenanceIds, v.ID)
-	}
-
-	maintenances, err := uc.maintenanceService.GetByIDs(ctx, maintenanceIds)
+	maintenances, err := uc.maintenanceService.GetByIDs(ctx, input.Maintenances)
 	if err != nil {
 		return err
 	}
 
 	totalPrice := 0.0
 
-	orderProducts := make([]domain.ProductItem, 0, len(products))
+	orderProducts := make([]domain.StockItem, 0, len(products))
 	for _, product := range products {
 		quantity := productQuantities[product.ID]
 		totalPrice += float64(product.Price) * float64(quantity)
 
-		orderProducts = append(orderProducts, domain.ProductItem{
+		orderProducts = append(orderProducts, domain.StockItem{
 			ID:       product.ID,
 			Quantity: uint(quantity),
 		})
 	}
 
-	orderMaintenances := make([]domain.MaintenanceItem, 0, len(maintenances))
+	orderMaintenances := make([]uint, 0, len(maintenances))
 	for _, maintenance := range maintenances {
 		totalPrice += float64(maintenance.Price)
 
-		orderMaintenances = append(orderMaintenances, domain.MaintenanceItem{
-			ID: maintenance.ID,
-		})
+		orderMaintenances = append(orderMaintenances, maintenance.ID)
 	}
 
 	order.DiagnosticNote = input.DiagnosticNote
@@ -158,7 +151,10 @@ func (uc *UseCase) ApproveOrder(ctx context.Context, id uint) error {
 		return fmt.Errorf("order cannot be approved. Current status: %s", existentOrder.Status)
 	}
 
+	now := time.Now()
+
 	existentOrder.Status = string(domain.OrderStatuses.APPROVED)
+	existentOrder.DateApproved = &now
 
 	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
 		return fmt.Errorf("failed to approve order: %w", err)
@@ -179,7 +175,10 @@ func (uc *UseCase) RejectOrder(ctx context.Context, id uint) error {
 		return fmt.Errorf("order cannot be reject. Current status: %s", existentOrder.Status)
 	}
 
+	now := time.Now()
+
 	existentOrder.Status = string(domain.OrderStatuses.FINISHED)
+	existentOrder.DateRejected = &now
 
 	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
 		return fmt.Errorf("failed to reject order: %w", err)
@@ -257,7 +256,8 @@ func (uc *UseCase) StartWorkOrder(ctx context.Context, id uint) error {
 		return fmt.Errorf("order cannot start work. current status: %s", order.Status)
 	}
 
-	productItems := make([]domain.ProductItem, 0, len(*order.Products))
+	productItems := make([]domain.StockItem, 0, len(*order.Products))
+	operation := domain.StockOperationDecrease
 
 	for _, item := range *order.Products {
 		available, err := uc.productService.CheckAvailability(ctx, item.ID, item.Quantity)
@@ -269,19 +269,38 @@ func (uc *UseCase) StartWorkOrder(ctx context.Context, id uint) error {
 			return fmt.Errorf("cannot start work: product ID %d is not available in quantity %d", item.ID, item.Quantity)
 		}
 
-		productItems = append(productItems, domain.ProductItem{
-			ID:       item.ID,
-			Quantity: item.Quantity,
+		productItems = append(productItems, domain.StockItem{
+			ID:        item.ID,
+			Quantity:  item.Quantity,
+			Operation: &operation,
 		})
 	}
 
-	err = uc.productService.UpdateStock(ctx, productItems, domain.StockOperationRemove)
+	err = uc.productService.UpdateStock(ctx, productItems)
 	if err != nil {
 		return fmt.Errorf("failed to decrement stock: %w", err)
 	}
 
 	order.Status = domain.OrderStatuses.IN_PROGRESS
 
+	if err = uc.orderService.Update(ctx, *order); err != nil {
+		return fmt.Errorf("failed to update order status: %w", err)
+	}
+
+	return nil
+}
+
+func (uc *UseCase) CompleteWorkOrder(ctx context.Context, id uint) error {
+	order, err := uc.orderService.GetByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to get order with id %d: %w", id, err)
+	}
+
+	if order.Status != domain.OrderStatuses.IN_PROGRESS {
+		return fmt.Errorf("order cannot complete work. current status: %s", order.Status)
+	}
+
+	order.Status = domain.OrderStatuses.FINISHED
 	if err = uc.orderService.Update(ctx, *order); err != nil {
 		return fmt.Errorf("failed to update order status: %w", err)
 	}
