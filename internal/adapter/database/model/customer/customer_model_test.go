@@ -247,7 +247,7 @@ func TestCustomerModel_FromDomain_WithNilAddress(t *testing.T) {
 		Document: &domain.Document{
 			Number: "98765432100",
 		},
-		Type:    "attendant",
+		Type:    "pf",
 		Contact: "11988887777",
 		Address: nil,
 	}

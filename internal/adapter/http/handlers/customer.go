@@ -49,7 +49,7 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 		if errors.As(err, &validationErrors) {
 			for _, fieldError := range validationErrors {
 				if fieldError.Field() == "Type" && fieldError.Tag() == "oneof" {
-					response.RespondError(ctx, http.StatusBadRequest, "type must be one of: administrator, mechanic, attendant'")
+					response.RespondError(ctx, http.StatusBadRequest, "type must be one of: pf, pj'")
 
 					return
 				}
@@ -195,7 +195,7 @@ func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
 		if errors.As(err, &validationErrors) {
 			for _, fieldError := range validationErrors {
 				if fieldError.Field() == "Type" && fieldError.Tag() == "oneof" {
-					response.RespondError(ctx, http.StatusBadRequest, "type must be one of: administrator, mechanic, attendant")
+					response.RespondError(ctx, http.StatusBadRequest, "type must be one of: pf, pj")
 
 					return
 				}

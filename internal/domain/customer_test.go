@@ -49,31 +49,26 @@ func TestValidateCustomerType(t *testing.T) {
 		errMsg       string
 	}{
 		{
-			name:         "valid type - administrator",
-			customerType: "administrator",
+			name:         "valid type - pj",
+			customerType: "pj",
 			wantErr:      false,
 		},
 		{
-			name:         "valid type - attendant",
-			customerType: "attendant",
-			wantErr:      false,
-		},
-		{
-			name:         "valid type - mechanic",
-			customerType: "mechanic",
+			name:         "valid type - pf",
+			customerType: "pf",
 			wantErr:      false,
 		},
 		{
 			name:         "invalid type - manager",
 			customerType: "manager",
 			wantErr:      true,
-			errMsg:       "customer type 'manager' is not valid. Accepted types: [administrator attendant mechanic]",
+			errMsg:       "customer type 'manager' is not valid. Accepted types: [pf pj]",
 		},
 		{
 			name:         "invalid type - empty string",
 			customerType: "",
 			wantErr:      true,
-			errMsg:       "customer type '' is not valid. Accepted types: [administrator attendant mechanic]",
+			errMsg:       "customer type '' is not valid. Accepted types: [pf pj]",
 		},
 	}
 

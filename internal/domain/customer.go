@@ -21,7 +21,7 @@ type Customer struct {
 
 func (c *Customer) ValidateCustomerType() error {
 
-	acceptedTypes := []string{"administrator", "attendant", "mechanic"}
+	acceptedTypes := []string{"pf", "pj"}
 
 	if !slices.Contains(acceptedTypes, c.Type) {
 		return fmt.Errorf("customer type '%s' is not valid. Accepted types: %v", c.Type, acceptedTypes)
