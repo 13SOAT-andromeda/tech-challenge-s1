@@ -19,8 +19,8 @@ jobs:
       # 3️⃣ Instala golangci-lint
       - name: Install golangci-lint
         run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $GOPATH/bin v1.55.2
-          echo "$GOPATH/bin" >> $GITHUB_PATH
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $HOME/go/bin v1.55.2
+          echo "$HOME/go/bin" >> $GITHUB_PATH
 
       # 4️⃣ Run golangci-lint
       - name: Run golangci-lint
