@@ -48,7 +48,6 @@ func TestSession(t *testing.T) {
 		assert.NotZero(t, baseResponse.Data.User.ID)
 		assert.Equal(t, cfg.AdminUser.Email, baseResponse.Data.User.Email)
 		assert.NotEmpty(t, baseResponse.Data.User.Role)
-		assert.True(t, baseResponse.Data.User.Active)
 	})
 
 	t.Run("should fail with invalid credentials", func(t *testing.T) {
@@ -103,7 +102,6 @@ func TestSession(t *testing.T) {
 		assert.NotZero(t, baseResponse.Data.User.ID)
 		assert.Equal(t, cfg.AdminUser.Email, baseResponse.Data.User.Email)
 		assert.NotEmpty(t, baseResponse.Data.User.Role)
-		assert.True(t, baseResponse.Data.User.Active)
 
 		resp, err := NewAuthenticatedReq("GET", apiUrl+"/sessions/validate", nil, baseResponse.Data.AccessToken)
 
@@ -121,7 +119,6 @@ func TestSession(t *testing.T) {
 		assert.NotZero(t, baseResponseValidate.Data.User.ID)
 		assert.Equal(t, cfg.AdminUser.Email, baseResponseValidate.Data.User.Email)
 		assert.NotEmpty(t, baseResponseValidate.Data.User.Role)
-		assert.True(t, baseResponseValidate.Data.User.Active)
 	})
 
 	t.Run("should invalid token return an error", func(t *testing.T) {
@@ -165,7 +162,6 @@ func TestSession(t *testing.T) {
 		assert.NotZero(t, baseResponse.Data.User.ID)
 		assert.Equal(t, cfg.AdminUser.Email, baseResponse.Data.User.Email)
 		assert.NotEmpty(t, baseResponse.Data.User.Role)
-		assert.True(t, baseResponse.Data.User.Active)
 
 		refreshData.RefreshToken = baseResponse.Data.RefreshToken
 

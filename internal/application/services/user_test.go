@@ -12,6 +12,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
 // MockHasher é um mock para o hasher do Password
@@ -43,7 +44,7 @@ func TestUserService_Create_Success(t *testing.T) {
 			Country:       "Brasil",
 			ZipCode:       "01234-567",
 		},
-		Active: true,
+		DeletedAt: nil,
 	}
 
 	mockModel := user.Model{}
@@ -62,7 +63,7 @@ func TestUserService_Create_Success(t *testing.T) {
 	assert.Equal(t, "João Silva", result.Name)
 	assert.Equal(t, "joao@test.com", result.Email)
 	assert.Equal(t, "administrator", result.Role)
-	assert.True(t, result.Active)
+	assert.Nil(t, result.DeletedAt)
 	mockRepo.AssertExpectations(t)
 	mockHasher.AssertExpectations(t)
 }
@@ -78,12 +79,12 @@ func TestUserService_Create_EmailAlreadyExists(t *testing.T) {
 	assert.NoError(t, err)
 
 	inputUser := domain.User{
-		Name:     "João Silva",
-		Email:    "joao@test.com",
-		Contact:  "11999999999",
-		Role:     "administrator",
-		Password: password,
-		Active:   true,
+		Name:      "João Silva",
+		Email:     "joao@test.com",
+		Contact:   "11999999999",
+		Role:      "administrator",
+		Password:  password,
+		DeletedAt: nil,
 	}
 
 	mockModel := user.Model{}
@@ -117,12 +118,12 @@ func TestUserService_Create_RepositoryError(t *testing.T) {
 	assert.NoError(t, err)
 
 	inputUser := domain.User{
-		Name:     "João Silva",
-		Email:    "joao@test.com",
-		Contact:  "11999999999",
-		Role:     "administrator",
-		Password: password,
-		Active:   true,
+		Name:      "João Silva",
+		Email:     "joao@test.com",
+		Contact:   "11999999999",
+		Role:      "administrator",
+		Password:  password,
+		DeletedAt: nil,
 	}
 
 	expectedError := errors.New("database connection error")
@@ -236,18 +237,20 @@ func TestUserService_GetAll_Success(t *testing.T) {
 
 	expectedUsers := []user.Model{
 		{
-			ID:     1,
-			Name:   "João Silva",
-			Email:  "joao@test.com",
-			Role:   "administrator",
-			Active: true,
+			Model: gorm.Model{
+				ID: 1,
+			},
+			Name:  "João Silva",
+			Email: "joao@test.com",
+			Role:  "administrator",
 		},
 		{
-			ID:     2,
-			Name:   "Maria Santos",
-			Email:  "maria@test.com",
-			Role:   "user",
-			Active: true,
+			Model: gorm.Model{
+				ID: 2,
+			},
+			Name:  "Maria Santos",
+			Email: "maria@test.com",
+			Role:  "user",
 		},
 	}
 
@@ -296,11 +299,12 @@ func TestUserService_GetByID_Success(t *testing.T) {
 	userID := uint(1)
 
 	expectedUser := &user.Model{
-		ID:     1,
-		Name:   "João Silva",
-		Email:  "joao@test.com",
-		Role:   "administrator",
-		Active: true,
+		Model: gorm.Model{
+			ID: 1,
+		},
+		Name:  "João Silva",
+		Email: "joao@test.com",
+		Role:  "administrator",
 	}
 
 	mockRepo.On("FindByID", ctx, userID).Return(expectedUser, nil)
@@ -350,11 +354,12 @@ func TestUserService_Search_Success(t *testing.T) {
 
 	expectedUsers := []user.Model{
 		{
-			ID:     1,
-			Name:   "João Silva",
-			Email:  "joao@test.com",
-			Role:   "administrator",
-			Active: true,
+			Model: gorm.Model{
+				ID: 1,
+			},
+			Name:  "João Silva",
+			Email: "joao@test.com",
+			Role:  "administrator",
 		},
 	}
 
@@ -388,11 +393,12 @@ func TestUserService_Search_WithPartialParams(t *testing.T) {
 
 	expectedUsers := []user.Model{
 		{
-			ID:     1,
-			Name:   "João Silva",
-			Email:  "joao@test.com",
-			Role:   "administrator",
-			Active: true,
+			Model: gorm.Model{
+				ID: 1,
+			},
+			Name:  "João Silva",
+			Email: "joao@test.com",
+			Role:  "administrator",
 		},
 	}
 
@@ -422,21 +428,22 @@ func TestUserService_Update_Success(t *testing.T) {
 	userID := uint(1)
 
 	existingUser := &user.Model{
-		ID:      1,
+		Model: gorm.Model{
+			ID: 1,
+		},
 		Name:    "João Silva",
 		Email:   "joao@test.com",
 		Contact: "11999999999",
 		Role:    "administrator",
-		Active:  true,
 	}
 
 	updatedUser := domain.User{
-		ID:      userID,
-		Name:    "João Silva Santos",
-		Email:   "joao@test.com",
-		Contact: "11988888888",
-		Role:    "administrator",
-		Active:  true,
+		ID:       userID,
+		Name:     "João Silva Santos",
+		Email:    "joao@test.com",
+		Contact:  "11988888888",
+		Role:     "administrator",
+		DeletedAt: nil,
 	}
 
 	// Configurar o mock
@@ -489,29 +496,31 @@ func TestUserService_Update_EmailAlreadyExists(t *testing.T) {
 	userID := uint(2)
 
 	existingUser := &user.Model{
-		ID:       1,
+		Model: gorm.Model{
+			ID: 1,
+		},
 		Name:     "João Silva",
 		Email:    "new@test.com",
 		Role:     "administrator",
 		Password: "hashed_password",
-		Active:   true,
 	}
 
 	oldDataUser := &user.Model{
-		ID:       userID,
+		Model: gorm.Model{
+			ID: userID,
+		},
 		Name:     "João Silva",
 		Email:    "old@test.com",
 		Role:     "administrator",
 		Password: "hashed_password",
-		Active:   true,
 	}
 
 	updatedUser := domain.User{
-		ID:     userID,
-		Name:   "João Silva Santos",
-		Email:  "new@test.com",
-		Role:   "administrator",
-		Active: true,
+		ID:       userID,
+		Name:     "João Silva Santos",
+		Email:    "new@test.com",
+		Role:     "administrator",
+		DeletedAt: nil,
 	}
 
 	// Configurar o mock
@@ -537,11 +546,12 @@ func TestUserService_Update_PasswordUpdateNotAllowed(t *testing.T) {
 	userID := uint(1)
 
 	existingUser := &user.Model{
-		ID:     1,
-		Name:   "João Silva",
-		Email:  "joao@test.com",
-		Role:   "administrator",
-		Active: true,
+		Model: gorm.Model{
+			ID: 1,
+		},
+		Name:  "João Silva",
+		Email: "joao@test.com",
+		Role:  "administrator",
 	}
 
 	password, err := domain.NewPassword("NewPass123!", &encryption.MockHasher{})
@@ -623,13 +633,13 @@ func TestUserService_Create_WithNilAddress(t *testing.T) {
 	assert.NoError(t, err)
 
 	inputUser := domain.User{
-		Name:     "João Silva",
-		Email:    "joao@test.com",
-		Contact:  "11999999999",
-		Role:     "administrator",
-		Password: password,
-		Address:  nil,
-		Active:   true,
+		Name:      "João Silva",
+		Email:     "joao@test.com",
+		Contact:   "11999999999",
+		Role:      "administrator",
+		Password:  password,
+		Address:   nil,
+		DeletedAt: nil,
 	}
 
 	mockModel := user.Model{}

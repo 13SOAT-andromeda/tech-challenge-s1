@@ -149,7 +149,9 @@ func createMockOrder(id uint, status string) *order.Model {
 		CustomerVehicleID: 1,
 		CompanyID:         1,
 		User: user.Model{
-			ID:    1,
+			Model: gorm.Model{
+				ID: 1,
+			},
 			Name:  "Test User",
 			Email: "test@example.com",
 		},

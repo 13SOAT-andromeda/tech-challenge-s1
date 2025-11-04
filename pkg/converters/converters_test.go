@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
@@ -57,32 +58,33 @@ func TestMergeStructs(t *testing.T) {
 
 func TestMergeStructsWithDomainUser(t *testing.T) {
 	existing := domain.User{
-		ID:      1,
-		Name:    "João",
-		Email:   "joao@email.com",
-		Contact: "123456789",
-		Role:    "user",
-		Active:  true,
+		ID:       1,
+		Name:     "João",
+		Email:    "joao@email.com",
+		Contact:  "123456789",
+		Role:     "user",
+		DeletedAt: nil,
 	}
 
+	deletedAt := time.Now()
 	update := domain.User{
-		ID:      1,
-		Name:    "João Silva",
-		Email:   "",
-		Contact: "",
-		Role:    "admin",
-		Active:  false,
+		ID:       1,
+		Name:     "João Silva",
+		Email:    "",
+		Contact:  "",
+		Role:     "admin",
+		DeletedAt: &deletedAt,
 	}
 
 	result := MergeStructs(existing, update).(domain.User)
 
 	expected := domain.User{
-		ID:      1,
-		Name:    "João Silva",
-		Email:   "joao@email.com",
-		Contact: "123456789",
-		Role:    "admin",
-		Active:  false,
+		ID:       1,
+		Name:     "João Silva",
+		Email:    "joao@email.com",
+		Contact:  "123456789",
+		Role:     "admin",
+		DeletedAt: &deletedAt,
 	}
 
 	if result.Name != expected.Name {
@@ -97,8 +99,8 @@ func TestMergeStructsWithDomainUser(t *testing.T) {
 	if result.Role != expected.Role {
 		t.Errorf("Role: expected %s, got %s", expected.Role, result.Role)
 	}
-	if result.Active != expected.Active {
-		t.Errorf("Active: expected %t, got %t", expected.Active, result.Active)
+	if (result.DeletedAt == nil) != (expected.DeletedAt == nil) {
+		t.Errorf("DeletedAt: expected %v, got %v", expected.DeletedAt, result.DeletedAt)
 	}
 }
 

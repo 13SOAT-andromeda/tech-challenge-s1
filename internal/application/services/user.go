@@ -70,12 +70,12 @@ func (s *userService) CreateAdminUser(ctx context.Context, email, password strin
 	}
 
 	u := domain.User{
-		Name:     "Admin",
-		Email:    email,
-		Password: p,
-		Contact:  "",
-		Role:     "administrator",
-		Active:   true,
+		Name:      "Admin",
+		Email:     email,
+		Password:  p,
+		Contact:   "",
+		Role:      "administrator",
+		DeletedAt: nil,
 	}
 
 	u.Address = &domain.Address{}
