@@ -468,10 +468,14 @@ func TestGetCustomerVehicles_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Len(t, result, 2)
-	assert.Equal(t, "Toyota", result[0].Brand)
-	assert.Equal(t, "Corolla 2020", result[0].Name) // ✅ Name
-	assert.Equal(t, "Honda", result[1].Brand)
-	assert.Equal(t, "Civic 2021", result[1].Name) // ✅ Name
+	assert.Equal(t, uint(1), result[0].VehicleId)
+	assert.Equal(t, customerID, result[0].CustomerId)
+	assert.Equal(t, "Toyota", result[0].Vehicle.Brand)
+	assert.Equal(t, "Corolla 2020", result[0].Vehicle.Name)
+	assert.Equal(t, uint(2), result[1].VehicleId)
+	assert.Equal(t, customerID, result[1].CustomerId)
+	assert.Equal(t, "Honda", result[1].Vehicle.Brand)
+	assert.Equal(t, "Civic 2021", result[1].Vehicle.Name)
 	mockRepo.AssertExpectations(t)
 	mockCustomerVehicleRepo.AssertExpectations(t)
 }
@@ -586,7 +590,7 @@ func TestGetCustomerVehicles_SkipsInvalidVehicles(t *testing.T) {
 
 	validVehicle := vehicle.Model{
 		Plate: "ABC1234",
-		Name:  "Corolla 2020", // ✅ Name
+		Name:  "Corolla 2020",
 		Year:  2020,
 		Brand: "Toyota",
 		Color: "Prata",
@@ -595,7 +599,7 @@ func TestGetCustomerVehicles_SkipsInvalidVehicles(t *testing.T) {
 
 	invalidVehicle := vehicle.Model{
 		Plate: "INVALID",
-		Name:  "Invalid Name", // ✅ Name
+		Name:  "Invalid Name",
 		Year:  0,
 		Brand: "Invalid",
 		Color: "Invalid",
@@ -622,9 +626,13 @@ func TestGetCustomerVehicles_SkipsInvalidVehicles(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Len(t, result, 1)
-	assert.Equal(t, "Toyota", result[0].Brand)
-	assert.Equal(t, "Corolla 2020", result[0].Name) // ✅ Name
+	assert.Len(t, result, 2)
+	assert.Equal(t, uint(1), result[0].VehicleId)
+	assert.Equal(t, customerID, result[0].CustomerId)
+	assert.Equal(t, "Toyota", result[0].Vehicle.Brand)
+	assert.Equal(t, "Corolla 2020", result[0].Vehicle.Name)
+	assert.Equal(t, uint(0), result[1].VehicleId)
+	assert.Equal(t, customerID, result[1].CustomerId)
 	mockRepo.AssertExpectations(t)
 	mockCustomerVehicleRepo.AssertExpectations(t)
 }

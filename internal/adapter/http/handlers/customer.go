@@ -306,5 +306,5 @@ func (h *CustomerHandler) GetCustomerVehicles(ctx *gin.Context) {
 		return
 	}
 
-	response.RespondSuccess[[]domain.Vehicle](ctx, vehicles, "")
+	response.RespondSuccess[[]domain.CustomerVehicle](ctx, vehicles, "")
 }

@@ -97,7 +97,7 @@ func (s *UseCase) RemoveVehicleFromCustomer(ctx context.Context, customerID, veh
 	return nil
 }
 
-func (s *UseCase) GetCustomerVehicles(ctx context.Context, customerID uint) ([]domain.Vehicle, error) {
+func (s *UseCase) GetCustomerVehicles(ctx context.Context, customerID uint) ([]domain.CustomerVehicle, error) {
 
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 
@@ -114,12 +114,10 @@ func (s *UseCase) GetCustomerVehicles(ctx context.Context, customerID uint) ([]d
 		return nil, fmt.Errorf("error fetching customer vehicles: %w", err)
 	}
 
-	vehicles := make([]domain.Vehicle, 0, len(customerVehicles))
+	cvDomain := make([]domain.CustomerVehicle, 0, len(customerVehicles))
 	for _, cv := range customerVehicles {
-		if cv.Vehicle.ID != 0 {
-			vehicles = append(vehicles, *cv.Vehicle.ToDomain())
-		}
+		cvDomain = append(cvDomain, *cv.ToDomain())
 	}
 
-	return vehicles, nil
+	return cvDomain, nil
 }
