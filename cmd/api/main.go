@@ -13,6 +13,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/vehicle"
@@ -50,6 +51,7 @@ func main() {
 		&vehicle.Model{},
 		&customer_vehicle.Model{},
 		&order.Model{},
+		&order_maintenance.Model{},
 	)
 
 	if err != nil {
@@ -72,12 +74,13 @@ func main() {
 	vehicleRepository := repository.NewVehicleRepository(dbase)
 	orderRepository := repository.NewOrderRepository(dbase)
 	customerVehicleRepository := repository.NewCustomerVehicleRepository(dbase)
+	orderMaintenanceRepository := repository.NewOrderMaintenanceRepository(dbase)
 
 	// Services
 	vehicleService := services.NewVehicleService(vehicleRepository)
 	customerService := services.NewCustomerService(customerRepository, customerVehicleRepository, vehicleService)
 	companyService := services.NewCompanyService(companyRepository)
-	maintenanceService := services.NewMaintenanceService(maintenanceRepository)
+	maintenanceService := services.NewMaintenanceService(maintenanceRepository, orderMaintenanceRepository)
 	productService := services.NewProductService(productRepository)
 	userService := services.NewUserService(userRepository)
 	sessionService := services.NewSessionService(sessionRepository)

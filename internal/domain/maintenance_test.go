@@ -65,7 +65,7 @@ func TestValidateMaintenanceCategory(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &Maintenance{CategoryID: tt.cat}
+			m := &Maintenance{CategoryId: tt.cat}
 			err := m.ValidateMaintenanceCategory()
 			if tt.wantErr {
 				if assert.Error(t, err) {
