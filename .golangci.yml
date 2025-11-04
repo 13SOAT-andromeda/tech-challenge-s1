@@ -1,0 +1,22 @@
+﻿# .golangci.yml
+run:
+  timeout: 5m
+
+linters-settings:
+  gosec:
+  # Configurações específicas do gosec, se necessário
+  # Ex: excludes: [-G101] para ignorar segredos hardcoded
+
+linters:
+  disable-all: true
+  enable:
+    # --- SAST (Segurança) ---
+    - gosec # OBRIGATÓRIO para SAST
+
+    # --- Outros linters úteis ---
+    - govet
+    - errcheck
+    - staticcheck
+    - unused
+    - gofmt
+    - goimports

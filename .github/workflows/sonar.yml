@@ -47,3 +47,42 @@ jobs:
             -Dsonar.organization=13soat-andromeda
             -Dsonar.projectKey=13SOAT-andromeda_tech-challenge-s1
             -Dsonar.go.coverage.reportPaths=coverage.out
+
+  lint-sast:
+    name: Lint and SAST - Run golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: false
+
+      - name: Create Reports Directory
+        run: mkdir -p reports
+
+      # 1. Roda a análise SAST/Lint (mesmo comando do seu Docker Compose)
+      #    Usamos a action oficial que roda o Docker por baixo dos panos
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.59.1
+          args: >
+            run ./...
+            --out-format=sarif
+            --output-path=reports/golangci-lint-report.sarif
+
+          # IMPORTANTE: Dizemos à action para NÃO falhar o build
+          # A falha será gerenciada pelo passo de upload, se houver alertas
+          continue-on-error: true
+
+      # 2. Faz o Upload do relatório SARIF (A "Mágica" Gratuita)
+      - name: Upload SARIF report
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          # Caminho para o arquivo gerado no passo anterior
+          sarif_file: reports/golangci-lint-report.sarif
+          category: golangci-lint # Um nome para a categoria na UI
