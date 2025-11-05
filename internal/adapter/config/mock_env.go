@@ -1,19 +1,22 @@
 package config
 
 import (
+	"fmt"
 	"os"
 )
 
-// SetMockEnv sets environment variables for testing
 func SetMockEnv(envs map[string]string) {
 	for k, v := range envs {
-		os.Setenv(k, v)
+		if err := os.Setenv(k, v); err != nil {
+			fmt.Printf("warning: cannot set env %s: %v\n", k, err)
+		}
 	}
 }
 
-// UnsetMockEnv unsets environment variables after testing
 func UnsetMockEnv(keys []string) {
 	for _, k := range keys {
-		os.Unsetenv(k)
+		if err := os.Unsetenv(k); err != nil {
+			fmt.Printf("warning: cannot unset env %s: %v\n", k, err)
+		}
 	}
 }
