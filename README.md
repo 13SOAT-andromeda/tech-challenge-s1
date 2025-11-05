@@ -1,133 +1,107 @@
-# Tech Challenge S1
+# ⚙️ Tech Challenge S1 - API de Gestão de Oficina Mecânica
 
-Uma API completa para gestão de oficina mecânica, desenvolvida em Go (Golang).
-Permite gerenciar clientes, veículos, produtos e ordens de serviço, com autenticação JWT, documentação via Swagger e deploy simplificado com Docker Compose.
+Este projeto é uma API completa para gerenciamento de uma oficina mecânica, desenvolvida em Go (Golang). Ele permite gerenciar clientes, veículos, produtos e ordens de serviço, com autenticação JWT, documentação via Swagger e implantação simplificada com Docker Compose.
 
-Funcionalidades principais
+## 🚀 Como Executar
 
-- Endpoints RESTful organizados por recursos (/customers, /vehicles, /orders, etc.)
+### Com Docker (Recomendado)
 
-- Verificação de saúde (Health Check) em /health
+O repositório inclui `Dockerfile` e `docker-compose.yml` para iniciar a aplicação e o banco de dados automaticamente.
 
-- UI interativa do Swagger em /docs
-
-- Especificação OpenAPI estática servida em /swagger/swagger.yaml
-
-- Autenticação baseada em JWT e middleware de sessão
-
----
-
-## Visão Geral Rápida
-
-O projeto é uma aplicação Go (module github.com/13SOAT-andromeda/tech-challenge-s1) com ponto de entrada em
-cmd/api/main.go.
-
-Por padrão, o servidor escuta na porta 8080 (configurável via variável HTTP_PORT).
-A UI do Swagger é servida diretamente pela aplicação e aponta para o arquivo de especificação localizado na pasta swagger/.
-
----
-
-## Executar com Docker (Recomendado)
-
-O repositório já inclui **Dockerfile** e **docker-compose.yml** para iniciar a aplicação e o banco de dados automaticamente.
-
-
-Passos
-
-1. Instale o Docker:
-    - Windows: https://docs.docker.com/desktop/
-    - Ubuntu (exemplo):
+1.  **Instale o Docker**:
+    - Windows: [Docker Desktop](https://docs.docker.com/desktop/)
+    - Ubuntu:
       ```bash
       sudo apt update && sudo apt install -y docker.io docker-compose
       sudo systemctl enable --now docker
       ```
-2. Crie/ajuste o arquivo .env (mesmo exemplo anterior).
-3. Suba os serviços:
-   ```bash
-   docker-compose up --build
-   ```
-   ou em background:
-   ```bash
-   docker-compose up --build -d
-   ```
-4. Acesse:
-    - API: http://localhost:8080/
-    - Health: http://localhost:8080/health
-    - Swagger UI: http://localhost:8080/docs/
-    - Redoc UI: http://localhost:8080/redoc/
+2.  Crie um arquivo `.env` na raiz do projeto. Para desenvolvimento, você pode usar os seguintes valores:
+    ```env
+    DB_HOST=db
+    DB_USER=postgres
+    DB_PASSWORD=postgres
+    DB_NAME=garagedb
+    DB_PORT=5432
+    DB_SSLMODE=disable
+    DB_TIMEZONE=UTC
+    ENV=development
+    HTTP_ALLOWED_ORIGINS=*
+    HTTP_PORT=8080
+    ADMIN_EMAIL=admin@admin.com
+    ADMIN_PASSWORD=Admin123!
+    MAILTRAP_TOKEN=6a45f171cfc233e4edc93d8b847cf19f
+    MAILTRAP_URL="https://send.api.mailtrap.io/api"
+    ```
+3.  Inicie os serviços:
+    ```bash
+    docker-compose up --build
+    ```
+    Ou em segundo plano:
+    ```bash
+    docker-compose up --build -d
+    ```
+4.  Para parar os serviços:
+    ```bash
+    docker-compose down
+    ```
 
-Para encerrar:
+### Localmente (sem Docker)
 
-```bash
-docker-compose down
-```
+**Pré-requisitos**:
+- Go 1.25+ instalado.
+- Uma instância de PostgreSQL em execução (local ou remota) acessível com as credenciais fornecidas.
+
+**Passos:**
+
+1.  **Instale o Go**:
+    -   **Windows**: Baixe e execute o instalador em [https://go.dev/dl/](https://go.dev/dl/).
+    -   **Ubuntu (WSL)**:
+        ```bash
+        sudo apt update && sudo apt install -y golang
+        ```
+
+2.  **Crie um arquivo `.env` na raiz do projeto**:
+    ```env
+    DB_HOST=localhost
+    DB_USER=postgres
+    DB_PASSWORD=postgres123
+    DB_NAME=myapp_db
+    DB_PORT=5432
+    DB_SSLMODE=disable
+    DB_TIMEZONE=America/Sao_Paulo
+    ENV=production
+    HTTP_ALLOWED_ORIGINS=*
+    GIN_MODE=release
+    JWT_SECRET=5b9b178c235820c6e69fbf54876bc4df3ffb4f3ab5ec87305b8b42d2481358c3
+    JWT_ACCESS_TOKEN_EXPIRY=24h
+    JWT_REFRESH_TOKEN_EXPIRY=700h
+    ADMIN_PASSWORD=Admin123!
+    ADMIN_EMAIL=admin@admin.com
+    MAILTRAP_TOKEN=6a45f171cfc233e4edc93d8b847cf19f
+    MAILTRAP_URL="https://send.api.mailtrap.io/api"
+    ```
+    *Nota: As variáveis são carregadas em `internal/adapter/config/config.go`.*
+
+3.  **Execute a aplicação**:
+    Pode-se executar diretamente com `go run`:
+    ```bash
+    go run ./cmd/api
+    ```
+    Ou compilar e depois executar:
+    ```bash
+    go build -o bin/app ./cmd/api
+    ./bin/app
+    ```
+
+4.  **Verifique se a aplicação está em execução**:
+    -   **Health Check**: [http://localhost:8080/health](http://localhost:8080/health)
+    -   **Swagger UI**: [http://localhost:8080/docs/index.html](http://localhost:8080/docs/index.html)
+    -   **Redoc**: [http://localhost:8080/redoc](http://localhost:8080/redoc)
 
 ---
+#### **Banco de dados rápido com Docker (Opcional)**
+Caso não tenha o PostgreSQL instalado, você pode rodar um contêiner temporário. Lembre-se de ajustar o `DB_HOST` no seu `.env` para `localhost`.
 
-## Executar localmente (sem Docker)
-
-Pré-requisitos:
-
-- Go 1.25+ instalado
-- Uma instância de PostgreSQL em execução (local ou remota) acessível com as credenciais fornecidas
-
-Passos simples:
-
-1. Instale o Go:
-    - Windows: baixe e execute o instalador em https://go.dev/dl/
-    - Ubuntu (WSL):
-      ```bash
-        sudo apt update && sudo apt install -y golang
-      ```
-   2. Crie um arquivo .env na raiz do projeto:
-
-      ```env
-
-       DB_HOST=db
-       DB_USER=postgres
-       DB_PASSWORD=postgres123
-       DB_NAME=myapp_db
-       DB_PORT=5432
-       DB_SSLMODE=disable
-       DB_TIMEZONE=America/Sao_Paulo
-       ENV=production
-       HTTP_ALLOWED_ORIGINS=*
-       GIN_MODE=release
-    
-       JWT_SECRET=5b9b178c235820c6e69fbf54876bc4df3ffb4f3ab5ec87305b8b42d2481358c3
-       JWT_ACCESS_TOKEN_EXPIRY=24h
-       JWT_REFRESH_TOKEN_EXPIRY=700h
-    
-       ADMIN_PASSWORD=Admin123!
-       ADMIN_EMAIL=admin@admin.com
-    
-       MAILTRAP_TOKEN=6a45f171cfc233e4edc93d8b847cf19f
-       MAILTRAP_URL="https://send.api.mailtrap.io/api"
-
-      ```
-
-      Notas:
-      - As variáveis são carregadas em `internal/adapter/config/config.go`.
-      - Caso não tenha o PostgreSQL instalado, você pode rodar um contêiner temporário (veja abaixo).
-
-3. Execute a aplicação:
-   - Execute diretamente (use `go run` com reconhecimento de módulo):
-     ```bash
-     go run ./cmd/api
-     ```
-
-   - ou:
-     ```bash
-     go build -o bin/app ./cmd/api
-     ./bin/app
-     ```
-
-4. Verifique se a aplicação está em execução:
-   - Health: http://localhost:8080/health
-   - Swagger UI: http://localhost:8080/docs/index.html
-   - Redoc: http://localhost:8080/redoc
-
-Banco de dados rápido com Docker
 ```bash
 docker run --name tech-challenge-pg \
   -e POSTGRES_USER=postgres \
@@ -136,41 +110,96 @@ docker run --name tech-challenge-pg \
   -p 5432:5432 -d postgres:15
 ```
 
-Para parar e remover: 
+Para parar e remover o contêiner:
 ```bash
-`docker stop tech-challenge-pg && docker rm tech-challenge-pg`
+docker stop tech-challenge-pg && docker rm tech-challenge-pg
 ```
 ---
 
-## Testes End-to-End (E2E)
+## 🧪 Como Rodar os Testes E2E
 
-Os testes E2E (End-to-End) validam o comportamento completo da aplicação — desde as requisições HTTP até a persistência no banco de dados.
-Eles exigem que a aplicação e o banco de dados estejam em execução.
+**Pré-requisitos**: A aplicação deve estar rodando localmente conforme a etapa: `Executar localmente (sem Docker)`.
 
-Pré-requisitos
-
-A aplicação deve estar rodando localmente conforme a etapa:   [Executar localmente (sem Docker)](#executar-localmente-sem-docker)
-
-Na raiz do projeto, executar o comando: 
-
+Na raiz do projeto, executar o comando:
 ```bash
 go test ./test/e2e/... -v
 ```
 
+## 📚 Documentação da API
 
-## Documentação Swagger / OpenAPI
+Você pode acessar a documentação interativa da API através dos seguintes endpoints:
 
-A documentação da API está disponível em:
+-   **Swagger UI**: [http://localhost:8080/docs/index.html?url=/swagger/swagger.yaml](http://localhost:8080/docs/index.html?url=/swagger/swagger.yaml)
+-   **Redoc UI**: [http://localhost:8080/redoc/](http://localhost:8080/redoc/)
 
-Swagger:
-http://localhost:8080/docs
+A especificação OpenAPI está disponível em `/swagger/swagger.yaml`.
 
-Redoc:
-http://localhost:8080/redoc
+## 🏗️ Arquitetura do Projeto
 
----
+O projeto adota a **Arquitetura Hexagonal** (Ports and Adapters) para isolar a lógica de negócios (o núcleo da aplicação) de detalhes de infraestrutura e frameworks externos. Isso garante que o núcleo permaneça puro e testável, enquanto as tecnologias externas podem ser trocadas sem impactar as regras de negócio.
 
-## Solução de problemas
+O fluxo de dependência é sempre direcionado para o centro do hexágono.
 
-- Se a aplicação falhar ao conectar-se ao banco de dados, verifique se o seu Postgres está em execução e se os valores do `.env` correspondem.
-- Verifique os logs impressos em stdout/stderr para erros de inicialização.
+```
+       +------------------------------------------------+
+       |                 Driving Adapters               |
+       | (HTTP Handlers, CLI, Testes de Aceitação)      |
+       +-----------------------+------------------------+
+                               |
+                               v (Driving Ports)
++-------------------------------------------------------------+
+|                      Application Core                         |
+|                                                             |
+|  +---------------------+      +--------------------------+  |
+|  | Application Services|----->|      Domain Objects      |  |
+|  |   (Use Cases)       |      | (Entidades, Value Objects)|  |
+|  +---------------------+      +--------------------------+  |
+|                                                             |
++------------------------+------------------------------------+
+                         |
+                         v (Driven Ports)
+       +-----------------------+------------------------+
+       |                  Driven Adapters               |
+       | (Database Repositories, Email Services, APIs)  |
+       +------------------------------------------------+
+
+```
+
+### Componentes Principais no Projeto:
+
+-   **🎯 **Core (Núcleo da Aplicação)**: O centro da aplicação, onde a lógica de negócio reside.
+    -   **`internal/domain`**: Contém as entidades de negócio (`Customer`, `Order`, `Product`), objetos de valor (`vo_document`, `vo_plate`) e as regras de negócio mais puras. Esta camada não depende de nenhuma outra.
+    -   **`internal/application/services`**: Implementa os casos de uso da aplicação (ex: `CompanyService`, `CustomerService`). Orquestra as entidades de domínio e utiliza as `ports` (interfaces) para interagir com o mundo exterior, sem conhecer os detalhes da implementação.
+
+-   **🔌 **Ports (Portas)**: São as interfaces que definem os contratos de comunicação.
+    -   **`internal/application/ports`**: Este diretório é crucial, pois define todas as `ports`.
+        -   **Driving Ports (Portas Primárias)**: São as interfaces dos próprios serviços (ex: `CompanyService`, `CustomerService`), que definem como os adaptadores primários podem interagir com a aplicação.
+        -   **Driven Ports (Portas Secundárias)**: São as interfaces que o núcleo da aplicação precisa para se comunicar com serviços externos, como `CompanyRepository`, `CustomerRepository` e `EmailGateway`.
+
+-   **🔩 **Adapters (Adaptadores)**: Implementam as `ports` para conectar o núcleo com o mundo exterior.
+    -   **`internal/adapter`**: Contém todas as implementações concretas.
+        -   **Driving Adapters (Adaptadores Primários)**: Invocam a aplicação.
+            -   **`adapter/http/handlers`**: Recebem requisições HTTP, validam os dados e chamam os serviços da aplicação (o núcleo).
+            -   **`cmd/api/main.go`**: Ponto de entrada que inicializa e conecta todos os adaptadores e serviços (injeção de dependência).
+        -   **Driven Adapters (Adaptadores Secundários)**: São "controlados" pela aplicação.
+            -   **`adapter/database/repository`**: Implementam as interfaces de repositório (`Driven Ports`) para persistir dados no PostgreSQL.
+            -   **`adapter/email`**: Implementa a interface `EmailGateway` para o envio de e-mails via Mailtrap.
+
+-   **📁 `pkg`**: Contém pacotes reutilizáveis e agnósticos ao negócio, como criptografia (`encryption`), manipulação de JWT (`jwt`) e conversores (`converters`).
+
+## 🛠️ Definições Técnicas
+
+Esta seção descreve as principais escolhas tecnológicas feitas para este projeto.
+
+-   **🐘 Banco de Dados (PostgreSQL)**: Escolhido por sua robustez, confiabilidade e suporte a consultas complexas. É ideal para sistemas transacionais que exigem alta integridade de dados, como o gerenciamento de uma oficina.
+
+-   **🐹 Linguagem (Golang)**: Selecionada por seu alto desempenho, simplicidade e excelente suporte à concorrência. O Go permite construir APIs rápidas, eficientes e escaláveis, com um baixo consumo de recursos.
+
+-   **🏛️ Arquitetura (Hexagonal)**: Adotada para isolar a lógica de negócios das dependências externas. Isso aumenta a testabilidade, facilita a manutenção e permite trocar tecnologias futuras (como o banco de dados) sem impactar o núcleo da aplicação.
+
+-   **🐳 Containerização (Docker)**: Utilizado para padronizar e simplificar o ambiente de desenvolvimento e implantação. Com o Docker, a aplicação e suas dependências são executadas de forma consistente em qualquer ambiente com um único comando.
+
+## 🔧 Solução de problemas
+
+Se a aplicação falhar ao conectar-se ao banco de dados, verifique se o seu Postgres está em execução e se os valores do `.env` correspondem. Verifique os logs impressos em `stdout`/`stderr` para erros de inicialização.
+
