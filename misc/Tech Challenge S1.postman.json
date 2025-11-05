@@ -1,0 +1,3177 @@
+{
+    "info": {
+        "name": "Tech Challenge S1",
+        "description": "",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Session",
+            "description": "",
+            "item": [
+                {
+                    "name": "Auth",
+                    "description": "",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();\r",
+                                    "\r",
+                                    "if (jsonData.success && jsonData.data && jsonData.data.access_token) {\r",
+                                    "    pm.environment.set(\"access_token\", jsonData.data.access_token);\r",
+                                    "    console.log(\"access_token salvo com sucesso!\");\r",
+                                    "} else {\r",
+                                    "    console.log(\"Não foi possível encontrar o access_token na resposta.\");\r",
+                                    "}\r",
+                                    "\r",
+                                    "if (jsonData.data && jsonData.data.refresh_token) {\r",
+                                    "    pm.environment.set(\"refresh_token\", jsonData.data.refresh_token);\r",
+                                    "    console.log(\"🔁 refresh_token salvo com sucesso!\");\r",
+                                    "}"
+                                ],
+                                "type": "text/javascript",
+                                "packages": {}
+                            }
+                        }
+                    ],
+                    "auth": {},
+                    "request": {
+                        "auth": {},
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"admin@admin.com\",\n    \"password\": \"Admin123!\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/sessions",
+                            "path": [
+                                "sessions"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Validate",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "body": {},
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/sessions/validate",
+                            "path": [
+                                "sessions",
+                                "validate"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Refresh access token",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "noauth",
+                            "noauth": []
+                        },
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo2LCJlbWFpbCI6IiIsInJvbGUiOiIiLCJzZXNzaW9uX2lkIjowLCJpc3MiOiJ0ZWNoLWNoYWxsZW5nZS1zMSIsInN1YiI6IjYiLCJleHAiOjE3Njc2MjA2NTYsIm5iZiI6MTc2MjIyMDY1NiwiaWF0IjoxNzYyMjIwNjU2fQ.IHBmaEpS4QdoxlrtafitDeos0CUMEV5CosMyqiZw-Tk\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/sessions/refresh",
+                            "path": [
+                                "sessions",
+                                "refresh"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {},
+                        "method": "DELETE",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"refresh_token\": \"as.eyJ1c2VyX2lkIjo2LCJlbWFpbCI6IiIsInJvbGUiOiIiLCJzZXNzaW9uX2lkIjowLCJpc3MiOiJ0ZWNoLWNoYWxsZW5nZS1zMSIsInN1YiI6IjYiLCJleHAiOjE3Njc2MjA2NTYsIm5iZiI6MTc2MjIyMDY1NiwiaWF0IjoxNzYyMjIwNjU2fQ.IHBmaEpS4QdoxlrtafitDeos0CUMEV5osMyqiZw-Tk\"\n}\n",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/sessions/logout",
+                            "path": [
+                                "sessions",
+                                "logout"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                }
+            ],
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "auth": {
+                "type": "noauth",
+                "noauth": []
+            }
+        },
+        {
+            "name": "User",
+            "description": "",
+            "item": [
+                {
+                    "name": "Create",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "inherit",
+                            "inherit": []
+                        },
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"role\": \"administrator\",\n    \"contact\": \"555-0101\",\n    \"password\": \"MockAdminPass!2025\",\n    \"address\": \"Main Street\",\n    \"address_number\": \"123\",\n    \"city\": \"Anytown\",\n    \"neighborhood\": \"Central District\",\n    \"country\": \"USA\",\n    \"zip_code\": \"10001\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users",
+                            "path": [
+                                "users"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/users",
+                                    "path": [
+                                        "users"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"João Marcos\",\n    \"email\": \"joaomarcos@gmail.com\",\n    \"role\": \"client\",\n    \"contact\": \"11954846477\",\n    \"password\": \"Fanbno022!\",\n    \"address\": \"Rua Diamantina\",\n    \"address_number\": \"538\",\n    \"city\": \"São Paulo\",\n    \"neighborhood\": \"Vila Maria\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"02170150\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Update",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"role\": \"administrator\",\n  \"contact\": \"555-0101\",\n  \"password\": \"MockAdminPass!2025\",\n  \"address\": \"Main Street New\",\n  \"address_number\": \"123\",\n  \"city\": \"Anytown\",\n  \"neighborhood\": \"Central District\",\n  \"country\": \"USA\",\n  \"zip_code\": \"10001\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users/2",
+                            "path": [
+                                "users",
+                                "2"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "PUT",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/users/2",
+                                    "path": [
+                                        "users",
+                                        "2"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Bruno Araujo da Silva\",\n    \"email\": \"bruno@gmail.com\",\n    \"role\": \"admin\",\n    \"contact\": \"11954846477\",\n    \"password\": \"Fanbno022!\",\n    \"address\": \"Rua Francisco Aires, 434\",\n    \"address_number\": \"434\",\n    \"city\": \"Guarulhos\",\n    \"neighborhood\": \"Macedo\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"07097060\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Delete",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "inherit",
+                            "inherit": []
+                        },
+                        "method": "DELETE",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users/2",
+                            "path": [
+                                "users",
+                                "2"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/users/2",
+                                    "path": [
+                                        "users",
+                                        "2"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "options": {
+                                        "raw": {
+                                            "language": "text"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "FindAll",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "inherit",
+                            "inherit": []
+                        },
+                        "method": "GET",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users",
+                            "path": [
+                                "users"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "name",
+                                    "value": "bruno",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "contact",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "email",
+                                    "value": "marcosjoao1@gmail.com",
+                                    "description": "",
+                                    "type": "string"
+                                }
+                            ],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/users",
+                                    "path": [
+                                        "users"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "name",
+                                            "value": "Jo",
+                                            "description": "",
+                                            "disabled": false
+                                        },
+                                        {
+                                            "key": "contact",
+                                            "description": "",
+                                            "type": "string"
+                                        },
+                                        {
+                                            "key": "email",
+                                            "value": "marcosjoao1@gmail.com",
+                                            "description": "",
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Bruno Araujo\",\n    \"email\": \"bruno@gmail.com\",\n    \"document\": \"42692605802\",\n    \"type\": \"individual\",\n    \"contact\": \"11954846477\",\n    \"address\": \"Rua Calábria, 41\",\n    \"address_number\": \"41\",\n    \"city\": \"Guarulhos\",\n    \"neighborhood\": \"Jd. Bananal\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"07152170\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Find By Id",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "inherit",
+                            "inherit": []
+                        },
+                        "method": "GET",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Bruno Araujo\",\n    \"email\": \"bruno@gmail.com\",\n    \"document\": \"42692605802\",\n    \"type\": \"individual\",\n    \"contact\": \"11954846477\",\n    \"address\": \"Rua Calábria, 41\",\n    \"address_number\": \"41\",\n    \"city\": \"Guarulhos\",\n    \"neighborhood\": \"Jd. Bananal\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"07152170\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users/2",
+                            "path": [
+                                "users",
+                                "2"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/users/2",
+                                    "path": [
+                                        "users",
+                                        "2"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Bruno Araujo\",\n    \"email\": \"bruno@gmail.com\",\n    \"document\": \"42692605802\",\n    \"type\": \"individual\",\n    \"contact\": \"11954846477\",\n    \"address\": \"Rua Calábria, 41\",\n    \"address_number\": \"41\",\n    \"city\": \"Guarulhos\",\n    \"neighborhood\": \"Jd. Bananal\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"07152170\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                }
+            ],
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "auth": {}
+        },
+        {
+            "name": "Companies",
+            "description": "",
+            "item": [
+                {
+                    "name": "Company CREATE",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\r\n    \"name\": \"Logística Rápida Gama\",\r\n    \"email\": \"logistica@gama.example.com\",\r\n    \"document\": \"30111222000130\",\r\n    \"contact\": \"+5541966665555\",\r\n    \"address\": \"Rua das Flores\",\r\n    \"address_number\": \"350\",\r\n    \"neighborhood\": \"Centro Cívico\",\r\n    \"city\": \"Curitiba\",\r\n    \"country\": \"Brasil\",\r\n    \"zip_code\": \"80530-000\"\r\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/companies",
+                            "path": [
+                                "companies"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Company GET BY ID",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "body": {},
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "{{access_token}}",
+                                "description": "",
+                                "type": "string"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/companies/1",
+                            "path": [
+                                "companies",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Company UPDATE",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\r\n    \"name\": \"Teste Company\",\r\n    \"email\": \"teste_company@teste.com\",\r\n    \"document\": \"12345678909\",\r\n    \"contact\": \"+5511999992233\",\r\n    \"address\": \"rua teste\",\r\n    \"address_number\": \"123\",\r\n    \"neighborhood\": \"teste\",\r\n    \"city\": \"SP\",\r\n    \"country\": \"Brasil\",\r\n    \"zip_code\": \"00000-123\"\r\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/companies/1",
+                            "path": [
+                                "companies",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Company DELETE",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/companies/1",
+                            "path": [
+                                "companies",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                }
+            ],
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "auth": {}
+        },
+        {
+            "name": "Products",
+            "description": "",
+            "item": [
+                {
+                    "name": "ADD Product",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\r\n    \"name\": \"Jogo Pastilhas Freio Dianteiro | Compatível com VW Gol G5/G6 1.6 | Marca Fictícia (TopBrake)\",\r\n    \"stock\": 120,\r\n    \"price\": 18990\r\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/products",
+                            "path": [
+                                "products"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "GET Products",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/products",
+                            "path": [
+                                "products"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "name",
+                                    "value": "Oliginau",
+                                    "description": "",
+                                    "type": "string"
+                                }
+                            ],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "GET Products By ID",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "body": {},
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/products/1",
+                            "path": [
+                                "products",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "id",
+                                    "value": "1",
+                                    "description": "",
+                                    "type": "string"
+                                }
+                            ],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "GET Products By ID",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/products/1",
+                            "path": [
+                                "products",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "UPDATE Product",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\r\n    \"name\": \"Jogo Pastilhas Freio Dianteiro | Compatível com VW Gol G5/G6 1.6 | Marca Fictícia (TopBrake)\",\r\n    \"price\": 19990,\r\n    \"stock\": 120\r\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/products/1",
+                            "path": [
+                                "products",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "UPDATE Stock",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PATCH",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"items\": [\n    {\n      \"id\": 1,\n      \"operation\": \"INCREASE\",\n      \"quantity\": 1\n    }\n  ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "description": "",
+                                "type": "string"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/products/stock",
+                            "path": [
+                                "products",
+                                "stock"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                }
+            ],
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "auth": {}
+        },
+        {
+            "name": "Maintenances",
+            "description": "",
+            "item": [
+                {
+                    "name": "Maintenance CREATE",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {},
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\r\n    \"name\": \"Troca de Pastilhas de Freio (Dianteiro)\",\r\n    \"price\": 320,\r\n    \"category\": \"standard\"\r\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImxvY2FsaG9zdEBlbWFpbC5jb20iLCJyb2xlIjoiYWRtaW5pc3RyYXRvciIsInNlc3Npb25faWQiOjEsImlzcyI6InRlY2gtY2hhbGxlbmdlLXMxIiwic3ViIjoiMSIsImV4cCI6MTc2MjExODg0MCwibmJmIjoxNzYyMTE3OTQwLCJpYXQiOjE3NjIxMTc5NDB9.PNe1uZxsXywHMxQUn9XZs7g_GnNrNH6dtMbw_afRGb8",
+                                "description": "",
+                                "type": "string"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/maintenances",
+                            "path": [
+                                "maintenances"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Maintenance BY ID",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "body": {},
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/maintenances/1",
+                            "path": [
+                                "maintenances",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Maintenances",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "body": {},
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/maintenances",
+                            "path": [
+                                "maintenances"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Maintenance UPDATE",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {},
+                        "method": "PUT",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\r\n    \"name\": \"Troca de Pneu\",\r\n    \"price\": 1099.99,\r\n    \"category\": \"standard\"\r\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/maintenances/:id",
+                            "path": [
+                                "maintenances",
+                                ":id"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "3",
+                                    "description": "",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Maintenance DELETE",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/maintenances/:id",
+                            "path": [
+                                "maintenances",
+                                ":id"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "4",
+                                    "description": "",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                }
+            ],
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "auth": {}
+        },
+        {
+            "name": "Vehicle",
+            "description": "",
+            "item": [
+                {
+                    "name": "Create",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Fusca Itamar\",\n    \"plate\": \"FSC1995\",\n    \"year\": 1995,\n    \"color\": \"Azul\",\n    \"brand\": \"Volkswagen\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/vehicles",
+                            "path": [
+                                "vehicles"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/vehicles",
+                                    "path": [
+                                        "vehicles"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"João Marcos\",\n    \"email\": \"joaomarcos@gmail.com\",\n    \"role\": \"client\",\n    \"contact\": \"11954846477\",\n    \"password\": \"Fanbno022!\",\n    \"address\": \"Rua Diamantina\",\n    \"address_number\": \"538\",\n    \"city\": \"São Paulo\",\n    \"neighborhood\": \"Vila Maria\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"02170150\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Find All",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/vehicles",
+                            "path": [
+                                "vehicles"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "name",
+                                    "value": "MAREA",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "year",
+                                    "value": "1999",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "color",
+                                    "value": "cinza",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "brand",
+                                    "value": "",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "plate",
+                                    "value": "DPL1966",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "true",
+                                    "description": "",
+                                    "type": "string"
+                                }
+                            ],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/vehicles",
+                                    "path": [
+                                        "vehicles"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Bruno Araujo\",\n    \"email\": \"bruno@gmail.com\",\n    \"document\": \"42692605802\",\n    \"type\": \"individual\",\n    \"contact\": \"11954846477\",\n    \"address\": \"Rua Calábria, 41\",\n    \"address_number\": \"41\",\n    \"city\": \"Guarulhos\",\n    \"neighborhood\": \"Jd. Bananal\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"07152170\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Find By Id",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/vehicles/1",
+                            "path": [
+                                "vehicles",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/vehicles/1",
+                                    "path": [
+                                        "vehicles",
+                                        "1"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Bruno Araujo\",\n    \"email\": \"bruno@gmail.com\",\n    \"document\": \"42692605802\",\n    \"type\": \"individual\",\n    \"contact\": \"11954846477\",\n    \"address\": \"Rua Calábria, 41\",\n    \"address_number\": \"41\",\n    \"city\": \"Guarulhos\",\n    \"neighborhood\": \"Jd. Bananal\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"07152170\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Update",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Fusca Itamar\",\n    \"plate\": \"FSC1995\",\n    \"year\": 1995,\n    \"color\": \"Azul Marinho\",\n    \"brand\": \"Volkswagen\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/vehicles/1",
+                            "path": [
+                                "vehicles",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "PUT",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/vehicles/1",
+                                    "path": [
+                                        "vehicles",
+                                        "1"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Bruno Araujo da Silva\",\n    \"email\": \"bruno@gmail.com\",\n    \"role\": \"admin\",\n    \"contact\": \"11954846477\",\n    \"password\": \"Fanbno022!\",\n    \"address\": \"Rua Francisco Aires, 434\",\n    \"address_number\": \"434\",\n    \"city\": \"Guarulhos\",\n    \"neighborhood\": \"Macedo\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"07097060\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Delete",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/vehicles/1",
+                            "path": [
+                                "vehicles",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/vehicles/1",
+                                    "path": [
+                                        "vehicles",
+                                        "1"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "options": {
+                                        "raw": {
+                                            "language": "text"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                }
+            ],
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "auth": {}
+        },
+        {
+            "name": "Customers",
+            "description": "",
+            "item": [
+                {
+                    "name": "CREATE Customer",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "inherit",
+                            "inherit": []
+                        },
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\r\n  \"name\": \"Bruno Alves\",\r\n  \"email\": \"bruno.ar.avl@gmail.com\",\r\n  \"document\": \"42692605802\",\r\n  \"type\": \"pf\",\r\n  \"contact\": \"(11) 91234-5678\",\r\n  \"address\": \"Avenida Faria Lima\",\r\n  \"address_number\": \"1050\",\r\n  \"city\": \"São Paulo\",\r\n  \"neighborhood\": \"Pinheiros\",\r\n  \"country\": \"Brasil\",\r\n  \"zip_code\": \"01452-002\"\r\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/customers",
+                            "path": [
+                                "customers"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "GET Customers",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "body": {},
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/customers",
+                            "path": [
+                                "customers"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "name",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "false",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "document",
+                                    "value": "278.830.310-61",
+                                    "description": "",
+                                    "type": "string"
+                                }
+                            ],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "DELETE Customer",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "body": {},
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/customers/5",
+                            "path": [
+                                "customers",
+                                "5"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "UPDATE Customer",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {},
+                        "method": "PUT",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\r\n  \"name\": \"Gedan Magalhães Souza\",\r\n  \"email\": \"gedan.magalhaes@email.com\",\r\n  \"document\": \"898.417.980-93\",\r\n  \"type\": \"administrator\",\r\n  \"contact\": \"(11) 98765-4321\",\r\n  \"address\": \"Rua das Flores\",\r\n  \"address_number\": \"123\",\r\n  \"city\": \"São Paulo\",\r\n  \"neighborhood\": \"Vila Mariana\",\r\n  \"country\": \"Brasil\",\r\n  \"zip_code\": \"04567-890\"\r\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/customers/5",
+                            "path": [
+                                "customers",
+                                "5"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "GET Customer By ID",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {},
+                        "method": "GET",
+                        "body": {},
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/customers/1",
+                            "path": [
+                                "customers",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "GET Customer Vehicles",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "text"
+                                }
+                            }
+                        },
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "description": "",
+                                "type": "string"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/customers/1/vehicles",
+                            "path": [
+                                "customers",
+                                "1",
+                                "vehicles"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "ADD Vehicle to Customer",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "text"
+                                }
+                            }
+                        },
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "description": "",
+                                "type": "string"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/customers/1/vehicles/1",
+                            "path": [
+                                "customers",
+                                "1",
+                                "vehicles",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "DELETE Vehicle from customer",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "text"
+                                }
+                            }
+                        },
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "description": "",
+                                "type": "string"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/customers/1/vehicles/1",
+                            "path": [
+                                "customers",
+                                "1",
+                                "vehicles",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                }
+            ],
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "auth": {
+                "type": "inherit",
+                "inherit": []
+            }
+        },
+        {
+            "name": "Order",
+            "description": "",
+            "item": [
+                {
+                    "name": "Create",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"vehicle_kilometers\": 45200,\n    \"note\": \"Cliente relata barulho na suspensão dianteira direita ao passar em buracos.\",\n    \"user_id\": 1,\n    \"company_id\": 1,\n    \"customer_vehicle_id\": 1\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImxvY2FsaG9zdEBlbWFpbC5jb20iLCJyb2xlIjoiYWRtaW5pc3RyYXRvciIsInNlc3Npb25faWQiOjEsImlzcyI6InRlY2gtY2hhbGxlbmdlLXMxIiwic3ViIjoiMSIsImV4cCI6MTc2MjExODg0MCwibmJmIjoxNzYyMTE3OTQwLCJpYXQiOjE3NjIxMTc5NDB9.PNe1uZxsXywHMxQUn9XZs7g_GnNrNH6dtMbw_afRGb8",
+                                "description": "",
+                                "type": "string"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders",
+                            "path": [
+                                "orders"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/orders",
+                                    "path": [
+                                        "orders"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"João Marcos\",\n    \"email\": \"joaomarcos@gmail.com\",\n    \"role\": \"client\",\n    \"contact\": \"11954846477\",\n    \"password\": \"Fanbno022!\",\n    \"address\": \"Rua Diamantina\",\n    \"address_number\": \"538\",\n    \"city\": \"São Paulo\",\n    \"neighborhood\": \"Vila Maria\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"02170150\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Find All",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders",
+                            "path": [
+                                "orders"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "name",
+                                    "value": "MAREA",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "year",
+                                    "value": "1999",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "color",
+                                    "value": "cinza",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "brand",
+                                    "value": "",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "plate",
+                                    "value": "DPL1966",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "enable",
+                                    "value": "true",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "sortdesc",
+                                    "value": "false",
+                                    "description": "",
+                                    "type": "string"
+                                },
+                                {
+                                    "key": "orderby",
+                                    "value": "date_approved",
+                                    "description": "",
+                                    "type": "string"
+                                }
+                            ],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/orders",
+                                    "path": [
+                                        "orders"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Bruno Araujo\",\n    \"email\": \"bruno@gmail.com\",\n    \"document\": \"42692605802\",\n    \"type\": \"individual\",\n    \"contact\": \"11954846477\",\n    \"address\": \"Rua Calábria, 41\",\n    \"address_number\": \"41\",\n    \"city\": \"Guarulhos\",\n    \"neighborhood\": \"Jd. Bananal\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"07152170\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Find All In Progress",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/in-progress",
+                            "path": [
+                                "orders",
+                                "in-progress"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/orders/in-progress",
+                                    "path": [
+                                        "orders",
+                                        "in-progress"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Bruno Araujo\",\n    \"email\": \"bruno@gmail.com\",\n    \"document\": \"42692605802\",\n    \"type\": \"individual\",\n    \"contact\": \"11954846477\",\n    \"address\": \"Rua Calábria, 41\",\n    \"address_number\": \"41\",\n    \"city\": \"Guarulhos\",\n    \"neighborhood\": \"Jd. Bananal\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"07152170\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Find By Id",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/1",
+                            "path": [
+                                "orders",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/orders/1",
+                                    "path": [
+                                        "orders",
+                                        "1"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Bruno Araujo\",\n    \"email\": \"bruno@gmail.com\",\n    \"document\": \"42692605802\",\n    \"type\": \"individual\",\n    \"contact\": \"11954846477\",\n    \"address\": \"Rua Calábria, 41\",\n    \"address_number\": \"41\",\n    \"city\": \"Guarulhos\",\n    \"neighborhood\": \"Jd. Bananal\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"07152170\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Delete",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/1",
+                            "path": [
+                                "orders",
+                                "1"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/orders/1",
+                                    "path": [
+                                        "orders",
+                                        "1"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "options": {
+                                        "raw": {
+                                            "language": "text"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Assign",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImxvY2FsaG9zdEBlbWFpbC5jb20iLCJyb2xlIjoiYWRtaW5pc3RyYXRvciIsInNlc3Npb25faWQiOjEsImlzcyI6InRlY2gtY2hhbGxlbmdlLXMxIiwic3ViIjoiMSIsImV4cCI6MTc2MjExODg0MCwibmJmIjoxNzYyMTE3OTQwLCJpYXQiOjE3NjIxMTc5NDB9.PNe1uZxsXywHMxQUn9XZs7g_GnNrNH6dtMbw_afRGb8",
+                                "description": "",
+                                "type": "string"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/1/assign",
+                            "path": [
+                                "orders",
+                                "1",
+                                "assign"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/orders/1/assign",
+                                    "path": [
+                                        "orders",
+                                        "1",
+                                        "assign"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"João Marcos\",\n    \"email\": \"joaomarcos@gmail.com\",\n    \"role\": \"client\",\n    \"contact\": \"11954846477\",\n    \"password\": \"Fanbno022!\",\n    \"address\": \"Rua Diamantina\",\n    \"address_number\": \"538\",\n    \"city\": \"São Paulo\",\n    \"neighborhood\": \"Vila Maria\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"02170150\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Complete Analysis",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n   \"diagnostic_note\": \"Detectado desgaste acentuado nas pastilhas dianteiras. Cliente solicitou a troca.\",\n   \"products\": [\n      {\n         \"id\": 1,\n         \"quantity\": 1\n      }\n   ],\n   \"maintenances\": [1]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImxvY2FsaG9zdEBlbWFpbC5jb20iLCJyb2xlIjoiYWRtaW5pc3RyYXRvciIsInNlc3Npb25faWQiOjEsImlzcyI6InRlY2gtY2hhbGxlbmdlLXMxIiwic3ViIjoiMSIsImV4cCI6MTc2MjExODg0MCwibmJmIjoxNzYyMTE3OTQwLCJpYXQiOjE3NjIxMTc5NDB9.PNe1uZxsXywHMxQUn9XZs7g_GnNrNH6dtMbw_afRGb8",
+                                "description": "",
+                                "type": "string"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/1/complete-analysis",
+                            "path": [
+                                "orders",
+                                "1",
+                                "complete-analysis"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/orders/1/complete-analysis",
+                                    "path": [
+                                        "orders",
+                                        "1",
+                                        "complete-analysis"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"João Marcos\",\n    \"email\": \"joaomarcos@gmail.com\",\n    \"role\": \"client\",\n    \"contact\": \"11954846477\",\n    \"password\": \"Fanbno022!\",\n    \"address\": \"Rua Diamantina\",\n    \"address_number\": \"538\",\n    \"city\": \"São Paulo\",\n    \"neighborhood\": \"Vila Maria\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"02170150\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Request Approval",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImxvY2FsaG9zdEBlbWFpbC5jb20iLCJyb2xlIjoiYWRtaW5pc3RyYXRvciIsInNlc3Npb25faWQiOjEsImlzcyI6InRlY2gtY2hhbGxlbmdlLXMxIiwic3ViIjoiMSIsImV4cCI6MTc2MjExODg0MCwibmJmIjoxNzYyMTE3OTQwLCJpYXQiOjE3NjIxMTc5NDB9.PNe1uZxsXywHMxQUn9XZs7g_GnNrNH6dtMbw_afRGb8",
+                                "description": "",
+                                "type": "string"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/1/request-approval",
+                            "path": [
+                                "orders",
+                                "1",
+                                "request-approval"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/orders/1/request-approval",
+                                    "path": [
+                                        "orders",
+                                        "1",
+                                        "request-approval"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"João Marcos\",\n    \"email\": \"joaomarcos@gmail.com\",\n    \"role\": \"client\",\n    \"contact\": \"11954846477\",\n    \"password\": \"Fanbno022!\",\n    \"address\": \"Rua Diamantina\",\n    \"address_number\": \"538\",\n    \"city\": \"São Paulo\",\n    \"neighborhood\": \"Vila Maria\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"02170150\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Approve",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {},
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "text"
+                                }
+                            }
+                        },
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "description": "",
+                                "type": "string"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/1/approve",
+                            "path": [
+                                "orders",
+                                "1",
+                                "approve"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Reject",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {},
+                        "method": "POST",
+                        "body": {},
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/1/reject",
+                            "path": [
+                                "orders",
+                                "1",
+                                "reject"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Start Work",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImxvY2FsaG9zdEBlbWFpbC5jb20iLCJyb2xlIjoiYWRtaW5pc3RyYXRvciIsInNlc3Npb25faWQiOjEsImlzcyI6InRlY2gtY2hhbGxlbmdlLXMxIiwic3ViIjoiMSIsImV4cCI6MTc2MjExODg0MCwibmJmIjoxNzYyMTE3OTQwLCJpYXQiOjE3NjIxMTc5NDB9.PNe1uZxsXywHMxQUn9XZs7g_GnNrNH6dtMbw_afRGb8",
+                                "description": "",
+                                "type": "string"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/1/start-work",
+                            "path": [
+                                "orders",
+                                "1",
+                                "start-work"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/orders/1/start-work",
+                                    "path": [
+                                        "orders",
+                                        "1",
+                                        "start-work"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"João Marcos\",\n    \"email\": \"joaomarcos@gmail.com\",\n    \"role\": \"client\",\n    \"contact\": \"11954846477\",\n    \"password\": \"Fanbno022!\",\n    \"address\": \"Rua Diamantina\",\n    \"address_number\": \"538\",\n    \"city\": \"São Paulo\",\n    \"neighborhood\": \"Vila Maria\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"02170150\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Complete Work",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6ImxvY2FsaG9zdEBlbWFpbC5jb20iLCJyb2xlIjoiYWRtaW5pc3RyYXRvciIsInNlc3Npb25faWQiOjEsImlzcyI6InRlY2gtY2hhbGxlbmdlLXMxIiwic3ViIjoiMSIsImV4cCI6MTc2MjExODg0MCwibmJmIjoxNzYyMTE3OTQwLCJpYXQiOjE3NjIxMTc5NDB9.PNe1uZxsXywHMxQUn9XZs7g_GnNrNH6dtMbw_afRGb8",
+                                "description": "",
+                                "type": "string"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/1/complete-work",
+                            "path": [
+                                "orders",
+                                "1",
+                                "complete-work"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Sucesso",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/orders/1/complete-work",
+                                    "path": [
+                                        "orders",
+                                        "1",
+                                        "complete-work"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"João Marcos\",\n    \"email\": \"joaomarcos@gmail.com\",\n    \"role\": \"client\",\n    \"contact\": \"11954846477\",\n    \"password\": \"Fanbno022!\",\n    \"address\": \"Rua Diamantina\",\n    \"address_number\": \"538\",\n    \"city\": \"São Paulo\",\n    \"neighborhood\": \"Vila Maria\",\n    \"country\": \"Brazil\",\n    \"zip_code\": \"02170150\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "cookie": []
+                        }
+                    ],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                },
+                {
+                    "name": "Archive",
+                    "description": "",
+                    "event": [],
+                    "auth": {},
+                    "request": {
+                        "auth": {},
+                        "method": "POST",
+                        "body": {},
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/1/archive",
+                            "path": [
+                                "orders",
+                                "1",
+                                "archive"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": []
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "strictSSL": false,
+                        "followRedirects": true
+                    }
+                }
+            ],
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "auth": {}
+        }
+    ],
+    "variable": [],
+    "event": [],
+    "auth": {}
+}

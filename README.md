@@ -174,7 +174,7 @@ O fluxo de dependência é sempre direcionado para o centro do hexágono.
 -   **🔌 **Ports (Portas)**: São as interfaces que definem os contratos de comunicação.
     -   **`internal/application/ports`**: Este diretório é crucial, pois define todas as `ports`.
         -   **Driving Ports (Portas Primárias)**: São as interfaces dos próprios serviços (ex: `CompanyService`, `CustomerService`), que definem como os adaptadores primários podem interagir com a aplicação.
-        -   **Driven Ports (Portas Secundárias)**: São as interfaces que o núcleo da aplicação precisa para se comunicar com serviços externos, como `CompanyRepository`, `CustomerRepository` e `EmailGateway`.
+        -   **Driven Ports (Portas Secundárias)**: São as interfaces que o núcleo da aplicação precisa para se comunicar com serviços externos, como `CompanyRepository`, `CustomerRepository` e `Email`.
 
 -   **🔩 **Adapters (Adaptadores)**: Implementam as `ports` para conectar o núcleo com o mundo exterior.
     -   **`internal/adapter`**: Contém todas as implementações concretas.
@@ -183,7 +183,7 @@ O fluxo de dependência é sempre direcionado para o centro do hexágono.
             -   **`cmd/api/main.go`**: Ponto de entrada que inicializa e conecta todos os adaptadores e serviços (injeção de dependência).
         -   **Driven Adapters (Adaptadores Secundários)**: São "controlados" pela aplicação.
             -   **`adapter/database/repository`**: Implementam as interfaces de repositório (`Driven Ports`) para persistir dados no PostgreSQL.
-            -   **`adapter/email`**: Implementa a interface `EmailGateway` para o envio de e-mails via Mailtrap.
+            -   **`adapter/email`**: Implementa a interface `Email`, atuando como um cliente para a API de envio de e-mails do Mailtrap.
 
 -   **📁 `pkg`**: Contém pacotes reutilizáveis e agnósticos ao negócio, como criptografia (`encryption`), manipulação de JWT (`jwt`) e conversores (`converters`).
 
@@ -202,4 +202,8 @@ Esta seção descreve as principais escolhas tecnológicas feitas para este proj
 ## 🔧 Solução de problemas
 
 Se a aplicação falhar ao conectar-se ao banco de dados, verifique se o seu Postgres está em execução e se os valores do `.env` correspondem. Verifique os logs impressos em `stdout`/`stderr` para erros de inicialização.
+
+## 🔗 Misc
+
+-   **Postman Collection**: Você pode fazer o download da collection do Postman para testar os endpoints da API [aqui](./misc/Tech%20Challenge%20S1.postman.json).
 
