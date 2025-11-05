@@ -16,6 +16,7 @@ type MaintenanceService interface {
 	Create(ctx context.Context, c domain.Maintenance) (*domain.Maintenance, error)
 	GetByID(ctx context.Context, id uint) (*domain.Maintenance, error)
 	GetByIDs(ctx context.Context, maintenanceIDs []uint) ([]domain.Maintenance, error)
+	GetAll(ctx context.Context) ([]domain.Maintenance, error)
 	UpdateByID(ctx context.Context, id uint, c domain.Maintenance) error
 	DeleteByID(ctx context.Context, id uint) (*domain.Maintenance, error)
 }

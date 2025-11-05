@@ -80,6 +80,7 @@ func NewRouter(
 		{
 			maintenances.POST("", maintenanceHandler.CreateMaintenance)
 			maintenances.GET("/:id", maintenanceHandler.GetMaintenanceByID)
+			maintenances.GET("", maintenanceHandler.GetMaintenances)
 			maintenances.PUT("/:id", maintenanceHandler.UpdateMaintenance)
 			maintenances.DELETE("/:id", maintenanceHandler.DeleteMaintenance)
 		}
@@ -146,6 +147,8 @@ func NewRouter(
 	// Serve the swagger UI under /docs and point it to the static spec at /swagger/swagger.yaml
 	// Use a different prefix than /swagger to avoid wildcard conflicts with the static route.
 	router.GET("/docs/*any", swagger.WrapHandler(swaggerFiles.Handler, swagger.URL("/swagger/swagger.yaml")))
+
+	router.StaticFile("/redoc", "./swagger/redoc.html")
 
 	return &Router{router}
 }

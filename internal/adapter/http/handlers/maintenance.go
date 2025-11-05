@@ -52,6 +52,17 @@ func (h *MaintenanceHandler) CreateMaintenance(ctx *gin.Context) {
 	response.RespondCreated[any](ctx, nil, "Maintenance created successfully")
 }
 
+func (h *MaintenanceHandler) GetMaintenances(ctx *gin.Context) {
+	maintenances, err := h.service.GetAll(ctx)
+
+	if err != nil {
+		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.RespondSuccess[[]domain.Maintenance](ctx, maintenances, "")
+}
+
 func (h *MaintenanceHandler) GetMaintenanceByID(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	idUint, err := strconv.ParseUint(idStr, 10, 32)
