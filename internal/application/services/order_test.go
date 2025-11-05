@@ -36,9 +36,9 @@ func TestOrderService_Create_Success(t *testing.T) {
 		DateIn:            time.Now(),
 		Status:            domain.OrderStatuses.RECEIVED,
 		VehicleKilometers: 100,
-		User:              domain.User{ID: 1},
-		CustomerVehicle:   domain.CustomerVehicle{ID: 1},
-		Company:           domain.Company{ID: 1},
+		UserID:            1,
+		CustomerVehicleID: 1,
+		CompanyID:         1,
 	}
 
 	createdModel := createTestOrderModel(1)

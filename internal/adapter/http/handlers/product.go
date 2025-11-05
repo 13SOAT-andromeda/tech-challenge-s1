@@ -46,10 +46,11 @@ func (h *ProductHandler) CreateProduct(ctx *gin.Context) {
 		return
 	}
 
+	stockReq := uint(json.Stock)
 	p := domain.Product{
 		Name:  json.Name,
 		Price: json.Price,
-		Stock: uint(json.Stock),
+		Stock: &stockReq,
 	}
 
 	if _, err := h.service.Create(ctx.Request.Context(), p); err != nil {

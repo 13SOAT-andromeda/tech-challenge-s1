@@ -5,18 +5,22 @@ import (
 	"fmt"
 	"time"
 
+	orderMaintenanceModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_maintenance"
+	orderProductModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
 
 type UseCase struct {
-	orderService       ports.OrderService
-	productService     ports.ProductService
-	maintenanceService ports.MaintenanceService
-	customerService    ports.CustomerService
-	emailService       ports.Email
-	orderRepository    ports.OrderRepository
-	apiUrl             string
+	orderService               ports.OrderService
+	productService             ports.ProductService
+	maintenanceService         ports.MaintenanceService
+	customerService            ports.CustomerService
+	emailService               ports.Email
+	orderRepository            ports.OrderRepository
+	orderProductRepository     ports.OrderProductRepository
+	orderMaintenanceRepository ports.OrderMaintenanceRepository
+	apiUrl                     string
 }
 
 func NewOrderUseCase(
@@ -26,16 +30,20 @@ func NewOrderUseCase(
 	customerService ports.CustomerService,
 	emailService ports.Email,
 	orderRepository ports.OrderRepository,
+	orderProductRepository ports.OrderProductRepository,
+	orderMaintenanceRepository ports.OrderMaintenanceRepository,
 	apiUrl string,
 ) *UseCase {
 	return &UseCase{
-		orderService:       orderService,
-		productService:     productsService,
-		maintenanceService: maintenanceService,
-		customerService:    customerService,
-		emailService:       emailService,
-		orderRepository:    orderRepository,
-		apiUrl:             apiUrl,
+		orderService:               orderService,
+		productService:             productsService,
+		maintenanceService:         maintenanceService,
+		customerService:            customerService,
+		emailService:               emailService,
+		orderRepository:            orderRepository,
+		orderProductRepository:     orderProductRepository,
+		orderMaintenanceRepository: orderMaintenanceRepository,
+		apiUrl:                     apiUrl,
 	}
 }
 
@@ -47,9 +55,9 @@ func (uc *UseCase) CreateOrder(ctx context.Context, userID uint, input ports.Cre
 		VehicleKilometers: input.VehicleKilometers,
 		Note:              input.Note,
 		Price:             nil,
-		CustomerVehicle:   domain.CustomerVehicle{ID: input.CustomerVehicleID},
-		User:              domain.User{ID: userID},
-		Company:           domain.Company{ID: input.CompanyID},
+		CustomerVehicleID: input.CustomerVehicleID,
+		UserID:            userID,
+		CompanyID:         input.CompanyID,
 	}
 
 	created, err := uc.orderService.Create(ctx, order)
@@ -70,7 +78,7 @@ func (uc *UseCase) AssignOrder(ctx context.Context, orderID uint, userID uint) e
 		return domain.ErrOrderNotFound
 	}
 
-	order.User = domain.User{ID: userID}
+	order.UserID = userID
 	order.Status = domain.OrderStatuses.IN_ANALYSIS
 
 	err = uc.orderService.Update(ctx, *order)
@@ -107,30 +115,51 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 
 	totalPrice := 0.0
 
-	orderProducts := make([]domain.StockItem, 0, len(products))
+	orderProducts := make([]domain.OrderProduct, 0, len(products))
 	for _, product := range products {
 		quantity := productQuantities[product.ID]
 		totalPrice += float64(product.Price) * float64(quantity)
 
-		orderProducts = append(orderProducts, domain.StockItem{
-			ID:       product.ID,
-			Quantity: uint(quantity),
+		orderProducts = append(orderProducts, domain.OrderProduct{
+			Quantity:  uint(quantity),
+			OrderId:   id,
+			ProductId: product.ID,
 		})
 	}
 
-	orderMaintenances := make([]uint, 0, len(maintenances))
+	orderMaintenances := make([]domain.OrderMaintenance, 0, len(maintenances))
 	for _, maintenance := range maintenances {
 		totalPrice += float64(maintenance.Price)
 
-		orderMaintenances = append(orderMaintenances, maintenance.ID)
+		orderMaintenances = append(orderMaintenances, domain.OrderMaintenance{
+			OrderId:       id,
+			MaintenanceId: maintenance.ID,
+		})
+	}
+
+	for _, op := range orderProducts {
+		model := orderProductModel.Model{}
+		model.FromDomain(&op)
+
+		_, err := uc.orderProductRepository.Create(ctx, &model)
+		if err != nil {
+			return fmt.Errorf("failed to associate product %d with order %d: %w", op.ProductId, id, err)
+		}
+	}
+
+	for _, om := range orderMaintenances {
+		model := orderMaintenanceModel.Model{}
+		model.FromDomain(&om)
+		_, err := uc.orderMaintenanceRepository.Create(ctx, &model)
+		if err != nil {
+			return fmt.Errorf("failed to associate maintenance %d with order %d: %w", om.MaintenanceId, id, err)
+		}
 	}
 
 	order.DiagnosticNote = input.DiagnosticNote
-	order.Status = domain.OrderStatuses.AWAITING_APPROVAL
+	order.Status = domain.OrderStatuses.ANALYSIS_FINISHED
 	order.Price = &totalPrice
-	order.User.ID = userID
-	order.Products = &orderProducts
-	order.Maintenances = &orderMaintenances
+	order.UserID = userID
 
 	if err := uc.orderService.Update(ctx, *order); err != nil {
 		return fmt.Errorf("failed to complete order analysis: %w", err)
@@ -140,7 +169,6 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 }
 
 func (uc *UseCase) ApproveOrder(ctx context.Context, id uint) error {
-
 	existentOrder, err := uc.orderRepository.FindByID(ctx, id)
 
 	if err != nil {
@@ -164,7 +192,6 @@ func (uc *UseCase) ApproveOrder(ctx context.Context, id uint) error {
 }
 
 func (uc *UseCase) RejectOrder(ctx context.Context, id uint) error {
-
 	existentOrder, err := uc.orderRepository.FindByID(ctx, id)
 
 	if err != nil {
@@ -188,7 +215,6 @@ func (uc *UseCase) RejectOrder(ctx context.Context, id uint) error {
 }
 
 func (uc *UseCase) ArchiveOrder(ctx context.Context, id uint) error {
-
 	existentOrder, err := uc.orderRepository.FindByID(ctx, id)
 
 	if err != nil {
@@ -199,7 +225,9 @@ func (uc *UseCase) ArchiveOrder(ctx context.Context, id uint) error {
 		return fmt.Errorf("order cannot be archived. Current status: %s", existentOrder.Status)
 	}
 
+	now := time.Now()
 	existentOrder.Status = string(domain.OrderStatuses.DELIVERED)
+	existentOrder.DateOut = &now
 
 	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
 		return fmt.Errorf("failed to archive order: %w", err)
@@ -217,12 +245,6 @@ func (uc *UseCase) RequestApproval(ctx context.Context, id uint) error {
 
 	if domain.OrderStatus(existentOrder.Status) != domain.OrderStatuses.ANALYSIS_FINISHED {
 		return fmt.Errorf("notification cannot be sent. Order should be in %s status. Current status: %s", domain.OrderStatuses.ANALYSIS_FINISHED, existentOrder.Status)
-	}
-
-	existentOrder.Status = string(domain.OrderStatuses.AWAITING_APPROVAL)
-
-	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
-		return fmt.Errorf("failed to update order status: %w", err)
 	}
 
 	c, err := uc.customerService.GetByID(ctx, existentOrder.CustomerVehicle.CustomerID)
@@ -243,6 +265,12 @@ func (uc *UseCase) RequestApproval(ctx context.Context, id uint) error {
 		return fmt.Errorf("failed to send approval notification: %w", err)
 	}
 
+	existentOrder.Status = string(domain.OrderStatuses.AWAITING_APPROVAL)
+
+	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
+		return fmt.Errorf("failed to update order status: %w", err)
+	}
+
 	return nil
 }
 
@@ -260,18 +288,19 @@ func (uc *UseCase) StartWorkOrder(ctx context.Context, id uint) error {
 	operation := domain.StockOperationDecrease
 
 	for _, item := range *order.Products {
-		available, err := uc.productService.CheckAvailability(ctx, item.ID, item.Quantity)
+		orderedQuantity := *item.Quantity
+		available, err := uc.productService.CheckAvailability(ctx, item.ID, orderedQuantity)
 		if err != nil {
 			return fmt.Errorf("failed to check availability for product %d: %w", item.ID, err)
 		}
 
 		if !available {
-			return fmt.Errorf("cannot start work: product ID %d is not available in quantity %d", item.ID, item.Quantity)
+			return fmt.Errorf("cannot start work: product ID %d is not available in quantity %d", item.ID, orderedQuantity)
 		}
 
 		productItems = append(productItems, domain.StockItem{
 			ID:        item.ID,
-			Quantity:  item.Quantity,
+			Quantity:  orderedQuantity,
 			Operation: &operation,
 		})
 	}

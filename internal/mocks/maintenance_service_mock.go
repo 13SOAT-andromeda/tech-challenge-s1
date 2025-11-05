@@ -71,3 +71,11 @@ func (m *MockMaintenanceService) DeleteByID(ctx context.Context, id uint) (*doma
 	}
 	return args.Get(0).(*domain.Maintenance), args.Error(1)
 }
+
+func (m *MockMaintenanceService) CreateOrderMaintenances(ctx context.Context, orderId uint, maintenanceIds []uint) error {
+	args := m.Called(ctx, orderId, maintenanceIds)
+	if args.Get(0) == nil {
+		return args.Error(1)
+	}
+	return nil
+}

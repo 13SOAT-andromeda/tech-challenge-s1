@@ -41,7 +41,7 @@ func TestProductModel_ToFromDomain(t *testing.T) {
 
 	assert.Equal(t, modelProduct.ID, domainProduct.ID)
 	assert.Equal(t, modelProduct.Name, domainProduct.Name)
-	assert.Equal(t, modelProduct.Stock, domainProduct.Stock)
+	assert.Equal(t, modelProduct.Stock, *domainProduct.Stock)
 	assert.Equal(t, modelProduct.Price, domainProduct.Price)
 
 }

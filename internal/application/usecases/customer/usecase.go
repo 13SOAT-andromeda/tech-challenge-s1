@@ -2,12 +2,21 @@ package customer
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/errors"
+)
+
+var (
+	ErrCustomerNotFound               = &errors.ValidationError{Message: "customer not found"}
+	ErrVehicleNotFound                = &errors.ValidationError{Message: "vehicle not found"}
+	ErrVehicleAlreadyAssociated       = &errors.ValidationError{Message: "vehicle is already associated with this customer"}
+	ErrAssociationCheckFailed         = &errors.ValidationError{Message: "error checking existing association"}
+	ErrAssociationCreationFailed      = &errors.ValidationError{Message: "error creating customer-vehicle association"}
+	ErrAssociationRemovalFailed       = &errors.ValidationError{Message: "error removing customer-vehicle association"}
+	ErrFetchingCustomerVehiclesFailed = &errors.ValidationError{Message: "error fetching customer vehicles"}
 )
 
 type UseCase struct {
@@ -28,32 +37,31 @@ func (s *UseCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 
 	if err != nil {
-		return fmt.Errorf("customer not found: %w", err)
+		return ErrCustomerNotFound
 	}
 
 	if customer == nil {
-		return fmt.Errorf("customer with ID %d not found", customerID)
+		return ErrCustomerNotFound
 	}
 
 	vehicle, err := s.vehicleService.GetByID(ctx, vehicleID)
 
 	if err != nil {
-		return fmt.Errorf("vehicle not found: %w", err)
+		return ErrVehicleNotFound
 	}
 
 	if vehicle == nil {
-		return fmt.Errorf("vehicle with ID %d not found", vehicleID)
+		return ErrVehicleNotFound
 	}
 
 	existing, err := s.customerVehicleRepo.FindByCustomerAndVehicle(ctx, customerID, vehicleID)
 	if err != nil {
-		return fmt.Errorf("error checking existing association: %w", err)
+		return ErrAssociationCheckFailed
 	}
 	if existing != nil {
-		return errors.New("vehicle is already associated with this customer")
+		return ErrVehicleAlreadyAssociated
 	}
 
-	// @TODO: Passar para o service de customer-vehicle
 	customerVehicleDomain := &domain.CustomerVehicle{
 		CustomerId: customerID,
 		VehicleId:  vehicleID,
@@ -66,7 +74,7 @@ func (s *UseCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 
 	_, err = s.customerVehicleRepo.Create(ctx, &customerVehicle)
 	if err != nil {
-		return fmt.Errorf("error creating customer-vehicle association: %w", err)
+		return ErrAssociationCreationFailed
 	}
 
 	return nil
@@ -75,23 +83,23 @@ func (s *UseCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 func (s *UseCase) RemoveVehicleFromCustomer(ctx context.Context, customerID, vehicleID uint) error {
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 	if err != nil {
-		return fmt.Errorf("customer not found: %w", err)
+		return ErrCustomerNotFound
 	}
 	if customer == nil {
-		return fmt.Errorf("customer with ID %d not found", customerID)
+		return ErrCustomerNotFound
 	}
 
 	vehicle, err := s.vehicleService.GetByID(ctx, vehicleID)
 	if err != nil {
-		return fmt.Errorf("vehicle not found: %w", err)
+		return ErrVehicleNotFound
 	}
 	if vehicle == nil {
-		return fmt.Errorf("vehicle with ID %d not found", vehicleID)
+		return ErrVehicleNotFound
 	}
 
 	err = s.customerVehicleRepo.DeleteByCustomerAndVehicle(ctx, customerID, vehicleID)
 	if err != nil {
-		return fmt.Errorf("error removing customer-vehicle association: %w", err)
+		return ErrAssociationRemovalFailed
 	}
 
 	return nil
@@ -102,16 +110,16 @@ func (s *UseCase) GetCustomerVehicles(ctx context.Context, customerID uint) ([]d
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 
 	if err != nil {
-		return nil, fmt.Errorf("customer not found: %w", err)
+		return nil, ErrCustomerNotFound
 	}
 
 	if customer == nil {
-		return nil, fmt.Errorf("customer with ID %d not found", customerID)
+		return nil, ErrCustomerNotFound
 	}
 
 	customerVehicles, err := s.customerVehicleRepo.FindByCustomerID(ctx, customerID)
 	if err != nil {
-		return nil, fmt.Errorf("error fetching customer vehicles: %w", err)
+		return nil, ErrFetchingCustomerVehiclesFailed
 	}
 
 	cvDomain := make([]domain.CustomerVehicle, 0, len(customerVehicles))

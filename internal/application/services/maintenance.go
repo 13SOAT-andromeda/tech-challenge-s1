@@ -107,8 +107,8 @@ func (s *MaintenanceService) DeleteByID(ctx context.Context, id uint) (*domain.M
 func (s *MaintenanceService) CreateOrderMaintenances(ctx context.Context, orderId uint, maintenanceIds []uint) error {
 	for _, maintenanceId := range maintenanceIds {
 		var model order_maintenance.Model
-		model.Maintenance.ID = maintenanceId
-		model.Order.ID = orderId
+		model.MaintenanceId = maintenanceId
+		model.OrderId = orderId
 
 		_, err := s.repoOm.Create(ctx, &model)
 		if err != nil {
