@@ -142,11 +142,25 @@ Para parar e remover:
 ```
 ---
 
+## Testes End-to-End (E2E)
+
+Os testes E2E (End-to-End) validam o comportamento completo da aplicação — desde as requisições HTTP até a persistência no banco de dados.
+Eles exigem que a aplicação e o banco de dados estejam em execução.
+
+Pré-requisitos
+
+A aplicação deve estar rodando localmente conforme a etapa:   [Executar localmente (sem Docker)](#executar-localmente-sem-docker)
+
+Na raiz do projeto, executar o comando: 
+
+```bash
+go test ./test/e2e/... -v
+```
 
 
 ## Documentação Swagger / OpenAPI
 
-A documentação da API está disponível em::
+A documentação da API está disponível em:
 
 Swagger:
 http://localhost:8080/docs
