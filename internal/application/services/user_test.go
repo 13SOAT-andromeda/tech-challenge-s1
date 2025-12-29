@@ -12,7 +12,6 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gorm.io/gorm"
 )
 
 // MockHasher é um mock para o hasher do Password
@@ -237,13 +236,11 @@ func TestUserService_GetByID_Success(t *testing.T) {
 	userID := uint(1)
 
 	expectedUser := &user.Model{
-		Model: gorm.Model{
-			ID: 1,
-		},
 		Name:  "João Silva",
 		Email: "joao@test.com",
 		Role:  "administrator",
 	}
+	expectedUser.ID = 1
 
 	mockRepo.On("FindByID", ctx, userID).Return(expectedUser, nil)
 
@@ -292,14 +289,12 @@ func TestUserService_Search_Success(t *testing.T) {
 
 	expectedUsers := []user.Model{
 		{
-			Model: gorm.Model{
-				ID: 1,
-			},
 			Name:  "João Silva",
 			Email: "joao@test.com",
 			Role:  "administrator",
 		},
 	}
+	expectedUsers[0].ID = 1
 
 	mockRepo.On("Search", ctx, ports.UserSearch{
 		Name:    "João",
@@ -331,14 +326,12 @@ func TestUserService_Search_WithPartialParams(t *testing.T) {
 
 	expectedUsers := []user.Model{
 		{
-			Model: gorm.Model{
-				ID: 1,
-			},
 			Name:  "João Silva",
 			Email: "joao@test.com",
 			Role:  "administrator",
 		},
 	}
+	expectedUsers[0].ID = 1
 
 	mockRepo.On("Search", ctx, ports.UserSearch{
 		Name:    "João",
@@ -366,14 +359,12 @@ func TestUserService_Update_Success(t *testing.T) {
 	userID := uint(1)
 
 	existingUser := &user.Model{
-		Model: gorm.Model{
-			ID: 1,
-		},
 		Name:    "João Silva",
 		Email:   "joao@test.com",
 		Contact: "11999999999",
 		Role:    "administrator",
 	}
+	existingUser.ID = 1
 
 	updatedUser := domain.User{
 		ID:        userID,
@@ -434,9 +425,6 @@ func TestUserService_Update_EmailAlreadyExists(t *testing.T) {
 	userID := uint(2)
 
 	existingUser := &user.Model{
-		Model: gorm.Model{
-			ID: 1,
-		},
 		Name:     "João Silva",
 		Email:    "new@test.com",
 		Role:     "administrator",
@@ -444,14 +432,12 @@ func TestUserService_Update_EmailAlreadyExists(t *testing.T) {
 	}
 
 	oldDataUser := &user.Model{
-		Model: gorm.Model{
-			ID: userID,
-		},
 		Name:     "João Silva",
 		Email:    "old@test.com",
 		Role:     "administrator",
 		Password: "hashed_password",
 	}
+	oldDataUser.ID = userID
 
 	updatedUser := domain.User{
 		ID:        userID,
@@ -484,9 +470,6 @@ func TestUserService_Update_PasswordUpdateNotAllowed(t *testing.T) {
 	userID := uint(1)
 
 	existingUser := &user.Model{
-		Model: gorm.Model{
-			ID: 1,
-		},
 		Name:  "João Silva",
 		Email: "joao@test.com",
 		Role:  "administrator",

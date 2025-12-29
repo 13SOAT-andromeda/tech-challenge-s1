@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
@@ -33,9 +34,15 @@ func (r *customerRepository) FindByDocument(ctx context.Context, document string
 	var data customer.Model
 
 	err := r.BaseRepository.db.WithContext(ctx).Unscoped().Where("document = ?", document).First(&data).Error
+
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
+
 	return &data, nil
 }
 
