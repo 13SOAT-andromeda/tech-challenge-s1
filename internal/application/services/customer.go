@@ -9,7 +9,6 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
-	"gorm.io/gorm"
 )
 
 type customerService struct {
@@ -30,7 +29,7 @@ func (s *customerService) Create(ctx context.Context, c domain.Customer) (*domai
 
 	existentCustomer, err := s.repo.FindByDocument(ctx, c.Document.GetDocumentNumber())
 
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
 		return nil, err
 	}
 
