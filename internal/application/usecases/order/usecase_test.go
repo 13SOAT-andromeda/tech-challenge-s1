@@ -17,7 +17,6 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gorm.io/gorm"
 )
 
 // Helper to create product/maintenance with price
@@ -144,35 +143,34 @@ func TestCreateOrder_MaintenanceServiceError(t *testing.T) {
 
 func createMockOrder(id uint, status string) *order.Model {
 	now := time.Now()
-	return &order.Model{
-		Model: gorm.Model{
-			ID:        id,
-			CreatedAt: now,
-			UpdatedAt: now,
-		},
-		DateIn:            now,
-		Status:            status,
-		VehicleKilometers: 50000,
-		UserID:            1,
-		CustomerVehicleID: 1,
-		CompanyID:         1,
-		User: user.Model{
-			Model: gorm.Model{
-				ID: 1,
-			},
-			Name:  "Test User",
-			Email: "test@example.com",
-		},
-		CustomerVehicle: customer_vehicle.Model{
-			Model:      gorm.Model{ID: 1},
-			CustomerID: 1,
-			VehicleID:  1,
-		},
-		Company: company.Model{
-			Model: gorm.Model{ID: 1},
-			Name:  "Test Company",
-		},
-	}
+	m := &order.Model{}
+	m.ID = id
+	m.CreatedAt = now
+	m.UpdatedAt = now
+	m.DateIn = now
+	m.Status = status
+	m.VehicleKilometers = 50000
+	m.UserID = 1
+	m.CustomerVehicleID = 1
+	m.CompanyID = 1
+
+	// User
+	m.User = user.Model{}
+	m.User.ID = 1
+	m.User.Name = "Test User"
+	m.User.Email = "test@example.com"
+
+	// CustomerVehicle
+	m.CustomerVehicle = customer_vehicle.Model{}
+	m.CustomerVehicle.ID = 1
+	m.CustomerVehicle.CustomerID = 1
+
+	// Company
+	m.Company = company.Model{}
+	m.Company.ID = 1
+	m.Company.Name = "Test Company"
+
+	return m
 }
 
 func TestUseCase_AssignOrder(t *testing.T) {
@@ -415,7 +413,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 			return o.ID == orderID && o.Status == string(domain.OrderStatuses.AWAITING_APPROVAL)
 		})).Return(nil)
 		mockCustomerService.On("GetByID", ctx, customerID).Return(customer, nil)
-		mockOrderService.On("GetApprovalTemplate", mock.Anything, *customer, "http://localhost:8080").Return("<h1>template</h1>", nil)
+		mockOrderService.On("GetApprovalTemplate", mock.Anything, mock.Anything, "http://localhost:8080").Return("<h1>template</h1>", nil)
 		mockEmail.On("Send", customer.Name, customer.Email, "Aprovação de Ordem de Serviço", "<h1>template</h1>").Return(nil)
 
 		err := useCase.RequestApproval(ctx, orderID)
@@ -486,7 +484,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 
 		mockRepo.On("FindOrderByID", ctx, orderID).Return(existingOrder, nil)
 		mockCustomerService.On("GetByID", ctx, customerID).Return(customer, nil)
-		mockOrderService.On("GetApprovalTemplate", mock.Anything, *customer, "http://localhost:8080").Return("<h1>template</h1>", nil)
+		mockOrderService.On("GetApprovalTemplate", mock.Anything, mock.Anything, "http://localhost:8080").Return("<h1>template</h1>", nil)
 		mockEmail.On("Send", customer.Name, customer.Email, "Aprovação de Ordem de Serviço", "<h1>template</h1>").Return(nil)
 		mockRepo.On("Update", ctx, mock.Anything).Return(errors.New("database error"))
 
@@ -551,7 +549,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 
 		mockRepo.On("FindOrderByID", ctx, orderID).Return(existingOrder, nil)
 		mockCustomerService.On("GetByID", ctx, customerID).Return(customer, nil)
-		mockOrderService.On("GetApprovalTemplate", mock.Anything, *customer, "http://localhost:8080").Return("", errors.New("template error"))
+		mockOrderService.On("GetApprovalTemplate", mock.Anything, mock.Anything, "http://localhost:8080").Return("", errors.New("template error"))
 
 		err := useCase.RequestApproval(ctx, orderID)
 
@@ -588,7 +586,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 
 		mockRepo.On("FindOrderByID", ctx, orderID).Return(existingOrder, nil)
 		mockCustomerService.On("GetByID", ctx, customerID).Return(customer, nil)
-		mockOrderService.On("GetApprovalTemplate", mock.Anything, *customer, "http://localhost:8080").Return("<h1>template</h1>", nil)
+		mockOrderService.On("GetApprovalTemplate", mock.Anything, mock.Anything, "http://localhost:8080").Return("<h1>template</h1>", nil)
 		mockEmail.On("Send", customer.Name, customer.Email, "Aprovação de Ordem de Serviço", "<h1>template</h1>").Return(errors.New("email error"))
 
 		err := useCase.RequestApproval(ctx, orderID)

@@ -12,7 +12,6 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gorm.io/gorm"
 )
 
 func TestAddVehicleToCustomer_Success(t *testing.T) {
@@ -29,12 +28,12 @@ func TestAddVehicleToCustomer_Success(t *testing.T) {
 		Name:  "Gedan Magalhaes",
 		Email: "gedan@example.com",
 	}
-	expectedCustomer.ID = customerID // ✅ Correção aqui
+	expectedCustomer.ID = customerID
 
 	expectedVehicle := &domain.Vehicle{
 		ID:    vehicleID,
 		Brand: "Toyota",
-		Name:  "Corolla 2020", // ✅ Name, não Model
+		Name:  "Corolla 2020",
 	}
 
 	mockRepo.On("FindByID", ctx, customerID).Return(expectedCustomer, nil)
@@ -102,9 +101,9 @@ func TestAddVehicleToCustomer_VehicleNotFound(t *testing.T) {
 	vehicleID := uint(999)
 
 	expectedCustomer := &customer.Model{
-		Model: gorm.Model{ID: customerID},
-		Name:  "Gedan Magalhaes",
+		Name: "Gedan Magalhaes",
 	}
+	expectedCustomer.ID = customerID
 
 	mockRepo.On("FindByID", ctx, customerID).Return(expectedCustomer, nil)
 	mockVehicleService.On("GetByID", ctx, vehicleID).Return(nil, errors.New("vehicle not found"))
@@ -129,9 +128,9 @@ func TestAddVehicleToCustomer_VehicleNil(t *testing.T) {
 	vehicleID := uint(999)
 
 	expectedCustomer := &customer.Model{
-		Model: gorm.Model{ID: customerID},
-		Name:  "Gedan Magalhaes",
+		Name: "Gedan Magalhaes",
 	}
+	expectedCustomer.ID = customerID
 
 	mockRepo.On("FindByID", ctx, customerID).Return(expectedCustomer, nil)
 	mockVehicleService.On("GetByID", ctx, vehicleID).Return(nil, nil)
@@ -160,12 +159,12 @@ func TestAddVehicleToCustomer_AlreadyAssociated(t *testing.T) {
 		Name:  "Gedan Magalhaes",
 		Email: "gedan@example.com",
 	}
-	expectedCustomer.ID = customerID // ✅ Correção aqui
+	expectedCustomer.ID = customerID
 
 	expectedVehicle := &domain.Vehicle{
 		ID:    vehicleID,
 		Brand: "Toyota",
-		Name:  "Corolla 2020", // ✅ Name, não Model
+		Name:  "Corolla 2020",
 	}
 
 	existingAssociation := &customer_vehicle.Model{
@@ -198,9 +197,9 @@ func TestAddVehicleToCustomer_ErrorCheckingExisting(t *testing.T) {
 	vehicleID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Model: gorm.Model{ID: customerID},
-		Name:  "Gedan Magalhaes",
+		Name: "Gedan Magalhaes",
 	}
+	expectedCustomer.ID = customerID
 
 	expectedVehicle := &domain.Vehicle{
 		ID:    vehicleID,
@@ -232,9 +231,9 @@ func TestAddVehicleToCustomer_CreateError(t *testing.T) {
 	vehicleID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Model: gorm.Model{ID: customerID},
-		Name:  "Gedan Magalhaes",
+		Name: "Gedan Magalhaes",
 	}
+	expectedCustomer.ID = customerID
 
 	expectedVehicle := &domain.Vehicle{
 		ID:    vehicleID,
@@ -267,9 +266,9 @@ func TestRemoveVehicleFromCustomer_Success(t *testing.T) {
 	vehicleID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Model: gorm.Model{ID: customerID},
-		Name:  "Gedan Magalhaes",
+		Name: "Gedan Magalhaes",
 	}
+	expectedCustomer.ID = customerID
 
 	expectedVehicle := &domain.Vehicle{
 		ID:    vehicleID,
@@ -340,9 +339,9 @@ func TestRemoveVehicleFromCustomer_VehicleNotFound(t *testing.T) {
 	vehicleID := uint(999)
 
 	expectedCustomer := &customer.Model{
-		Model: gorm.Model{ID: customerID},
-		Name:  "Gedan Magalhaes",
+		Name: "Gedan Magalhaes",
 	}
+	expectedCustomer.ID = customerID
 
 	mockRepo.On("FindByID", ctx, customerID).Return(expectedCustomer, nil)
 	mockVehicleService.On("GetByID", ctx, vehicleID).Return(nil, errors.New("vehicle not found"))
@@ -366,9 +365,9 @@ func TestRemoveVehicleFromCustomer_VehicleNil(t *testing.T) {
 	vehicleID := uint(999)
 
 	expectedCustomer := &customer.Model{
-		Model: gorm.Model{ID: customerID},
-		Name:  "Gedan Magalhaes",
+		Name: "Gedan Magalhaes",
 	}
+	expectedCustomer.ID = customerID
 
 	mockRepo.On("FindByID", ctx, customerID).Return(expectedCustomer, nil)
 	mockVehicleService.On("GetByID", ctx, vehicleID).Return(nil, nil)
@@ -392,9 +391,9 @@ func TestRemoveVehicleFromCustomer_DeleteError(t *testing.T) {
 	vehicleID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Model: gorm.Model{ID: customerID},
-		Name:  "Gedan Magalhaes",
+		Name: "Gedan Magalhaes",
 	}
+	expectedCustomer.ID = customerID
 
 	expectedVehicle := &domain.Vehicle{
 		ID:    vehicleID,
@@ -531,9 +530,9 @@ func TestGetCustomerVehicles_FetchError(t *testing.T) {
 	customerID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Model: gorm.Model{ID: customerID},
-		Name:  "Gedan Magalhaes",
+		Name: "Gedan Magalhaes",
 	}
+	expectedCustomer.ID = customerID
 
 	mockRepo.On("FindByID", ctx, customerID).Return(expectedCustomer, nil)
 	mockCustomerVehicleRepo.On("FindByCustomerID", ctx, customerID).Return(nil, errors.New("db error"))
@@ -558,9 +557,9 @@ func TestGetCustomerVehicles_EmptyList(t *testing.T) {
 	customerID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Model: gorm.Model{ID: customerID},
-		Name:  "Gedan Magalhaes",
+		Name: "Gedan Magalhaes",
 	}
+	expectedCustomer.ID = customerID
 
 	mockRepo.On("FindByID", ctx, customerID).Return(expectedCustomer, nil)
 	mockCustomerVehicleRepo.On("FindByCustomerID", ctx, customerID).Return([]customer_vehicle.Model{}, nil)
