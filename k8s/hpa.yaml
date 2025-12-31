@@ -16,3 +16,11 @@ spec:
         target:
           type: Utilization
           averageUtilization: 50
+# Note: use only for tests to make scaling down faster
+#  behavior:
+#    scaleDown:
+#      stabilizationWindowSeconds: 5 # 5s (default 300s)
+#      policies:
+#        - type: Percent
+#          value: 100
+#          periodSeconds: 15
