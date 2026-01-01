@@ -45,6 +45,40 @@ O repositório inclui `Dockerfile` e `docker-compose.yml` para iniciar a aplica�
     docker-compose down
     ```
 
+### 🏗️ Infraestrutura
+
+Esta seção descreve as opções de infraestrutura que você pode usar localmente para desenvolver e testar a aplicação.
+
+Opções principais:
+
+- Docker Compose (rápido): já configurado no repositório. Executando `docker-compose up --build` você terá a API e um banco (se configurado no compose) prontos para uso.
+
+- Kubernetes local com `kind` (mais próximo do ambiente de produção): o projeto inclui manifests em `k8s/` e um `Makefile` com alvos para criar um cluster kind, construir e carregar a imagem e aplicar os manifests.
+
+Comandos úteis (na raiz do projeto):
+
+```bash
+# Subir infra rápida com Docker Compose
+docker-compose up --build
+
+# Criar cluster local, construir imagem, carregar e aplicar manifests
+make up
+
+# Derrubar o cluster criado pelo Makefile
+make down
+```
+
+Onde procurar os manifests e a configuração do cluster:
+
+- Manifests Kubernetes: `k8s/`
+- Arquivo de configuração do kind usado pelo Makefile: `k8s/kind-config.yaml`
+- Guia passo-a-passo para criar o cluster local (instalação do kind, kubectl, notas): [development.md](./development.md)
+
+Notas rápidas:
+
+- `make up` depende de ter `kind`, `kubectl` e `docker` instalados e em funcionamento (veja [development.md](./development.md) para detalhes de instalação).
+- Se preferir um Postgres local em contêiner, use o comando de exemplo na seção "Banco de dados rápido com Docker".
+
 ### Localmente (sem Docker)
 
 **Pré-requisitos**:
@@ -206,4 +240,4 @@ Se a aplicação falhar ao conectar-se ao banco de dados, verifique se o seu Pos
 ## 🔗 Misc
 
 -   **Postman Collection**: Você pode fazer o download da collection do Postman para testar os endpoints da API [aqui](./misc/Tech%20Challenge%20S1.postman.json).
-
+-   **Guia de Desenvolvimento (kind & cluster local)**: [development.md](./development.md)
