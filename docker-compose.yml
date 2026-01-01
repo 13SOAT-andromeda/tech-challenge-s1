@@ -18,7 +18,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: "${ENV}"
+      target: "${ENV}" # checks if make sense ever define as development
     depends_on:
       - db
     env_file:
