@@ -56,7 +56,7 @@ module "eks" {
   version = "~> 21.0"
 
   name               = var.cluster_name
-  kubernetes_version = "1.31"
+  kubernetes_version = "1.30"
 
   endpoint_public_access                   = true
   enable_cluster_creator_admin_permissions = true
@@ -89,7 +89,10 @@ module "eks" {
       # NOTE: enabled only in local env - Use a specific AMI ID for skip validation to localstack
       # ami_id = "ami-0123456789abcdef0"
 
-      ami_type = "AL2_ARM_64"
+      disk_size = 50
+
+      ami_type = "AL2023_ARM_64_STANDARD"
+
       #In v21, this setting enables the EKS Pod Identity agent. This is the modern replacement for IRSA (IAM Roles for Service Accounts). It allows your applications (pods) to assume IAM roles without needing to manage complex OIDC provider trust relationships or service account annotations.
       create_pod_identity_association = true
 

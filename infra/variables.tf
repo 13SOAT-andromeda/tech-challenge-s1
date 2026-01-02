@@ -24,6 +24,6 @@ variable "instance_name" {
 
 variable "instance_types" {
   type        = list(string)
-  default     = ["t4g.small", "t4g.medium"]
+  default     = ["t4g.medium"]
   description = "The type of EC2 instance"
 }
