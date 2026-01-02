@@ -64,6 +64,11 @@ module "eks" {
   addons = {
     vpc-cni = {
       most_recent = true
+
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
+
+      service_account_role_arn = null
     }
 
     eks-pod-identity-agent = {
@@ -88,13 +93,17 @@ module "eks" {
     eks_nodes = {
       # NOTE: enabled only in local env - Use a specific AMI ID for skip validation to localstack
       # ami_id = "ami-0123456789abcdef0"
-
+      ami_type  = "AL2023_ARM_64_STANDARD"
       disk_size = 50
-
-      ami_type = "AL2023_ARM_64_STANDARD"
 
       #In v21, this setting enables the EKS Pod Identity agent. This is the modern replacement for IRSA (IAM Roles for Service Accounts). It allows your applications (pods) to assume IAM roles without needing to manage complex OIDC provider trust relationships or service account annotations.
       create_pod_identity_association = true
+
+      iam_role_attach_cni_policy = true
+      iam_role_additional_policies = {
+        AmazonEKS_CNI_Policy     = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+        AmazonEBSCSIDriverPolicy = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+      }
 
       capacity_type = "SPOT"
 
