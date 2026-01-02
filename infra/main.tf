@@ -1,41 +1,110 @@
 provider "aws" {
-  region = "us-east-1" # Set the AWS region to US East (N. Virginia)
+  region = var.region
 }
 
-data "aws_ami" "ubuntu" {
-  most_recent = true
+resource "aws_iam_role" "ebs_csi_driver" {
+  name = "${var.cluster_name}-ebs-csi-driver"
 
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
-  }
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "pods.eks.amazonaws.com"
+        }
+        Action = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
+      }
+    ]
+  })
+}
 
-  owners = ["099720109477"] # Canonical's AWS account ID
+resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  role       = aws_iam_role.ebs_csi_driver.name
 }
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "5.19.0"
+  version = "~> 6.0"
 
-  name = "example-vpc"
+  name = "${var.cluster_name}-vpc"
   cidr = "10.0.0.0/16"
 
-  azs             = ["us-east-1a", "us-east-1b", "us-east-1c"]
+  azs             = ["us-east-1a", "us-east-1b"]
   private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
-  public_subnets  = ["10.0.101.0/24"]
+  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
 
   enable_dns_hostnames = true
+  enable_nat_gateway   = true
+  single_nat_gateway   = true
+
+  public_subnet_tags = {
+    "kubernetes.io/role/elb" = 1
+  }
+
+  private_subnet_tags = {
+    "kubernetes.io/role/internal-elb" = 1
+  }
 }
 
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 21.0"
 
-resource "aws_instance" "app_server" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
+  name               = var.cluster_name
+  kubernetes_version = "1.31"
 
-  vpc_security_group_ids = [module.vpc.default_security_group_id]
-  subnet_id              = module.vpc.public_subnets[0]
+  endpoint_public_access                   = true
+  enable_cluster_creator_admin_permissions = true
+
+  addons = {
+    eks-pod-identity-agent = {
+      most_recent = true
+    }
+
+    aws-ebs-csi-driver = {
+      most_recent              = true
+      service_account_role_arn = null
+
+      pod_identity_association = [{
+        role_arn        = aws_iam_role.ebs_csi_driver.arn
+        service_account = "ebs-csi-controller-sa"
+      }]
+    }
+  }
+
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnets
+
+  eks_managed_node_groups = {
+    eks_nodes = {
+      # NOTE: disabled in local env - Use a specific AMI ID for skip validation to localstack
+      ami_id = "ami-0123456789abcdef0"
+
+      ami_type = "AL2_ARM_64"
+      #In v21, this setting enables the EKS Pod Identity agent. This is the modern replacement for IRSA (IAM Roles for Service Accounts). It allows your applications (pods) to assume IAM roles without needing to manage complex OIDC provider trust relationships or service account annotations.
+      create_pod_identity_association = true
+
+      capacity_type = "SPOT"
+
+      desired_capacity = 2
+      max_capacity     = 3
+      min_capacity     = 1
+
+      instance_types = var.instance_types
+
+      tags = {
+        Name = var.instance_name
+      }
+    }
+  }
 
   tags = {
-    Name = var.instance_name
+    Environment = var.environment
+    Project     = var.cluster_name
   }
 }
