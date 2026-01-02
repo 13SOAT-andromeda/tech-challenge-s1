@@ -82,8 +82,8 @@ module "eks" {
 
   eks_managed_node_groups = {
     eks_nodes = {
-      # NOTE: disabled in local env - Use a specific AMI ID for skip validation to localstack
-      ami_id = "ami-0123456789abcdef0"
+      # NOTE: enabled only in local env - Use a specific AMI ID for skip validation to localstack
+      # ami_id = "ami-0123456789abcdef0"
 
       ami_type = "AL2_ARM_64"
       #In v21, this setting enables the EKS Pod Identity agent. This is the modern replacement for IRSA (IAM Roles for Service Accounts). It allows your applications (pods) to assume IAM roles without needing to manage complex OIDC provider trust relationships or service account annotations.
