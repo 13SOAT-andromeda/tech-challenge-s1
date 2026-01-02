@@ -62,6 +62,10 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   addons = {
+    vpc-cni = {
+      most_recent = true
+    }
+
     eks-pod-identity-agent = {
       most_recent = true
     }
