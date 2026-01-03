@@ -36,6 +36,31 @@ resource "aws_eks_pod_identity_association" "ebs_csi" {
   depends_on = [module.eks]
 }
 
+resource "aws_eks_addon" "vpc_cni" {
+  cluster_name = module.eks.cluster_name
+  addon_name   = "vpc-cni"
+
+  # Ensure we get the latest version suitable for the cluster
+  // v1.20.4-eksbuild.2
+  addon_version = "v1.19.2-eksbuild.1" # OR set to null/remove to auto-detect, but hardcoding is safer for stability
+
+  # The "Nuclear" Overwrite flags
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+
+  service_account_role_arn = null
+
+  # ---------------------------------------------------------
+  # FIX: The "Depends On" you wanted
+  # ---------------------------------------------------------
+  # This forces Terraform to wait until the Control Plane AND Node Groups
+  # are fully finished before even attempting to touch the CNI.
+  depends_on = [
+    module.eks.eks_managed_node_groups,
+    module.eks
+  ]
+}
+
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 6.0"
@@ -71,15 +96,6 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   addons = {
-    vpc-cni = {
-      most_recent = true
-
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "OVERWRITE"
-
-      service_account_role_arn = null
-    }
-
     eks-pod-identity-agent = {
       most_recent = true
     }
@@ -106,7 +122,7 @@ module "eks" {
 
       iam_role_attach_cni_policy = true
       iam_role_additional_policies = {
-        AmazonEKS_CNI_Policy     = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+        AmazonEKS_CNI_Policy = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
       }
 
       capacity_type = "SPOT"
