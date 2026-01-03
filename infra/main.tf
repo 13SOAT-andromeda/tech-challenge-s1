@@ -27,6 +27,15 @@ resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
   role       = aws_iam_role.ebs_csi_driver.name
 }
 
+resource "aws_eks_pod_identity_association" "ebs_csi" {
+  cluster_name    = module.eks.cluster_name
+  namespace       = "kube-system"
+  service_account = "ebs-csi-controller-sa"
+  role_arn        = aws_iam_role.ebs_csi_driver.arn
+
+  depends_on = [module.eks]
+}
+
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 6.0"
@@ -76,13 +85,9 @@ module "eks" {
     }
 
     aws-ebs-csi-driver = {
-      most_recent              = true
-      service_account_role_arn = null
+      most_recent = true
 
-      pod_identity_association = [{
-        role_arn        = aws_iam_role.ebs_csi_driver.arn
-        service_account = "ebs-csi-controller-sa"
-      }]
+      service_account_role_arn = null
     }
   }
 
@@ -102,7 +107,6 @@ module "eks" {
       iam_role_attach_cni_policy = true
       iam_role_additional_policies = {
         AmazonEKS_CNI_Policy     = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-        AmazonEBSCSIDriverPolicy = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
       }
 
       capacity_type = "SPOT"
