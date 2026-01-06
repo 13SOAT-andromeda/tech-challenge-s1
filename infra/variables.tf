@@ -1,19 +1,15 @@
 variable "aws_region" {
-  description = "AWS region for resources"
-  default     = "us-east-1"
-}
-
-variable "cluster_name" {
-  description = "Name of the EKS cluster"
-  default     = "tech-challenge-api"
-}
-
-variable "kubernetes_version" {
-  description = "Kubernetes version"
-  default     = "1.31" # Updated to a stable, supported version
+  default = "us-east-1"
 }
 
 variable "vpc_cidr" {
-  description = "CIDR block for the VPC"
-  default     = "10.0.0.0/16"
+  default = "10.0.0.0/16"
+}
+
+variable "cluster_name" {
+  default = "tech-challenge-api"
+}
+
+variable "kubernetes_version" {
+  default = "1.31"
 }
