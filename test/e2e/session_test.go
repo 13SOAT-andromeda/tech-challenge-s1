@@ -8,7 +8,7 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/session"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -31,7 +31,7 @@ func TestSession(t *testing.T) {
 
 	t.Run("should login successful", func(t *testing.T) {
 		var loginData handlers.LoginRequest
-		var baseResponse response.BaseResponse[session.LoginOutput]
+		var baseResponse response.BaseResponse[ports.LoginOutput]
 
 		loginData.Email = cfg.AdminUser.Email
 		loginData.Password = cfg.AdminUser.Password
@@ -82,8 +82,8 @@ func TestSession(t *testing.T) {
 
 	t.Run("should validate token results in successful", func(t *testing.T) {
 		var loginData handlers.LoginRequest
-		var baseResponse response.BaseResponse[session.LoginOutput]
-		var baseResponseValidate response.BaseResponse[session.ValidateOutput]
+		var baseResponse response.BaseResponse[ports.LoginOutput]
+		var baseResponseValidate response.BaseResponse[ports.ValidateOutput]
 
 		loginData.Email = cfg.AdminUser.Email
 		loginData.Password = cfg.AdminUser.Password
@@ -142,8 +142,8 @@ func TestSession(t *testing.T) {
 	t.Run("should refresh token route results in successful", func(t *testing.T) {
 		var loginData handlers.LoginRequest
 		var refreshData handlers.RefreshRequest
-		var baseResponse response.BaseResponse[session.LoginOutput]
-		var baseResponseRefresh response.BaseResponse[session.RefreshOutput]
+		var baseResponse response.BaseResponse[ports.LoginOutput]
+		var baseResponseRefresh response.BaseResponse[ports.RefreshOutput]
 
 		loginData.Email = cfg.AdminUser.Email
 		loginData.Password = cfg.AdminUser.Password
@@ -211,7 +211,7 @@ func TestSession(t *testing.T) {
 
 	t.Run("should logout successful", func(t *testing.T) {
 		var loginData handlers.LoginRequest
-		var baseResponse response.BaseResponse[session.LoginOutput]
+		var baseResponse response.BaseResponse[ports.LoginOutput]
 		var baseResponseLogout response.BaseResponse[any]
 		var logoutData handlers.RefreshRequest
 

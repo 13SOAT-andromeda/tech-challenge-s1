@@ -8,7 +8,7 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/session"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -16,7 +16,7 @@ import (
 
 func TestOrder(t *testing.T) {
 	var loginData handlers.LoginRequest
-	var loginResponse response.BaseResponse[session.LoginOutput]
+	var loginResponse response.BaseResponse[ports.LoginOutput]
 	cfg, err := SetupTest()
 
 	if err != nil {
