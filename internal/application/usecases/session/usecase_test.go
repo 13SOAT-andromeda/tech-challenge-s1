@@ -133,7 +133,7 @@ func TestNewSessionUseCase(t *testing.T) {
 	useCase := NewSessionUseCase(userService, sessionService, jwtService, config)
 
 	assert.NotNil(t, useCase)
-	assert.Implements(t, (*UseCase)(nil), useCase)
+	assert.Implements(t, (*ports.SessionUseCase)(nil), useCase)
 }
 
 func TestLogin_Success(t *testing.T) {
