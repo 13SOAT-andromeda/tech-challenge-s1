@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
 	"github.com/stretchr/testify/assert"
@@ -181,5 +182,97 @@ func TestOrderService_Update_RepositoryError(t *testing.T) {
 	err := service.Update(ctx, domainOrder)
 
 	assert.Error(t, err)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestOrderService_GetAll_FilterFinishedAndDelivered(t *testing.T) {
+	mockRepo := new(mocks.MockOrderRepository)
+	service := NewOrderService(mockRepo)
+	ctx := context.Background()
+
+	received := createTestOrderModel(1)
+	received.Status = string(domain.OrderStatuses.RECEIVED)
+
+	finished := createTestOrderModel(2)
+	finished.Status = string(domain.FINISHED)
+
+	delivered := createTestOrderModel(3)
+	delivered.Status = string(domain.DELIVERED)
+
+	models := []order.Model{
+		*received,
+		*finished,
+		*delivered,
+	}
+
+	mockRepo.On("Search", ctx, mock.Anything).Return(models, nil)
+
+	result, err := service.GetAll(ctx, map[string]interface{}{})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, *result, 1)
+	assert.Equal(t, domain.OrderStatuses.RECEIVED, (*result)[0].Status)
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestOrderService_GetAll_SortByStatusPriority(t *testing.T) {
+	mockRepo := new(mocks.MockOrderRepository)
+	service := NewOrderService(mockRepo)
+	ctx := context.Background()
+
+	o1 := createTestOrderModel(1)
+	o1.Status = string(domain.OrderStatuses.RECEIVED)
+
+	o2 := createTestOrderModel(2)
+	o2.Status = string(domain.OrderStatuses.IN_PROGRESS)
+
+	o3 := createTestOrderModel(3)
+	o3.Status = string(domain.OrderStatuses.AWAITING_APPROVAL)
+
+	models := []order.Model{*o1, *o2, *o3}
+
+	mockRepo.On("Search", ctx, mock.Anything).Return(models, nil)
+
+	result, err := service.GetAll(ctx, map[string]interface{}{})
+
+	assert.NoError(t, err)
+	assert.Len(t, *result, 3)
+
+	// valida que está ordenado por prioridade
+	for i := 0; i < len(*result)-1; i++ {
+		p1 := getPriorityStatus((*result)[i].Status)
+		p2 := getPriorityStatus((*result)[i+1].Status)
+		assert.LessOrEqual(t, p1, p2)
+	}
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestOrderService_GetAll_WithStatusParam(t *testing.T) {
+	mockRepo := new(mocks.MockOrderRepository)
+	service := NewOrderService(mockRepo)
+	ctx := context.Background()
+
+	model := createTestOrderModel(1)
+	model.Status = string(domain.OrderStatuses.RECEIVED)
+
+	mockRepo.
+		On("Search", ctx, mock.MatchedBy(func(search any) bool {
+			s := search.(ports.OrderSearch)
+			return s.Status == string(domain.OrderStatuses.RECEIVED)
+		})).
+		Return([]order.Model{*model}, nil)
+
+	params := map[string]interface{}{
+		"status": string(domain.OrderStatuses.RECEIVED),
+	}
+
+	result, err := service.GetAll(ctx, params)
+
+	assert.NoError(t, err)
+	assert.Len(t, *result, 1)
+
 	mockRepo.AssertExpectations(t)
 }

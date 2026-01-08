@@ -66,7 +66,7 @@ func (m *MockOrderRepository) Delete(ctx context.Context, id uint) error {
 }
 
 func (m *MockOrderRepository) Search(ctx context.Context, params ports.OrderSearch) ([]order.Model, error) {
-	args := m.Called(ctx)
+	args := m.Called(ctx, params)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
