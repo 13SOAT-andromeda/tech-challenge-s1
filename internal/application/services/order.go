@@ -97,7 +97,9 @@ func (s *OrderService) GetAll(ctx context.Context, params map[string]interface{}
 	ordersD := make([]domain.Order, 0, len(orders))
 
 	for _, item := range orders {
-		ordersD = append(ordersD, *item.ToDomain())
+		if item.Status != string(domain.FINISHED) && item.Status != string(domain.DELIVERED) {
+			ordersD = append(ordersD, *item.ToDomain())
+		}
 	}
 
 	sort.Slice(ordersD, func(i, j int) bool {
