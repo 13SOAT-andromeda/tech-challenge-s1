@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -51,8 +52,23 @@ func (s *OrderService) GetByID(ctx context.Context, id uint) (*domain.Order, err
 	return o, nil
 }
 
+func getPriorityStatus(status domain.OrderStatus) int {
+	switch status {
+	case domain.IN_PROGRESS:
+		return 0
+	case domain.AWAITING_APPROVAL:
+		return 1
+	case domain.IN_ANALYSIS:
+		return 2
+	case domain.RECEIVED:
+		return 3
+	default:
+		return 999
+	}
+}
+
 func (s *OrderService) GetAll(ctx context.Context, params map[string]interface{}) (*[]domain.Order, error) {
-	oSearch := ports.OrderSearch{Status: "", Enabled: true, OrderBy: "", SortDesc: false}
+	oSearch := ports.OrderSearch{Status: "", Enabled: true, OrderBy: "date_in", SortDesc: false}
 
 	if params["status"] != nil {
 		oSearch.Status = params["status"].(string)
@@ -81,8 +97,16 @@ func (s *OrderService) GetAll(ctx context.Context, params map[string]interface{}
 	ordersD := make([]domain.Order, 0, len(orders))
 
 	for _, item := range orders {
-		ordersD = append(ordersD, *item.ToDomain())
+		if item.Status != string(domain.FINISHED) && item.Status != string(domain.DELIVERED) {
+			ordersD = append(ordersD, *item.ToDomain())
+		}
 	}
+
+	sort.Slice(ordersD, func(i, j int) bool {
+		pI := getPriorityStatus(ordersD[i].Status)
+		pJ := getPriorityStatus(ordersD[j].Status)
+		return pI < pJ
+	})
 
 	return &ordersD, nil
 }
