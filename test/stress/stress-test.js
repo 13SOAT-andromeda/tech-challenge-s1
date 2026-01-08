@@ -47,7 +47,7 @@ export function setup() {
   });
 
   return {
-    token: res.json('access_token'),
+    token: res.json('data.access_token'),
   };
 }
 
