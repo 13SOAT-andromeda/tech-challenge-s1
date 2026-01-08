@@ -4,29 +4,20 @@ import (
 	"net/http"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/session"
 	"github.com/gin-gonic/gin"
 )
 
 type SessionHandler struct {
-	loginUseCase    session.LoginUseCase
-	validateUseCase session.ValidateUseCase
-	refreshUseCase  session.RefreshUseCase
-	logoutUseCase   session.LogoutUseCase
+	useCase ports.SessionUseCase
 }
 
 func NewSessionHandler(
-	loginUC session.LoginUseCase,
-	validateUC session.ValidateUseCase,
-	refreshUC session.RefreshUseCase,
-	logoutUC session.LogoutUseCase,
+	useCase ports.SessionUseCase,
 ) *SessionHandler {
 	return &SessionHandler{
-		loginUseCase:    loginUC,
-		validateUseCase: validateUC,
-		refreshUseCase:  refreshUC,
-		logoutUseCase:   logoutUC,
+		useCase: useCase,
 	}
 }
 
@@ -46,12 +37,12 @@ func (h *SessionHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	input := session.LoginInput{
+	input := ports.LoginInput{
 		Email:    req.Email,
 		Password: req.Password,
 	}
 
-	output, err := h.loginUseCase.Execute(ctx, input)
+	output, err := h.useCase.Login(ctx, input)
 	if err != nil {
 		response.RespondError(ctx, mapErrorToStatus(err), err.Error())
 		return
@@ -73,11 +64,11 @@ func (h *SessionHandler) Validate(ctx *gin.Context) {
 	}
 
 	token := authHeader[7:]
-	input := session.ValidateInput{
+	input := ports.ValidateInput{
 		Token: token,
 	}
 
-	output, err := h.validateUseCase.Execute(ctx, input)
+	output, err := h.useCase.Validate(ctx, input)
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -93,11 +84,11 @@ func (h *SessionHandler) Refresh(ctx *gin.Context) {
 		return
 	}
 
-	input := session.RefreshInput{
+	input := ports.RefreshInput{
 		RefreshToken: req.RefreshToken,
 	}
 
-	output, err := h.refreshUseCase.Execute(ctx, input)
+	output, err := h.useCase.Refresh(ctx, input)
 	if err != nil {
 		response.RespondError(ctx, mapErrorToStatus(err), err.Error())
 		return
@@ -113,11 +104,11 @@ func (h *SessionHandler) Logout(ctx *gin.Context) {
 		return
 	}
 
-	input := session.LogoutInput{
+	input := ports.LogoutInput{
 		RefreshToken: req.RefreshToken,
 	}
 
-	err := h.logoutUseCase.Execute(ctx, input)
+	err := h.useCase.Logout(ctx, input)
 	if err != nil {
 		response.RespondError(ctx, mapErrorToStatus(err), err.Error())
 		return

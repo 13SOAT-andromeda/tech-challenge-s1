@@ -94,10 +94,7 @@ func main() {
 	// UseCases
 	createCustomerUseCase := customerUseCase.NewCustomerUseCase(customerRepository, customerVehicleRepository, vehicleService)
 
-	loginUseCase := sessionUseCase.NewLoginUseCase(userService, sessionService, jwtService, cfg)
-	validateUseCase := sessionUseCase.NewValidateUseCase(userService, sessionService, jwtService)
-	refreshUseCase := sessionUseCase.NewRefreshUseCase(userService, sessionService, jwtService, cfg)
-	logoutUseCase := sessionUseCase.NewLogoutUseCase(sessionService)
+	sessionUseCase := sessionUseCase.NewSessionUseCase(userService, sessionService, jwtService, cfg)
 
 	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, customerService, emailService, orderRepository, orderProductRepository, orderMaintenanceRepository, apiUrl)
 
@@ -110,10 +107,7 @@ func main() {
 	vehicleHandler := handlers.NewVehicleHandler(vehicleService)
 	orderHandler := handlers.NewOrderHandler(orderService, createOrderUseCase)
 	sessionHandler := handlers.NewSessionHandler(
-		loginUseCase,
-		validateUseCase,
-		refreshUseCase,
-		logoutUseCase,
+		sessionUseCase,
 	)
 
 	router := http.NewRouter(*cfg, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *vehicleHandler, *orderHandler, *sessionHandler, sessionService)
