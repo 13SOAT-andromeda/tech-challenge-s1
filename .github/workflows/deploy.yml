@@ -21,20 +21,9 @@ jobs:
       - name: Build Docker image
         run: docker build -t tech-challenge-api:latest .
 
-      - name: Create kind cluster
-        uses: helm/kind-action@v1
-        with:
-          cluster_name: tech-challenge
-
-      - name: Load image into kind
-        run: kind load docker-image tech-challenge-api:latest --name tech-challenge
-
-      - name: Install Metrics Server
+      - name: Deploy with Makefile
         run: |
-          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-
-      - name: Deploy Kubernetes
-        run: kubectl apply -f k8s/
+          make up
 
       - name: Validate
         run: |
@@ -44,8 +33,9 @@ jobs:
       - name: Application logs
         run: |
           kubectl get pods
-          POD=$(kubectl get pods -o jsonpath="{.items[0].metadata.name}")
+          POD=$(kubectl get pods -l app=tech-challenge-api -o jsonpath="{.items[0].metadata.name}")
           kubectl logs $POD
+
       - name: HPA status
         run: |
           kubectl describe hpa
