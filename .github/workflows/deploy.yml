@@ -1,0 +1,51 @@
+﻿name: K8s Deploy (KIND)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.25'
+
+      - run: go build ./...
+
+      - name: Build Docker image
+        run: docker build -t tech-challenge-api:latest .
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: tech-challenge
+
+      - name: Load image into kind
+        run: kind load docker-image tech-challenge-api:latest --name tech-challenge
+
+      - name: Install Metrics Server
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+      - name: Deploy Kubernetes
+        run: kubectl apply -f k8s/
+
+      - name: Validate
+        run: |
+          kubectl get pods
+          kubectl get hpa
+
+      - name: Application logs
+        run: |
+          kubectl get pods
+          POD=$(kubectl get pods -o jsonpath="{.items[0].metadata.name}")
+          kubectl logs $POD
+      - name: HPA status
+        run: |
+          kubectl describe hpa
+
