@@ -187,7 +187,7 @@ func TestUserService_CreateAdminUser_PasswordWeak(t *testing.T) {
 
 	// Assert
 	assert.Error(t, err)
-	assert.ErrorIs(t, err, domain.ErrPasswordInvalidFormat)
+	assert.EqualError(t, err, "senha deve conter pelo menos uma letra maiúscula, uma minúscula, um número e um caractere especial")
 	mockRepo.AssertExpectations(t)
 }
 

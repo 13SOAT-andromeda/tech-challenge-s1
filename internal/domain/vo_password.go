@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"unicode"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
@@ -37,7 +38,7 @@ func (p *Password) Hash() error {
 	hash, err := p.hasher.Generate(pass, 15)
 
 	if err != nil {
-		return ErrPasswordHash
+		return errors.New("erro ao criar o hash da senha")
 	}
 
 	p.hashed = string(hash)
@@ -48,14 +49,14 @@ func (p *Password) Hash() error {
 func (p *Password) Compare(password string) error {
 	err := p.hasher.Compare([]byte(p.hashed), []byte(password))
 	if err != nil {
-		return ErrPasswordInvalid
+		return errors.New("senha deve conter pelo menos uma letra maiúscula, uma minúscula, um número e um caractere especial")
 	}
 	return nil
 }
 
 func validatePassword(password string) error {
 	if len(password) < 8 {
-		return ErrPasswordTooShort
+		return errors.New("senha deve ter pelo menos 8 caracteres")
 	}
 
 	var (
@@ -79,8 +80,25 @@ func validatePassword(password string) error {
 	}
 
 	if !hasUpper || !hasLower || !hasNumber || !hasSpecial {
-		return ErrPasswordInvalidFormat
+		return errors.New("senha deve conter pelo menos uma letra maiúscula, uma minúscula, um número e um caractere especial")
+
 	}
 
 	return nil
+}
+
+func (p *Password) ValidateEqual(input string) error {
+	if p.hashed != "" {
+		if err := p.hasher.Compare([]byte(p.hashed), []byte(input)); err != nil {
+			return errors.New("senha incorreta")
+		}
+		return nil
+	}
+	if p.value != "" {
+		if p.value != input {
+			return errors.New("senha incorreta")
+		}
+		return nil
+	}
+	return errors.New("nenhuma senha disponível para comparar")
 }
