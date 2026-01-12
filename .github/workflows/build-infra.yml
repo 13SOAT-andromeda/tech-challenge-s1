@@ -1,10 +1,17 @@
 name: Deploy Infra
 
 on:
+  # Temporary - only run on changes to tests
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'infra/**'
   push:
     branches: [ main, feature/ensure-pipeline-runs ]
     paths:
       - 'infra/**'
+  # Temporary - only run on changes to tests Manual button (Runs 'apply')
+  workflow_dispatch:
 
 jobs:
   terraform:
