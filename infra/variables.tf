@@ -1,15 +1,23 @@
 variable "aws_region" {
-  default = "us-east-1"
-}
-
-variable "vpc_cidr" {
-  default = "10.0.0.0/16"
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
 }
 
 variable "cluster_name" {
-  default = "tech-challenge-api"
+  description = "Name of the EKS cluster"
+  type        = string
+  default     = "tech-challenge-api"
 }
 
-variable "kubernetes_version" {
-  default = "1.31"
+# CRITICAL: This variable accepts the ARN from your pipeline/env
+variable "lab_role_arn" {
+  description = "ARN of the existing LabRole provided by AWS Academy"
+  type        = string
+}
+
+variable "vpc_cidr" {
+  description = "CIDR block for VPC"
+  type        = string
+  default     = "10.0.0.0/16"
 }

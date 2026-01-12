@@ -1,5 +1,20 @@
-variable "cluster_name" {}
-variable "kubernetes_version" {}
-variable "vpc_id" {}
-variable "private_subnet_ids" { type = list(string) }
-variable "public_subnet_ids" { type = list(string) }
+variable "cluster_name" {
+  type = string
+}
+
+variable "lab_role_arn" {
+  description = "The ARN of the LabRole provided by the student environment"
+  type        = string
+}
+
+variable "vpc_id" {
+  type = string
+}
+
+variable "public_subnets" {
+  type = list(string)
+}
+
+variable "private_subnets" {
+  type = list(string)
+}
