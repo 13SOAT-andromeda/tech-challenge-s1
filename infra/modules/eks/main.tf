@@ -1,7 +1,9 @@
 data "aws_caller_identity" "current" {}
 
+# Conditional creation: create role only when create_cluster_role is true
 resource "aws_iam_role" "eks_cluster" {
-  name = "${var.cluster_name}-cluster-role"
+  count = var.create_cluster_role ? 1 : 0
+  name  = "${var.cluster_name}-cluster-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -11,9 +13,19 @@ resource "aws_iam_role" "eks_cluster" {
     }]
   })
 }
+
+# Compute role name from ARN when user provides existing_cluster_role_arn
+locals {
+  existing_role_name_from_arn = var.existing_cluster_role_arn != "" ? element(split("/", var.existing_cluster_role_arn), length(split("/", var.existing_cluster_role_arn)) - 1) : ""
+  cluster_role_arn  = var.existing_cluster_role_arn != "" ? var.existing_cluster_role_arn : (var.create_cluster_role ? aws_iam_role.eks_cluster[0].arn : "")
+  cluster_role_name = var.existing_cluster_role_arn != "" ? local.existing_role_name_from_arn : (var.create_cluster_role ? aws_iam_role.eks_cluster[0].name : "")
+}
+
+# Attach cluster policy only when attach_cluster_policies is true. Role name uses local.cluster_role_name (from ARN or created role)
 resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
+  for_each   = var.attach_cluster_policies ? { "cluster" = local.cluster_role_name } : {}
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.eks_cluster.name
+  role       = each.value
 }
 
 resource "aws_iam_role" "eks_node_group" {
@@ -42,7 +54,7 @@ resource "aws_iam_role_policy_attachment" "eks_container_registry_policy" {
 
 resource "aws_eks_cluster" "main" {
   name     = var.cluster_name
-  role_arn = aws_iam_role.eks_cluster.arn
+  role_arn = local.cluster_role_arn
   version  = var.kubernetes_version
 
   vpc_config {
@@ -57,21 +69,27 @@ resource "aws_eks_cluster" "main" {
     bootstrap_cluster_creator_admin_permissions = true
   }
 
-  depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
+  # Depend on the attachment instance (static reference) so attachment is created before cluster
+  depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy["cluster"]]
+}
+
+# Use lookup(...) to access the 'issuer' attribute to avoid static analysis unresolved-reference errors
+locals {
+  eks_oidc_issuer = lookup(try(aws_eks_cluster.main.identity[0].oidc[0], {}), "issuer", "")
 }
 
 data "tls_certificate" "eks" {
-  url = aws_eks_cluster.main.identity[0].oidc[0].issuer
+  url = local.eks_oidc_issuer
 }
 
 resource "aws_iam_openid_connect_provider" "eks" {
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]
-  url             = aws_eks_cluster.main.identity[0].oidc[0].issuer
+  url             = local.eks_oidc_issuer
 }
 
 locals {
-  oidc_issuer_url = replace(aws_eks_cluster.main.identity[0].oidc[0].issuer, "https://", "")
+  oidc_issuer_url = replace(local.eks_oidc_issuer, "https://", "")
 }
 
 resource "aws_iam_role" "vpc_cni_role" {
