@@ -241,4 +241,3 @@ Se a aplicação falhar ao conectar-se ao banco de dados, verifique se o seu Pos
 
 -   **Postman Collection**: Você pode fazer o download da collection do Postman para testar os endpoints da API [aqui](./misc/Tech%20Challenge%20S1.postman.json).
 -   **Guia de Desenvolvimento (kind & cluster local)**: [development.md](./development.md)
-

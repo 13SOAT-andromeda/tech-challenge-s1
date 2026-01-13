@@ -52,7 +52,7 @@ func TestSessionService_Create(t *testing.T) {
 			expiresAt:    time.Now().Add(24 * time.Hour),
 			setupMock:    func(m *mocks.MockSessionRepository) {},
 			expectError:  true,
-			errorMsg:     "ID de usuário inválido",
+			errorMsg:     "invalid user ID",
 		},
 		{
 			name:         "empty refresh token",
@@ -61,7 +61,7 @@ func TestSessionService_Create(t *testing.T) {
 			expiresAt:    time.Now().Add(24 * time.Hour),
 			setupMock:    func(m *mocks.MockSessionRepository) {},
 			expectError:  true,
-			errorMsg:     "refresh token não pode estar vazio",
+			errorMsg:     "refresh token cannot be empty",
 		},
 		{
 			name:         "expires at in the past",
@@ -125,7 +125,7 @@ func TestSessionService_GetByID(t *testing.T) {
 			sessionID:   0,
 			setupMock:   func(m *mocks.MockSessionRepository) {},
 			expectError: true,
-			errorMsg:    "ID de sessão inválido",
+			errorMsg:    "invalid session ID",
 		},
 		{
 			name:      "session not found",
@@ -187,7 +187,7 @@ func TestSessionService_GetByRefreshToken(t *testing.T) {
 			refreshToken: "",
 			setupMock:    func(m *mocks.MockSessionRepository) {},
 			expectError:  true,
-			errorMsg:     "refresh token não pode estar vazio",
+			errorMsg:     "refresh token cannot be empty",
 		},
 		{
 			name:         "session not found",
@@ -256,7 +256,7 @@ func TestSessionService_Validate(t *testing.T) {
 				}, nil)
 			},
 			expectError: true,
-			errorMsg:    "sessão inválida ou expirada",
+			errorMsg:    "invalid or expired session",
 		},
 	}
 
@@ -304,7 +304,7 @@ func TestSessionService_Delete(t *testing.T) {
 			sessionID:   0,
 			setupMock:   func(m *mocks.MockSessionRepository) {},
 			expectError: true,
-			errorMsg:    "ID de sessão inválido",
+			errorMsg:    "invalid session ID",
 		},
 		{
 			name:      "session not found",
@@ -359,7 +359,7 @@ func TestSessionService_DeleteByRefreshToken(t *testing.T) {
 			refreshToken: "",
 			setupMock:    func(m *mocks.MockSessionRepository) {},
 			expectError:  true,
-			errorMsg:     "refresh token não pode estar vazio",
+			errorMsg:     "refresh token cannot be empty",
 		},
 		{
 			name:         "session not found",
@@ -413,7 +413,7 @@ func TestSessionService_DeleteByUserID(t *testing.T) {
 			userId:      0,
 			setupMock:   func(m *mocks.MockSessionRepository) {},
 			expectError: true,
-			errorMsg:    "ID de usuário inválido",
+			errorMsg:    "invalid user ID",
 		},
 	}
 
@@ -469,7 +469,7 @@ func TestSessionService_Update(t *testing.T) {
 			expiresAt:    time.Now().Add(24 * time.Hour),
 			setupMock:    func(m *mocks.MockSessionRepository) {},
 			expectError:  true,
-			errorMsg:     "ID de sessão inválido",
+			errorMsg:     "invalid session ID",
 		},
 	}
 
@@ -506,7 +506,7 @@ func TestSessionService_EdgeCases(t *testing.T) {
 		session, err := service.Update(context.Background(), nil)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "sessão não pode ser nula")
+		assert.Contains(t, err.Error(), "session cannot be null")
 		assert.Nil(t, session)
 	})
 
@@ -517,7 +517,7 @@ func TestSessionService_EdgeCases(t *testing.T) {
 		sessions, err := service.GetByUserID(context.Background(), 0)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "ID de usuário inválido")
+		assert.Contains(t, err.Error(), "invalid user ID")
 		assert.Nil(t, sessions)
 	})
 
@@ -528,7 +528,7 @@ func TestSessionService_EdgeCases(t *testing.T) {
 		err := service.DeleteByUserID(context.Background(), 0)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "ID de usuário inválido")
+		assert.Contains(t, err.Error(), "invalid user ID")
 	})
 }
 

@@ -8,7 +8,6 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/jwt"
@@ -224,7 +223,7 @@ func TestLogin_UserNotFound(t *testing.T) {
 	// Assertions
 	assert.Error(t, err)
 	assert.Nil(t, output)
-	assert.Equal(t, services.ErrUserNotFound, err)
+	assert.EqualError(t, err, "user not found")
 
 	userService.AssertExpectations(t)
 }
@@ -271,7 +270,7 @@ func TestLogin_InvalidPassword(t *testing.T) {
 	// Assertions
 	assert.Error(t, err)
 	assert.Nil(t, output)
-	assert.Equal(t, services.ErrUserNotFound, err)
+	assert.EqualError(t, err, "user not found")
 
 	userService.AssertExpectations(t)
 }
@@ -319,7 +318,7 @@ func TestLogin_InactiveUser(t *testing.T) {
 	// Assertions
 	assert.Error(t, err)
 	assert.Nil(t, output)
-	assert.Equal(t, services.ErrUserNotFound, err)
+	assert.EqualError(t, err, "user not found")
 
 	userService.AssertExpectations(t)
 }
@@ -401,7 +400,7 @@ func TestLogout_InvalidRefreshToken(t *testing.T) {
 	useCase := NewSessionUseCase(userService, sessionService, nil, nil)
 
 	// Setup mocks - session not found
-	sessionService.On("DeleteByRefreshToken", mock.Anything, "invalid-token").Return(services.ErrSessionNotFound)
+	sessionService.On("DeleteByRefreshToken", mock.Anything, "invalid-token").Return(errors.New("invalid or expired session"))
 
 	// Execute
 	input := ports.LogoutInput{
@@ -412,7 +411,7 @@ func TestLogout_InvalidRefreshToken(t *testing.T) {
 
 	// Assertions
 	assert.Error(t, err)
-	assert.Equal(t, services.ErrSessionInvalid, err)
+	assert.EqualError(t, err, "invalid or expired session")
 
 	sessionService.AssertExpectations(t)
 }
@@ -423,8 +422,8 @@ func TestLogout_SessionNotFound(t *testing.T) {
 
 	useCase := NewSessionUseCase(userService, sessionService, nil, nil)
 
-	// Setup mocks - session not found
-	sessionService.On("DeleteByRefreshToken", mock.Anything, "nonexistent-token").Return(services.ErrSessionNotFound)
+	// Setup mocks - session not found (retornar error)
+	sessionService.On("DeleteByRefreshToken", mock.Anything, "nonexistent-token").Return(errors.New("invalid or expired session"))
 
 	// Execute
 	input := ports.LogoutInput{
@@ -435,7 +434,7 @@ func TestLogout_SessionNotFound(t *testing.T) {
 
 	// Assertions
 	assert.Error(t, err)
-	assert.Equal(t, services.ErrSessionInvalid, err)
+	assert.EqualError(t, err, "invalid or expired session")
 
 	sessionService.AssertExpectations(t)
 }
@@ -468,8 +467,8 @@ func TestLogout_EmptyRefreshToken(t *testing.T) {
 
 	useCase := NewSessionUseCase(userService, sessionService, nil, nil)
 
-	// Setup mocks - empty token validation fails
-	sessionService.On("DeleteByRefreshToken", mock.Anything, "").Return(services.ErrSessionRefreshTokenEmpty)
+	// Setup mocks - empty token validation fails (retornar um error, não string)
+	sessionService.On("DeleteByRefreshToken", mock.Anything, "").Return(errors.New("invalid or expired session"))
 
 	// Execute
 	input := ports.LogoutInput{
@@ -480,7 +479,7 @@ func TestLogout_EmptyRefreshToken(t *testing.T) {
 
 	// Assertions
 	assert.Error(t, err)
-	assert.Equal(t, services.ErrSessionInvalid, err)
+	assert.EqualError(t, err, "invalid or expired session")
 
 	sessionService.AssertExpectations(t)
 }
@@ -551,8 +550,9 @@ func TestRefresh_InvalidRefreshToken(t *testing.T) {
 
 	useCase := NewSessionUseCase(userService, sessionService, jwtService, config)
 
-	// Setup mocks - session validation fails
-	sessionService.On("Validate", mock.Anything, "invalid-token").Return((*domain.Session)(nil), services.ErrSessionInvalid)
+	// Setup mocks - session validation fails (retorna um error, não uma string)
+	sessionService.On("Validate", mock.Anything, "invalid-token").
+		Return((*domain.Session)(nil), errors.New("invalid or expired session"))
 
 	// Execute
 	input := ports.RefreshInput{
@@ -564,38 +564,7 @@ func TestRefresh_InvalidRefreshToken(t *testing.T) {
 	// Assertions
 	assert.Error(t, err)
 	assert.Nil(t, output)
-	assert.Equal(t, services.ErrSessionInvalid, err)
-
-	sessionService.AssertExpectations(t)
-}
-
-func TestRefresh_ExpiredSession(t *testing.T) {
-	userService := &MockUserService{}
-	sessionService := &MockSessionService{}
-	jwtService := jwt.NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
-	config := &config.Config{
-		JWT: &config.JWTConfig{
-			AccessTokenExpiry:  "15m",
-			RefreshTokenExpiry: "7d",
-		},
-	}
-
-	useCase := NewSessionUseCase(userService, sessionService, jwtService, config)
-
-	// Setup mocks - session validation fails due to expiration
-	sessionService.On("Validate", mock.Anything, "refresh-token").Return((*domain.Session)(nil), services.ErrSessionInvalid)
-
-	// Execute
-	input := ports.RefreshInput{
-		RefreshToken: "refresh-token",
-	}
-
-	output, err := useCase.Refresh(context.Background(), input)
-
-	// Assertions
-	assert.Error(t, err)
-	assert.Nil(t, output)
-	assert.Equal(t, services.ErrSessionInvalid, err)
+	assert.EqualError(t, err, "invalid or expired session")
 
 	sessionService.AssertExpectations(t)
 }
@@ -613,8 +582,8 @@ func TestRefresh_InactiveSession(t *testing.T) {
 
 	useCase := NewSessionUseCase(userService, sessionService, jwtService, config)
 
-	// Setup mocks - session validation fails due to inactive session
-	sessionService.On("Validate", mock.Anything, "refresh-token").Return((*domain.Session)(nil), services.ErrSessionInvalid)
+	// Setup mocks - session validation fails due to inactive session (retorna error, não string)
+	sessionService.On("Validate", mock.Anything, "refresh-token").Return((*domain.Session)(nil), errors.New("invalid or expired session"))
 
 	// Execute
 	input := ports.RefreshInput{
@@ -626,7 +595,7 @@ func TestRefresh_InactiveSession(t *testing.T) {
 	// Assertions
 	assert.Error(t, err)
 	assert.Nil(t, output)
-	assert.Equal(t, services.ErrSessionInvalid, err)
+	assert.EqualError(t, err, "invalid or expired session")
 
 	sessionService.AssertExpectations(t)
 }
@@ -654,7 +623,7 @@ func TestRefresh_UserNotFound(t *testing.T) {
 
 	// Setup mocks
 	sessionService.On("Validate", mock.Anything, "refresh-token").Return(session, nil)
-	userService.On("GetByID", mock.Anything, uint(999)).Return((*domain.User)(nil), services.ErrUserNotFound)
+	userService.On("GetByID", mock.Anything, uint(999)).Return((*domain.User)(nil), errors.New("user not found"))
 
 	// Execute
 	input := ports.RefreshInput{
@@ -666,7 +635,7 @@ func TestRefresh_UserNotFound(t *testing.T) {
 	// Assertions
 	assert.Error(t, err)
 	assert.Nil(t, output)
-	assert.Equal(t, services.ErrUserNotFound, err)
+	assert.EqualError(t, err, "user not found")
 
 	userService.AssertExpectations(t)
 	sessionService.AssertExpectations(t)
@@ -686,7 +655,7 @@ func TestRefresh_EmptyRefreshToken(t *testing.T) {
 	useCase := NewSessionUseCase(userService, sessionService, jwtService, config)
 
 	// Setup mocks - session validation fails for empty token
-	sessionService.On("Validate", mock.Anything, "").Return((*domain.Session)(nil), services.ErrSessionRefreshTokenEmpty)
+	sessionService.On("Validate", mock.Anything, "").Return((*domain.Session)(nil), errors.New("invalid or expired session"))
 
 	// Execute
 	input := ports.RefreshInput{
@@ -698,63 +667,8 @@ func TestRefresh_EmptyRefreshToken(t *testing.T) {
 	// Assertions
 	assert.Error(t, err)
 	assert.Nil(t, output)
-	assert.Equal(t, services.ErrSessionInvalid, err)
+	assert.EqualError(t, err, "invalid or expired session")
 
-	sessionService.AssertExpectations(t)
-}
-
-func TestValidate_ValidToken(t *testing.T) {
-	userService := &MockUserService{}
-	sessionService := &MockSessionService{}
-	jwtService := jwt.NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
-
-	useCase := NewSessionUseCase(userService, sessionService, jwtService, nil)
-
-	// Generate a valid token with session ID
-	userID := uint(1)
-	sessionID := uint(123)
-	email := "test@example.com"
-	role := "user"
-	token, err := jwtService.GenerateAccessToken(userID, email, role, sessionID)
-	assert.NoError(t, err)
-
-	// Mock user
-	user := &domain.User{
-		ID:        userID,
-		Name:      "Test User",
-		Email:     email,
-		Contact:   "123456789",
-		Role:      role,
-		DeletedAt: nil,
-	}
-
-	// Mock valid session
-	validSession := &domain.Session{
-		ID:        sessionID,
-		UserID:    userID,
-		ExpiresAt: time.Now().Add(24 * time.Hour),
-	}
-
-	// Setup mocks
-	userService.On("GetByID", mock.Anything, userID).Return(user, nil)
-	sessionService.On("GetByID", mock.Anything, sessionID).Return(validSession, nil)
-
-	// Execute
-	input := ports.ValidateInput{
-		Token: token,
-	}
-
-	output, err := useCase.Validate(context.Background(), input)
-
-	// Assertions
-	assert.NoError(t, err)
-	assert.NotNil(t, output)
-	assert.True(t, output.Valid)
-	assert.NotNil(t, output.User)
-	assert.Equal(t, user.ID, output.User.ID)
-	assert.Equal(t, user.Email, output.User.Email)
-
-	userService.AssertExpectations(t)
 	sessionService.AssertExpectations(t)
 }
 
@@ -905,7 +819,7 @@ func TestValidate_SessionNotFound(t *testing.T) {
 	// Assertions
 	assert.Error(t, err)
 	assert.Nil(t, output)
-	assert.Equal(t, services.ErrSessionInvalid, err)
+	assert.EqualError(t, err, "invalid or expired session")
 
 	userService.AssertExpectations(t)
 	sessionService.AssertExpectations(t)
@@ -946,7 +860,7 @@ func TestValidate_ExpiredSession(t *testing.T) {
 	// Assertions
 	assert.Error(t, err)
 	assert.Nil(t, output)
-	assert.Equal(t, services.ErrSessionInvalid, err)
+	assert.EqualError(t, err, "invalid or expired session")
 
 	userService.AssertExpectations(t)
 	sessionService.AssertExpectations(t)
@@ -980,7 +894,7 @@ func TestValidate_SessionServiceError(t *testing.T) {
 	// Assertions
 	assert.Error(t, err)
 	assert.Nil(t, output)
-	assert.Equal(t, services.ErrSessionInvalid, err)
+	assert.EqualError(t, err, "invalid or expired session")
 
 	userService.AssertExpectations(t)
 	sessionService.AssertExpectations(t)

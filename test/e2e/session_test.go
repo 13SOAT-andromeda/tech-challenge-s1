@@ -63,7 +63,7 @@ func TestSession(t *testing.T) {
 
 		assert.Equal(t, resp.StatusCode, http.StatusUnauthorized)
 		assert.False(t, baseResponse.Success)
-		assert.Contains(t, baseResponse.Message, "usuário não encontrado")
+		assert.Contains(t, baseResponse.Message, "user not found")
 	})
 
 	t.Run("should fail with invalid request", func(t *testing.T) {
@@ -206,7 +206,7 @@ func TestSession(t *testing.T) {
 
 		assert.Equal(t, resp.StatusCode, http.StatusUnauthorized)
 		assert.False(t, baseResponseRefresh.Success)
-		assert.Contains(t, baseResponseRefresh.Message, "sessão inválida ou expirada")
+		assert.Contains(t, baseResponseRefresh.Message, "invalid or expired session")
 	})
 
 	t.Run("should logout successful", func(t *testing.T) {
@@ -267,7 +267,7 @@ func TestSession(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 		assert.False(t, baseResponseLogout.Success)
-		assert.Contains(t, baseResponseLogout.Message, "sessão inválida ou expirada")
+		assert.Contains(t, baseResponseLogout.Message, "invalid or expired session")
 	})
 }
 

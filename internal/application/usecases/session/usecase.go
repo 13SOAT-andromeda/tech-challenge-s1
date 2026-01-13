@@ -2,11 +2,11 @@ package session
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/jwt"
 )
 
@@ -30,11 +30,11 @@ func (u *UseCase) Login(ctx context.Context, input ports.LoginInput) (*ports.Log
 	user, err := u.userService.GetByEmail(ctx, input.Email)
 
 	if err != nil || user == nil {
-		return nil, services.ErrUserNotFound
+		return nil, errors.New("user not found")
 	}
 
 	if err := user.Password.Compare(input.Password); err != nil || user.DeletedAt != nil {
-		return nil, services.ErrUserNotFound
+		return nil, errors.New("user not found")
 	}
 
 	refreshToken, err := u.jwtService.GenerateRefreshToken(user.ID)
@@ -77,7 +77,7 @@ func (u *UseCase) Login(ctx context.Context, input ports.LoginInput) (*ports.Log
 
 func (u *UseCase) Logout(ctx context.Context, input ports.LogoutInput) error {
 	if err := u.sessionService.DeleteByRefreshToken(ctx, input.RefreshToken); err != nil {
-		return services.ErrSessionInvalid
+		return errors.New("invalid or expired session")
 	}
 	return nil
 }
@@ -85,12 +85,12 @@ func (u *UseCase) Logout(ctx context.Context, input ports.LogoutInput) error {
 func (u *UseCase) Refresh(ctx context.Context, input ports.RefreshInput) (*ports.RefreshOutput, error) {
 	session, err := u.sessionService.Validate(ctx, input.RefreshToken)
 	if err != nil {
-		return nil, services.ErrSessionInvalid
+		return nil, errors.New("invalid or expired session")
 	}
 
 	user, err := u.userService.GetByID(ctx, session.UserID)
 	if err != nil {
-		return nil, services.ErrUserNotFound
+		return nil, errors.New("user not found")
 	}
 
 	accessToken, err := u.jwtService.GenerateAccessToken(user.ID, user.Email, user.Role, session.ID)
@@ -117,11 +117,11 @@ func (u *UseCase) Validate(ctx context.Context, input ports.ValidateInput) (*por
 
 	session, err := u.sessionService.GetByID(ctx, claims.SessionID)
 	if err != nil {
-		return nil, services.ErrSessionInvalid
+		return nil, errors.New("invalid or expired session")
 	}
 
 	if !session.IsValid() {
-		return nil, services.ErrSessionInvalid
+		return nil, errors.New("invalid or expired session")
 	}
 
 	user, err := u.userService.GetByID(ctx, claims.UserID)

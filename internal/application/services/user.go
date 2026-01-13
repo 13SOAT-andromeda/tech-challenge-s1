@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/converters"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
@@ -28,7 +29,7 @@ func (s *userService) Create(ctx context.Context, u domain.User) (*domain.User, 
 	if user, err := s.GetByEmail(ctx, u.Email); err != nil {
 		return nil, err
 	} else if user != nil {
-		return nil, ErrUserEmailAlreadyExists
+		return nil, errors.New("email já existe")
 	}
 
 	if err := u.Password.Hash(); err != nil {
@@ -134,7 +135,7 @@ func (s *userService) Update(ctx context.Context, u domain.User) (*domain.User, 
 	existingUser, err := s.repo.FindByID(ctx, u.ID)
 
 	if err != nil || existingUser == nil {
-		return nil, ErrUserNotFound
+		return nil, errors.New("user not found")
 	}
 
 	existingDomain := existingUser.ToDomain()
@@ -143,12 +144,12 @@ func (s *userService) Update(ctx context.Context, u domain.User) (*domain.User, 
 		if uMail, err := s.GetByEmail(ctx, u.Email); err != nil {
 			return nil, err
 		} else if uMail != nil && existingUser.ID != uMail.ID {
-			return nil, ErrUserEmailAlreadyExists
+			return nil, errors.New("email já existe")
 		}
 	}
 
 	if u.Password != nil {
-		return nil, ErrUserPasswordUpdateNotAllowed
+		return nil, errors.New("senha de usuário não pode ser atualizada")
 	}
 
 	mergedUser := converters.MergeStructs(existingDomain, u).(domain.User)
@@ -172,7 +173,7 @@ func (s *userService) Delete(ctx context.Context, id uint) error {
 
 	err := s.repo.Delete(ctx, id)
 	if err != nil {
-		return ErrUserDelete
+		return errors.New("ocorreu um erro ao excluir o usuário")
 	}
 
 	return nil

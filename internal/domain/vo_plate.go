@@ -1,15 +1,9 @@
 package domain
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
-
-	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/errors"
-)
-
-var (
-	ErrPlateEmpty   = &errors.ValidationError{Message: "placa vazia"}
-	ErrPlateInvalid = &errors.ValidationError{Message: "placa inválida"}
 )
 
 type Plate struct {
@@ -32,7 +26,7 @@ func normalizePlate(plate string) string {
 func validatePlate(plate string) error {
 	trimmed := strings.TrimSpace(plate)
 	if trimmed == "" {
-		return ErrPlateEmpty
+		return fmt.Errorf("placa vazia")
 	}
 
 	normalized := normalizePlate(trimmed)
@@ -46,7 +40,7 @@ func validatePlate(plate string) error {
 		return nil
 	}
 
-	return ErrPlateInvalid
+	return fmt.Errorf("placa inválida")
 }
 
 func (p *Plate) GetPlate() string {

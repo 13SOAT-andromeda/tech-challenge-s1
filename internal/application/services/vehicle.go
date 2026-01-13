@@ -2,20 +2,13 @@ package services
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/converters"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/errors"
-)
-
-var (
-	ErrVehicleIdInvalid          = &errors.ValidationError{Message: "Vehicle Id invalid"}
-	ErrVehicleNotFound           = &errors.ValidationError{Message: "Vehicle not found"}
-	ErrVehiclePlateAlreadyExists = &errors.ValidationError{Message: "Plate already exists"}
-	ErrVehicleDelete             = &errors.ValidationError{Message: "An error occurred while trying to delete the vehicle"}
 )
 
 type vehicleService struct {
@@ -31,7 +24,7 @@ func (s *vehicleService) Create(ctx context.Context, v domain.Vehicle) (*domain.
 	if user, err := s.GetByPlate(ctx, v.Plate.GetPlate()); err != nil {
 		return nil, err
 	} else if user != nil {
-		return nil, ErrVehiclePlateAlreadyExists
+		return nil, errors.New("Vehicle already exists")
 	}
 
 	vehicle := &vehicle.Model{}
@@ -114,7 +107,7 @@ func (s *vehicleService) Update(ctx context.Context, v domain.Vehicle) (*domain.
 	existing, err := s.repo.FindByID(ctx, v.ID)
 
 	if err != nil || existing == nil {
-		return nil, ErrVehicleNotFound
+		return nil, errors.New("vehicle not found")
 	}
 
 	existingDomain := existing.ToDomain()
@@ -123,7 +116,7 @@ func (s *vehicleService) Update(ctx context.Context, v domain.Vehicle) (*domain.
 		if vehicle, err := s.GetByPlate(ctx, v.Plate.GetPlate()); err != nil {
 			return nil, err
 		} else if vehicle != nil && vehicle.ID != existing.ID {
-			return nil, ErrVehiclePlateAlreadyExists
+			return nil, errors.New("Vehicle already exists")
 		}
 	}
 
@@ -146,7 +139,7 @@ func (s *vehicleService) Delete(ctx context.Context, id uint) error {
 
 	err := s.repo.Delete(ctx, id)
 	if err != nil {
-		return ErrVehicleDelete
+		return errors.New("Vehicle not found")
 	}
 
 	return nil

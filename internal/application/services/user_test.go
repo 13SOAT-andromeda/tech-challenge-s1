@@ -98,7 +98,7 @@ func TestUserService_Create_EmailAlreadyExists(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Equal(t, ErrUserEmailAlreadyExists, err)
+	assert.EqualError(t, err, "email já existe")
 	mockRepo.AssertExpectations(t)
 }
 
@@ -264,6 +264,7 @@ func TestUserService_GetByID_NotFound(t *testing.T) {
 	ctx := context.Background()
 	userID := uint(999)
 
+	// Retornar um error corretamente
 	mockRepo.On("FindByID", ctx, userID).Return(nil, errors.New("user not found"))
 
 	// Act
@@ -272,6 +273,7 @@ func TestUserService_GetByID_NotFound(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
+	assert.EqualError(t, err, "user not found")
 	mockRepo.AssertExpectations(t)
 }
 
@@ -403,7 +405,7 @@ func TestUserService_Update_UserNotFound(t *testing.T) {
 		Name: "João Silva Santos",
 	}
 
-	// Configurar o mock
+	// Configurar o mock para retornar um error
 	mockRepo.On("FindByID", ctx, userID).Return(nil, errors.New("user not found"))
 
 	// Act
@@ -412,7 +414,7 @@ func TestUserService_Update_UserNotFound(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Equal(t, ErrUserNotFound, err)
+	assert.EqualError(t, err, "user not found")
 	mockRepo.AssertExpectations(t)
 }
 
@@ -457,7 +459,7 @@ func TestUserService_Update_EmailAlreadyExists(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Equal(t, ErrUserEmailAlreadyExists, err)
+	assert.EqualError(t, err, "email já existe")
 	mockRepo.AssertExpectations(t)
 }
 
@@ -495,7 +497,7 @@ func TestUserService_Update_PasswordUpdateNotAllowed(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Equal(t, ErrUserPasswordUpdateNotAllowed, err)
+	assert.EqualError(t, err, "senha de usuário não pode ser atualizada")
 	mockRepo.AssertExpectations(t)
 }
 
@@ -535,7 +537,7 @@ func TestUserService_Delete_RepositoryError(t *testing.T) {
 
 	// Assert
 	assert.Error(t, err)
-	assert.Equal(t, ErrUserDelete, err)
+	assert.EqualError(t, err, "ocorreu um erro ao excluir o usuário")
 	mockRepo.AssertExpectations(t)
 }
 

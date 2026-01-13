@@ -153,7 +153,7 @@ func TestOrderService_Delete_DeleteError(t *testing.T) {
 	err := service.Delete(ctx, 1)
 
 	assert.Error(t, err)
-	assert.Equal(t, ErrOrderDelete, err)
+	assert.EqualError(t, err, "An error occurred while trying to delete the order")
 	mockRepo.AssertExpectations(t)
 }
 

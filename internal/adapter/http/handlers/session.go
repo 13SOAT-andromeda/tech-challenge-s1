@@ -5,7 +5,6 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -118,20 +117,14 @@ func (h *SessionHandler) Logout(ctx *gin.Context) {
 }
 
 func mapErrorToStatus(err error) int {
-	switch err {
-	case services.ErrUserNotFound:
+	switch err.Error() {
+	case "user not found", "invalid or expired session":
 		return http.StatusUnauthorized
-	case services.ErrSessionInvalid:
-		return http.StatusUnauthorized
-	case services.ErrSessionRefreshTokenEmpty:
-		return http.StatusBadRequest
-	case services.ErrSessionExpiresAtPast:
-		return http.StatusBadRequest
-	case services.ErrSessionUserIDInvalid:
-		return http.StatusBadRequest
-	case services.ErrSessionIDInvalid:
-		return http.StatusBadRequest
-	case services.ErrSessionNil:
+	case "refresh token cannot be empty",
+		"data de expiração não pode estar no passado",
+		"invalid user ID",
+		"invalid session ID",
+		"session cannot be null":
 		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError
