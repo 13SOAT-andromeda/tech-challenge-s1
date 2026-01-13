@@ -17,3 +17,13 @@ output "configure_kubectl" {
   description = "Command to configure kubectl"
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }
+
+output "rds_endpoint" {
+  description = "RDS database endpoint"
+  value       = module.rds.db_endpoint
+}
+
+output "rds_address" {
+  description = "RDS database address (use this in your K8s ConfigMap)"
+  value       = module.rds.db_address
+}
