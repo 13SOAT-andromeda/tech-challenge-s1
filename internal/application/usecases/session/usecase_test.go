@@ -569,6 +569,37 @@ func TestRefresh_InvalidRefreshToken(t *testing.T) {
 	sessionService.AssertExpectations(t)
 }
 
+func TestRefresh_ExpiredSession(t *testing.T) {
+	userService := &MockUserService{}
+	sessionService := &MockSessionService{}
+	jwtService := jwt.NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
+	config := &config.Config{
+		JWT: &config.JWTConfig{
+			AccessTokenExpiry:  "15m",
+			RefreshTokenExpiry: "7d",
+		},
+	}
+
+	useCase := NewSessionUseCase(userService, sessionService, jwtService, config)
+
+	// Setup mocks - session validation fails due to expiration
+	sessionService.On("Validate", mock.Anything, "refresh-token").Return((*domain.Session)(nil), errors.New("invalid or expired session"))
+
+	// Execute
+	input := ports.RefreshInput{
+		RefreshToken: "refresh-token",
+	}
+
+	output, err := useCase.Refresh(context.Background(), input)
+
+	// Assertions
+	assert.Error(t, err)
+	assert.Nil(t, output)
+	assert.EqualError(t, err, "invalid or expired session")
+
+	sessionService.AssertExpectations(t)
+}
+
 func TestRefresh_InactiveSession(t *testing.T) {
 	userService := &MockUserService{}
 	sessionService := &MockSessionService{}
@@ -669,6 +700,61 @@ func TestRefresh_EmptyRefreshToken(t *testing.T) {
 	assert.Nil(t, output)
 	assert.EqualError(t, err, "invalid or expired session")
 
+	sessionService.AssertExpectations(t)
+}
+
+func TestValidate_ValidToken(t *testing.T) {
+	userService := &MockUserService{}
+	sessionService := &MockSessionService{}
+	jwtService := jwt.NewService("test-secret", 15*time.Minute, 7*24*time.Hour)
+
+	useCase := NewSessionUseCase(userService, sessionService, jwtService, nil)
+
+	// Generate a valid token with session ID
+	userID := uint(1)
+	sessionID := uint(123)
+	email := "test@example.com"
+	role := "user"
+	token, err := jwtService.GenerateAccessToken(userID, email, role, sessionID)
+	assert.NoError(t, err)
+
+	// Mock user
+	user := &domain.User{
+		ID:        userID,
+		Name:      "Test User",
+		Email:     email,
+		Contact:   "123456789",
+		Role:      role,
+		DeletedAt: nil,
+	}
+
+	// Mock valid session
+	validSession := &domain.Session{
+		ID:        sessionID,
+		UserID:    userID,
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+
+	// Setup mocks
+	userService.On("GetByID", mock.Anything, userID).Return(user, nil)
+	sessionService.On("GetByID", mock.Anything, sessionID).Return(validSession, nil)
+
+	// Execute
+	input := ports.ValidateInput{
+		Token: token,
+	}
+
+	output, err := useCase.Validate(context.Background(), input)
+
+	// Assertions
+	assert.NoError(t, err)
+	assert.NotNil(t, output)
+	assert.True(t, output.Valid)
+	assert.NotNil(t, output.User)
+	assert.Equal(t, user.ID, output.User.ID)
+	assert.Equal(t, user.Email, output.User.Email)
+
+	userService.AssertExpectations(t)
 	sessionService.AssertExpectations(t)
 }
 
