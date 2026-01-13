@@ -49,7 +49,10 @@ resource "aws_db_instance" "main" {
   vpc_security_group_ids = [aws_security_group.rds.id]
   publicly_accessible = false
 
-  skip_final_snapshot = true
+  skip_final_snapshot = false
+  final_snapshot_identifier = "${var.db_name}-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
+  backup_retention_period = 7
+
 
    tags = {
     Name = "db-${var.db_name}"
