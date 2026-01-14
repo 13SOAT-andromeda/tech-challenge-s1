@@ -47,12 +47,30 @@ push:
 load:
 	kind load docker-image $(IMAGE_NAME) --name $(CLUSTER_NAME)
 
+deploy-local:
+	@echo "Deploying local..."
+	kubectl apply -k k8s/overlays/local
+	@echo "Aguardando a inicialização do posgres..."
+	kubectl wait --for=condition=ready pod -l app=postgres --timeout=90s || true
+
+deploy-aws:
+	@RDS_ADDRESS=$$(terraform output -raw rds_address 2>/dev/null) && \
+	if [ -z "$$RDS_ADDRESS" ]; then \
+		echo "Erro: Não foi possível obter o endereço do RDS. Verifique se o Terraform foi aplicado."; \
+		exit 1; \
+	fi
+	@echo "Atualizando o endereço do banco de dados para o endpoint do RDS"
+	kubectl patch configmap api-config \
+		--type merge \
+		-p "{\"data\":{\"DB_HOST\":\"$$RDS_ADDRESS\"}}" && \
+	@echo "Aplicando a configuração do cluster"
+	kubectl apply -k k8s/overlays/aws
+	@echo "IP Externo..."
+	kubectl get svc tech-challenge-api-svc | awk '{print $$4}'
+
 deploy:
-	kubectl apply -f k8s/config.yaml
-	kubectl apply -f k8s/postgres.yaml
-	@echo "Waiting postgres starting..."
-	kubectl wait --for=condition=ready pod -l app=postgres --timeout=90s
-	kubectl apply -f k8s/deployment.yaml
-	kubectl apply -f k8s/service.yaml
-	kubectl apply -f k8s/ingress.yaml
-	kubectl apply -f k8s/hpa.yaml
+ifeq ($(ENV),aws)
+	$(MAKE) deploy-aws
+else
+	$(MAKE) deploy-local
+endif
