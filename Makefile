@@ -1,3 +1,5 @@
+include .env
+
 CLUSTER_NAME=tech-challenge-api-local
 IMAGE_NAME=tech-challenge-api:latest
 
@@ -34,6 +36,13 @@ deps:
 
 build:
 	docker build -t $(IMAGE_NAME) .
+
+push:
+	@echo "Pushing docker image into AWS..."
+	@echo "Docker and AWS CLI are needed before push API image..."
+	docker build --target production -t $(AWS_ACCOUNT).dkr.ecr.$(AWS_REGION).amazonaws.com/$(AWS_ECR_REPO):latest .
+	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin ${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com
+	docker push $(AWS_ACCOUNT).dkr.ecr.$(AWS_REGION).amazonaws.com/$(AWS_ECR_REPO):latest
 
 load:
 	kind load docker-image $(IMAGE_NAME) --name $(CLUSTER_NAME)
