@@ -16,3 +16,18 @@ module "eks" {
   public_subnets  = module.network.public_subnets
   private_subnets = module.network.private_subnets
 }
+
+module "rds" {
+  source = "./modules/rds"
+
+  vpc_id          = module.network.vpc_id
+  private_subnets = module.network.private_subnets
+
+  eks_cluster_security_group_id = module.eks.cluster_security_group_id
+
+  db_name = "garagedb"
+  db_user = "postgres"
+  db_pass = var.db_password
+
+  depends_on = [module.eks]
+}
