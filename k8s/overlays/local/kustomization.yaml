@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: default
+
+resources:
+  - ../../base
+  - config.yaml
+  - postgres.yaml
+  - ingress.yaml
+
+patches:
+  - target:
+      kind: Deployment
+      name: tech-challenge-api
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: tech-challenge-api:latest
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Never

@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: default
+
+resources:
+  - ../../base
+  - config.yaml
+
+patches:
+  - target:
+      kind: Deployment
+      name: tech-challenge-api
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: ${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/${AWS_ECR_REPO}:latest
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      kind: Service
+      name: tech-challenge-api-svc
+    patch: |-
+      - op: replace
+        path: /spec/type
+        value: LoadBalancer

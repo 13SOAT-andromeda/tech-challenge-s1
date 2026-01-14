@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: tech-challenge-api-svc
 spec:
+  type: ClusterIP
   selector:
     app: tech-challenge-api
   ports:
