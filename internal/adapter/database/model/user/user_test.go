@@ -33,7 +33,7 @@ func TestUserModel_TableName(t *testing.T) {
 
 func TestNewUserModelFromDomain(t *testing.T) {
 	mockHasher := &MockHasher{}
-	mockHasher.On("Generate", mock.AnythingOfType("[]uint8"), 15).Return([]byte("hashed_password"), nil)
+	mockHasher.On("Generate", mock.AnythingOfType("[]uint8"), 10).Return([]byte("hashed_password"), nil)
 
 	password, err := domain.NewPassword("TestPass123!", mockHasher)
 	assert.NoError(t, err)
@@ -50,13 +50,13 @@ func TestNewUserModelFromDomain(t *testing.T) {
 	}
 
 	domainUser := domain.User{
-		ID:       1,
-		Name:     "João Silva",
-		Email:    "joao@test.com",
-		Contact:  "11999999999",
-		Role:     "admin",
-		Password: password,
-		Address:  address,
+		ID:        1,
+		Name:      "João Silva",
+		Email:     "joao@test.com",
+		Contact:   "11999999999",
+		Role:      "admin",
+		Password:  password,
+		Address:   address,
 		DeletedAt: nil,
 	}
 
@@ -119,7 +119,7 @@ func TestUserModel_ToDomain(t *testing.T) {
 
 func TestNewUserModelFromDomain_WithNilAddress(t *testing.T) {
 	mockHasher := &MockHasher{}
-	mockHasher.On("Generate", mock.AnythingOfType("[]uint8"), 15).Return([]byte("hashed_password"), nil)
+	mockHasher.On("Generate", mock.AnythingOfType("[]uint8"), 10).Return([]byte("hashed_password"), nil)
 
 	password, err := domain.NewPassword("TestPass123!", mockHasher)
 	assert.NoError(t, err)
@@ -127,13 +127,13 @@ func TestNewUserModelFromDomain_WithNilAddress(t *testing.T) {
 	assert.NoError(t, err)
 
 	domainUser := domain.User{
-		ID:       1,
-		Name:     "João Silva",
-		Email:    "joao@test.com",
-		Contact:  "11999999999",
-		Role:     "admin",
-		Password: password,
-		Address:  nil,
+		ID:        1,
+		Name:      "João Silva",
+		Email:     "joao@test.com",
+		Contact:   "11999999999",
+		Role:      "admin",
+		Password:  password,
+		Address:   nil,
 		DeletedAt: nil,
 	}
 
@@ -190,7 +190,7 @@ func TestUserModel_ToDomain_WithEmptyAddress(t *testing.T) {
 
 func TestNewUserModelFromDomain_WithPasswordHashError(t *testing.T) {
 	mockHasher := &MockHasher{}
-	mockHasher.On("Generate", mock.AnythingOfType("[]uint8"), 15).Return([]byte(""), errors.New("hash error"))
+	mockHasher.On("Generate", mock.AnythingOfType("[]uint8"), 10).Return([]byte(""), errors.New("hash error"))
 
 	password, err := domain.NewPassword("TestPass123!", mockHasher)
 	assert.NoError(t, err)
@@ -198,13 +198,13 @@ func TestNewUserModelFromDomain_WithPasswordHashError(t *testing.T) {
 	assert.Error(t, err)
 
 	domainUser := domain.User{
-		ID:       1,
-		Name:     "João Silva",
-		Email:    "joao@test.com",
-		Contact:  "11999999999",
-		Role:     "admin",
-		Password: password,
-		Address:  nil,
+		ID:        1,
+		Name:      "João Silva",
+		Email:     "joao@test.com",
+		Contact:   "11999999999",
+		Role:      "admin",
+		Password:  password,
+		Address:   nil,
 		DeletedAt: nil,
 	}
 

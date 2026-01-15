@@ -24,7 +24,7 @@ func TestUserService_Create_Success(t *testing.T) {
 	ctx := context.Background()
 
 	// Configurar o mock do hasher
-	mockHasher.On("Generate", mock.AnythingOfType("[]uint8"), 15).Return([]byte("hashed_password"), nil)
+	mockHasher.On("Generate", mock.AnythingOfType("[]uint8"), 10).Return([]byte("hashed_password"), nil)
 
 	password, err := domain.NewPassword("TestPass123!", mockHasher)
 	assert.NoError(t, err)
@@ -111,7 +111,7 @@ func TestUserService_Create_RepositoryError(t *testing.T) {
 	ctx := context.Background()
 
 	// Configurar o mock do hasher
-	mockHasher.On("Generate", mock.AnythingOfType("[]uint8"), 15).Return([]byte("hashed_password"), nil)
+	mockHasher.On("Generate", mock.AnythingOfType("[]uint8"), 10).Return([]byte("hashed_password"), nil)
 
 	password, err := domain.NewPassword("TestPass123!", mockHasher)
 	assert.NoError(t, err)
@@ -548,7 +548,7 @@ func TestUserService_Create_WithNilAddress(t *testing.T) {
 	ctx := context.Background()
 
 	// Configurar o mock do hasher
-	mockHasher.On("Generate", mock.AnythingOfType("[]uint8"), 15).Return([]byte("hashed_password"), nil)
+	mockHasher.On("Generate", mock.AnythingOfType("[]uint8"), 10).Return([]byte("hashed_password"), nil)
 
 	password, err := domain.NewPassword("TestPass123!", mockHasher)
 	assert.NoError(t, err)
