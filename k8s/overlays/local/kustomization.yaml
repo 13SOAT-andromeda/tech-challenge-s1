@@ -5,6 +5,7 @@ namespace: default
 
 resources:
   - ../../base
+  - ingress-nginx.yaml
   - config.yaml
   - postgres.yaml
   - ingress.yaml
