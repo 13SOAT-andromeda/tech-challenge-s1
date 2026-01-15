@@ -34,7 +34,7 @@ func (p *Password) GetHashed() string {
 
 func (p *Password) Hash() error {
 	pass := []byte(p.value)
-	hash, err := p.hasher.Generate(pass, 15)
+	hash, err := p.hasher.Generate(pass, 10)
 
 	if err != nil {
 		return ErrPasswordHash
