@@ -7,14 +7,15 @@ resources:
   - ../../base
   - config.yaml
 
+images:
+  - name: tech-challenge-api
+    newName: ECR_IMAGE
+
 patches:
   - target:
       kind: Deployment
       name: tech-challenge-api
     patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/image
-        value: ${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/${AWS_ECR_REPO}:latest
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
