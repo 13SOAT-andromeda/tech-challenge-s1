@@ -1,4 +1,4 @@
-# ⚙️ Tech Challenge S1 - API de Gestão de Oficina Mecânica
+# ⚙️ Tech Challenge - API de Gestão de Oficina Mecânica
 
 Este projeto é uma API completa para gerenciamento de uma oficina mecânica, desenvolvida em Go (Golang). Ele permite gerenciar clientes, veículos, produtos e ordens de serviço, com autenticação JWT, documentação via Swagger e implantação simplificada com Docker Compose.
 
@@ -241,3 +241,4 @@ Se a aplicação falhar ao conectar-se ao banco de dados, verifique se o seu Pos
 
 -   **Postman Collection**: Você pode fazer o download da collection do Postman para testar os endpoints da API [aqui](./misc/Tech%20Challenge%20S1.postman.json).
 -   **Guia de Desenvolvimento (kind & cluster local)**: [development.md](./development.md)
+-   **Guia para Deploy na AWS**: [deploy.md](./deploy.md)
