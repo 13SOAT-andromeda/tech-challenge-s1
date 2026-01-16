@@ -4,7 +4,7 @@ CLUSTER_NAME=tech-challenge-api-local
 IMAGE_NAME=tech-challenge-api:latest
 AWS_ECR_IMAGE=$(AWS_ACCOUNT).dkr.ecr.$(AWS_REGION).amazonaws.com/$(AWS_ECR_REPO)
 
-.PHONY: all up down deploy deploy-local deploy-aws switch-eck-aw build-aws apply-aws build load test
+.PHONY: all up down deploy deploy-local deploy-aws switch-eck-aw build-aws apply-aws build load create-tfstate-bucket
 
 up: cluster deps build load deploy-local
 	@echo "Waiting for pods to be ready..."
@@ -74,3 +74,11 @@ ifeq ($(ENV),aws)
 else
 	$(MAKE) deploy-local
 endif
+
+create-tfstate-bucket:
+	aws s3api create-bucket --bucket tech-challenge-13-soat-tfstate --region $(AWS_REGION)
+	
+	aws s3api put-bucket-versioning --bucket tech-challenge-13-soat-tfstate --versioning-configuration Status=Enabled
+
+	aws s3api put-public-access-block  --bucket tech-challenge-13-soat-tfstate  --public-access-block-configuration \
+	"BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
