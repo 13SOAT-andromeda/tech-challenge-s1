@@ -1,3 +1,11 @@
+terraform {
+  backend "s3" {
+    bucket = "tech-challenge-13-soat-tfstate"
+    key = "tfstate"
+    region = "us-east-1"
+  }
+}
+
 module "network" {
   source       = "./modules/network"
   cluster_name = var.cluster_name
