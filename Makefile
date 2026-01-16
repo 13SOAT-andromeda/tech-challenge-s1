@@ -4,7 +4,7 @@ CLUSTER_NAME=tech-challenge-api-local
 IMAGE_NAME=tech-challenge-api:latest
 AWS_ECR_IMAGE=$(AWS_ACCOUNT).dkr.ecr.$(AWS_REGION).amazonaws.com/$(AWS_ECR_REPO)
 
-.PHONY: all up down deploy deploy-local deploy-aws switch-eck-aw build-aws apply-aws build load create-tfstate-bucket
+.PHONY: all up down deploy deploy-local deploy-aws switch-eck-aw build-aws apply-aws build load create-tfstate-bucket apply-terraform
 
 up: cluster deps build load deploy-local
 	@echo "Waiting for pods to be ready..."
@@ -40,7 +40,7 @@ deploy-local:
 	@echo "Aguardando a inicialização do posgres..."
 	kubectl wait --for=condition=ready pod -l app=postgres --timeout=90s || true
 
-deploy-aws: switch-eck-aws deps build-aws apply-aws
+deploy-aws: apply-terraform switch-eck-aws deps build-aws apply-aws
 
 switch-eck-aws:
 	@echo "AWS CLI is needed and you should have been logged into your account ..."
@@ -82,3 +82,11 @@ create-tfstate-bucket:
 
 	aws s3api put-public-access-block  --bucket tech-challenge-13-soat-tfstate  --public-access-block-configuration \
 	"BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+
+apply-terraform:
+	@./apply-terraform.sh --auto-approve
+
+down-terraform:
+	export TF_VAR_lab_role_arn="$(AWS_TERRAFORM_ROLE)" && \
+	export TF_VAR_db_password="$(DB_PASSWORD)" && \
+	cd infra/ && terraform destroy -auto-approve
