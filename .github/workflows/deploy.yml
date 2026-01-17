@@ -2,23 +2,23 @@
 
 on:
 
-#  push:
-#    branches: [ main ]
-#    paths:
-#      - 'cmd/**'
-#      - 'internal/**'
-#      - 'pkg/**'
-#      - 'k8s/**'
-#      - 'Dockerfile'
+  push:
+    branches: [ main ]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'k8s/**'
+      - 'Dockerfile'
 
-#  pull_request:
-#    branches: [ main ]
-#    paths:
-#      - 'cmd/**'
-#      - 'internal/**'
-#      - 'pkg/**'
-#      - 'k8s/**'
-#      - 'Dockerfile'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'k8s/**'
+      - 'Dockerfile'
 
   workflow_run:
     workflows: ["Deploy Infra"]
