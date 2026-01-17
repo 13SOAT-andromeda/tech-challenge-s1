@@ -2,23 +2,23 @@
 
 on:
 
-  push:
-    branches: [ main ]
-    paths:
-      - 'cmd/**'
-      - 'internal/**'
-      - 'pkg/**'
-      - 'k8s/**'
-      - 'Dockerfile'
+#  push:
+#    branches: [ main ]
+#    paths:
+#      - 'cmd/**'
+#      - 'internal/**'
+#      - 'pkg/**'
+#      - 'k8s/**'
+#      - 'Dockerfile'
 
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'cmd/**'
-      - 'internal/**'
-      - 'pkg/**'
-      - 'k8s/**'
-      - 'Dockerfile'
+#  pull_request:
+#    branches: [ main ]
+#    paths:
+#      - 'cmd/**'
+#      - 'internal/**'
+#      - 'pkg/**'
+#      - 'k8s/**'
+#      - 'Dockerfile'
 
   workflow_run:
     workflows: ["Deploy Infra"]
@@ -29,10 +29,13 @@ on:
 
 jobs:
   build-and-deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: AWS
     env:
       AWS_REGION: us-east-1
+      TF_VAR_cluster_name: tech-challenge-api-dev
+
 
     steps:
       - name: Checkout Code
