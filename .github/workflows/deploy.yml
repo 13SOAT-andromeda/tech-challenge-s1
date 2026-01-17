@@ -79,7 +79,7 @@ jobs:
           
           
           kubectl kustomize k8s/overlays/aws | \
-            sed "s|ECR_IMAGE:latest|${{ steps.login-ecr.registry }}/${{ vars.AWS_ECR_REPO }}:latest|g" | \
+            sed "s|ECR_IMAGE:latest|${{ steps.login-ecr.outputs.registry }}/${{ vars.AWS_ECR_REPO }}:latest|g" | \
             kubectl apply -f -
           
           kubectl patch configmap api-config --type merge -p "{\"data\":{\"DB_HOST\":\"$RDS_ADDRESS\"}}"
