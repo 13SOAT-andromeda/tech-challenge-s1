@@ -34,7 +34,7 @@ jobs:
     environment: AWS
     env:
       AWS_REGION: us-east-1
-      TF_VAR_cluster_name: tech-challenge-api-dev
+      TF_VAR_cluster_name: tech-challenge-api-cluster
 
 
     steps:
