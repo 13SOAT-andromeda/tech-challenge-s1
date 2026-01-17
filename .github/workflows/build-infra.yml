@@ -2,16 +2,16 @@ name: Deploy Infra
 
 on:
   # ONLY DISABLE WHEN TESTING CHANGES TO INFRA
-#  pull_request:
-#    branches: [ main ]
-#    paths:
-#      - 'infra/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'infra/**'
   push:
     branches: [ main ]
     paths:
       - 'infra/**'
   # # ONLY DISABLE WHEN TESTING CHANGES TO INFRA
-  #  workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
   terraform:
@@ -47,6 +47,6 @@ jobs:
         working-directory: ./infra
 
       - name: Terraform Apply
-#        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve tfplan
         working-directory: ./infra

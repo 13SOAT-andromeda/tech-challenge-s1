@@ -1,7 +1,17 @@
 ﻿name: Deploy EKS
 
 on:
+
   push:
+    branches: [ main ]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'k8s/**'
+      - 'Dockerfile'
+
+  pull_request:
     branches: [ main ]
     paths:
       - 'cmd/**'
