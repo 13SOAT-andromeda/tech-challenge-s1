@@ -33,8 +33,6 @@ jobs:
 
     env:
       AWS_REGION: us-east-1
-      ECR_REPO: tech-challenge-api
-      EKS_CLUSTER: tech-challenge-api-cluster
 
     steps:
       - name: Checkout Code
@@ -55,7 +53,7 @@ jobs:
       - name: Build and Push Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ env.ECR_REPO }}
+          ECR_REPOSITORY: ${{ env.AWS_ECR_REPO }}
           IMAGE_TAG: latest
         run: |
           # Build
