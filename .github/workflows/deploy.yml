@@ -30,7 +30,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
+    environment: AWS
     env:
       AWS_REGION: us-east-1
 
@@ -41,9 +41,9 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ASIARIUX34JE34W24VDI
-          aws-secret-access-key: CkeSp7PmTaJYDvY3inuWQAmCUHjoyTAZnmMDoZ7C
-          aws-session-token: IQoJb3JpZ2luX2VjEJP//////////wEaCXVzLXdlc3QtMiJHMEUCIEmfXROtnqeqiH0KS8GwjKm8nkLbTFfdx15ifN8AMBfpAiEA8CUPX/h2cGN9KwQyW+X6/VslBljiEqI7fLosg1toX7kqtgIIWxACGgwwODcyOTE1ODUwOTciDI13jpZfdcalYagAHyqTAt9TFLfUdYaflyk2c/6Qt2r8oGUPQFZAVOb5U00qH2ZY5oYiJCqw6CALUEIRs/uGgnFnpNkRAkDX4TPAd/ENLSZF88ouLeVhI4v4+TRo8GI+3+/3w1atFEhsvJ+yTr+66dGtmS0BYrS1pRsmMOCXg7kxUHUsco7pHKx8rszuDCR9AmqqVgF0DHOk12eLKVwOXYZcNxlT9wMYBiSYp/tVuPJ3ZTmyDOeKIk//B1Hy4oBDxAT5U/rjkIawSOdnOqRuC7tmjmXEyK7UacKnXBsflmbAGLL+putmTyAm9z2N+JsWyEjoy/DQ36cskKcp+e3cIYt8qoBna/7m7F3ThKWzSWGmcufDZ4gg8ceM4xCJaKM2MZE+MPzjq8sGOp0BwmeLvzzUkE7O3SiIcdC+Qt7SrCASH4OpirSHZxypmIK4+lr+2Kf20hqZAYGb5HZRfCWnSXfgAU7NPgZCxNUFFo+9N+ixev/9fy8vvOroqhKXd0DK+yOctuxSnu9/wHcEac/2I+g93JHe9rBKKeRiNQJGyZ8EFBwXzahZGRqY7duSAm+6a2RZ7+eQCJcO4o/ZJM0A8Ck60646eitIfQ==
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
