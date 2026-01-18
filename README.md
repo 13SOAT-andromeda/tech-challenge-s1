@@ -242,3 +242,4 @@ Se a aplicação falhar ao conectar-se ao banco de dados, verifique se o seu Pos
 -   **Postman Collection**: Você pode fazer o download da collection do Postman para testar os endpoints da API [aqui](./misc/Tech%20Challenge%20S1.postman.json).
 -   **Guia de Desenvolvimento (kind & cluster local)**: [development.md](misc/development.md)
 -   **Guia para Deploy na AWS**: [deploy.md](misc/deploy.md)
+-   **Desenho de Arquitetura AWS**: [arquitetura-aws-tech-challenge-s1-soat-13.drawio.png](./misc/arquitetura-aws-tech-challenge-s1-soat-13.drawio.png)
