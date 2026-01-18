@@ -20,10 +20,10 @@ on:
       - 'k8s/**'
       - 'Dockerfile'
 
-  workflow_run:
-    workflows: ["Deploy Infra"]
-    types:
-      - completed
+#  workflow_run:
+#    workflows: ["Deploy Infra"]
+#    types:
+#      - completed
 
   workflow_dispatch:
 
