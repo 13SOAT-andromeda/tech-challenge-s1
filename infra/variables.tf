@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "cluster_name" {
   description = "Name of the EKS cluster"
   type        = string
-  default     = "tech-challenge-api"
+  default     = "tech-challenge-api-cluster"
 }
 
 # CRITICAL: This variable accepts the ARN from your pipeline/env
