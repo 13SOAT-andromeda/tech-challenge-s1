@@ -1,6 +1,7 @@
 package email
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -15,7 +16,7 @@ const (
 func LoadTemplate(template EmailTemplates) (string, error) {
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
-		return "", ErrTemplateNotFound
+		return "", fmt.Errorf("template not found")
 	}
 
 	baseDir := filepath.Dir(filename)
@@ -24,7 +25,7 @@ func LoadTemplate(template EmailTemplates) (string, error) {
 	content, err := os.ReadFile(templatePath)
 
 	if err != nil {
-		return "", ErrTemplateLoad
+		return "", fmt.Errorf("error on loading template")
 	}
 
 	return string(content), nil

@@ -1,9 +1,12 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/middlewares"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -138,7 +141,7 @@ func NewRouter(
 	}
 
 	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
+		response.RespondSuccess(c, http.StatusOK, "ok")
 	})
 
 	// serve static swagger files from ./swagger so /swagger/swagger.yaml is available

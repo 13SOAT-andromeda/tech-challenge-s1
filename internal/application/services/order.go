@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"sort"
 	"strconv"
 	"strings"
@@ -10,12 +11,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/email"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/errors"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/monetary"
-)
-
-var (
-	ErrOrderDelete = &errors.ValidationError{Message: "An error occurred while trying to delete the order"}
 )
 
 type OrderService struct {
@@ -114,7 +110,7 @@ func (s *OrderService) GetAll(ctx context.Context, params map[string]interface{}
 func (s *OrderService) Delete(ctx context.Context, id uint) error {
 	err := s.repo.Delete(ctx, id)
 	if err != nil {
-		return ErrOrderDelete
+		return errors.New("An error occurred while trying to delete the order")
 	}
 
 	return nil

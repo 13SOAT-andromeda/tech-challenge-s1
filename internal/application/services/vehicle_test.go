@@ -65,7 +65,7 @@ func TestVehicleService_Create_PlateAlreadyExists(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Equal(t, ErrVehiclePlateAlreadyExists, err)
+	assert.EqualError(t, err, "Vehicle already exists")
 	mockRepo.AssertExpectations(t)
 }
 
@@ -384,7 +384,7 @@ func TestVehicleService_Update_VehicleNotFound(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Equal(t, ErrVehicleNotFound, err)
+	assert.EqualError(t, err, "vehicle not found")
 	mockRepo.AssertExpectations(t)
 }
 
@@ -427,7 +427,7 @@ func TestVehicleService_Update_PlateAlreadyExists(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Equal(t, ErrVehiclePlateAlreadyExists, err)
+	assert.EqualError(t, err, "Vehicle already exists")
 	mockRepo.AssertExpectations(t)
 }
 
@@ -567,7 +567,7 @@ func TestVehicleService_Delete_RepositoryError(t *testing.T) {
 	err := service.Delete(ctx, id)
 
 	assert.Error(t, err)
-	assert.Equal(t, ErrVehicleDelete, err)
+	assert.EqualError(t, err, "Vehicle not found")
 	mockRepo.AssertExpectations(t)
 }
 

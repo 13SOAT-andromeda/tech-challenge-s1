@@ -27,7 +27,8 @@ func TestValidInvalidPlate(t *testing.T) {
 
 	p, err := NewPlate(plate)
 
-	assert.ErrorIs(t, err, ErrPlateInvalid)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "placa inválida")
 	assert.Nil(t, p)
 }
 
@@ -36,6 +37,7 @@ func TestEmptyPlate(t *testing.T) {
 
 	p, err := NewPlate(plate)
 
-	assert.ErrorIs(t, err, ErrPlateEmpty)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "placa vazia")
 	assert.Nil(t, p)
 }

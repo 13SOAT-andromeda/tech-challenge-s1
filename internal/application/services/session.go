@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
@@ -18,15 +19,15 @@ func NewSessionService(repo ports.SessionRepository) *sessionService {
 
 func (s *sessionService) Create(ctx context.Context, userID uint, refreshToken string, expiresAt time.Time) (*domain.Session, error) {
 	if userID == 0 {
-		return nil, ErrSessionUserIDInvalid
+		return nil, errors.New("invalid user ID")
 	}
 
 	if refreshToken == "" {
-		return nil, ErrSessionRefreshTokenEmpty
+		return nil, errors.New("refresh token cannot be empty")
 	}
 
 	if expiresAt.Before(time.Now()) {
-		return nil, ErrSessionExpiresAtPast
+		return nil, errors.New("data de expiração não pode estar no passado")
 	}
 
 	session := domain.NewSession(userID, refreshToken, expiresAt)
@@ -35,7 +36,7 @@ func (s *sessionService) Create(ctx context.Context, userID uint, refreshToken s
 
 func (s *sessionService) GetByID(ctx context.Context, sessionID uint) (*domain.Session, error) {
 	if sessionID == 0 {
-		return nil, ErrSessionIDInvalid
+		return nil, errors.New("invalid session ID")
 	}
 
 	return s.repo.FindByID(ctx, sessionID)
@@ -43,7 +44,7 @@ func (s *sessionService) GetByID(ctx context.Context, sessionID uint) (*domain.S
 
 func (s *sessionService) GetByRefreshToken(ctx context.Context, refreshToken string) (*domain.Session, error) {
 	if refreshToken == "" {
-		return nil, ErrSessionRefreshTokenEmpty
+		return nil, errors.New("refresh token cannot be empty")
 	}
 
 	return s.repo.FindByRefreshToken(ctx, refreshToken)
@@ -51,7 +52,7 @@ func (s *sessionService) GetByRefreshToken(ctx context.Context, refreshToken str
 
 func (s *sessionService) GetByUserID(ctx context.Context, userID uint) ([]*domain.Session, error) {
 	if userID == 0 {
-		return nil, ErrSessionUserIDInvalid
+		return nil, errors.New("invalid user ID")
 	}
 
 	return s.repo.FindByUserID(ctx, userID)
@@ -59,11 +60,11 @@ func (s *sessionService) GetByUserID(ctx context.Context, userID uint) ([]*domai
 
 func (s *sessionService) Update(ctx context.Context, session *domain.Session) (*domain.Session, error) {
 	if session == nil {
-		return nil, ErrSessionNil
+		return nil, errors.New("session cannot be null")
 	}
 
 	if session.ID == 0 {
-		return nil, ErrSessionIDInvalid
+		return nil, errors.New("invalid session ID")
 	}
 
 	return s.repo.Update(ctx, session)
@@ -71,7 +72,7 @@ func (s *sessionService) Update(ctx context.Context, session *domain.Session) (*
 
 func (s *sessionService) Delete(ctx context.Context, sessionID uint) error {
 	if sessionID == 0 {
-		return ErrSessionIDInvalid
+		return errors.New("invalid session ID")
 	}
 
 	return s.repo.Delete(ctx, sessionID)
@@ -79,7 +80,7 @@ func (s *sessionService) Delete(ctx context.Context, sessionID uint) error {
 
 func (s *sessionService) DeleteByUserID(ctx context.Context, userID uint) error {
 	if userID == 0 {
-		return ErrSessionUserIDInvalid
+		return errors.New("invalid user ID")
 	}
 
 	return s.repo.DeleteByUserID(ctx, userID)
@@ -92,7 +93,7 @@ func (s *sessionService) Validate(ctx context.Context, refreshToken string) (*do
 	}
 
 	if !session.IsValid() {
-		return nil, ErrSessionInvalid
+		return nil, errors.New("invalid or expired session")
 	}
 
 	return session, nil
@@ -100,7 +101,7 @@ func (s *sessionService) Validate(ctx context.Context, refreshToken string) (*do
 
 func (s *sessionService) DeleteByRefreshToken(ctx context.Context, refreshToken string) error {
 	if refreshToken == "" {
-		return ErrSessionRefreshTokenEmpty
+		return errors.New("refresh token cannot be empty")
 	}
 
 	_, err := s.repo.FindByRefreshToken(ctx, refreshToken)

@@ -2,17 +2,10 @@ package email
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
-
-	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/errors"
-)
-
-var (
-	ErrTemplateNotFound = &errors.ValidationError{Message: "template not found"}
-	ErrTemplateLoad     = &errors.ValidationError{Message: "error on loading template"}
-	ErrExternalRequest  = &errors.ValidationError{Message: "error on call external API"}
 )
 
 type sendtrap struct {
@@ -78,7 +71,7 @@ func (s *sendtrap) Send(name string, email string, subject string, html string) 
 	response, err := client.Do(request)
 
 	if err != nil {
-		return ErrExternalRequest
+		return fmt.Errorf("error on call external API: %w", err)
 	}
 
 	defer response.Body.Close()

@@ -2,21 +2,11 @@ package customer
 
 import (
 	"context"
+	"errors"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/errors"
-)
-
-var (
-	ErrCustomerNotFound               = &errors.ValidationError{Message: "customer not found"}
-	ErrVehicleNotFound                = &errors.ValidationError{Message: "vehicle not found"}
-	ErrVehicleAlreadyAssociated       = &errors.ValidationError{Message: "vehicle is already associated with this customer"}
-	ErrAssociationCheckFailed         = &errors.ValidationError{Message: "error checking existing association"}
-	ErrAssociationCreationFailed      = &errors.ValidationError{Message: "error creating customer-vehicle association"}
-	ErrAssociationRemovalFailed       = &errors.ValidationError{Message: "error removing customer-vehicle association"}
-	ErrFetchingCustomerVehiclesFailed = &errors.ValidationError{Message: "error fetching customer vehicles"}
 )
 
 type UseCase struct {
@@ -37,29 +27,29 @@ func (s *UseCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 
 	if err != nil {
-		return ErrCustomerNotFound
+		return errors.New("customer not found")
 	}
 
 	if customer == nil {
-		return ErrCustomerNotFound
+		return errors.New("customer not found")
 	}
 
 	vehicle, err := s.vehicleService.GetByID(ctx, vehicleID)
 
 	if err != nil {
-		return ErrVehicleNotFound
+		return errors.New("vehicle not found")
 	}
 
 	if vehicle == nil {
-		return ErrVehicleNotFound
+		return errors.New("vehicle not found")
 	}
 
 	existing, err := s.customerVehicleRepo.FindByCustomerAndVehicle(ctx, customerID, vehicleID)
 	if err != nil {
-		return ErrAssociationCheckFailed
+		return errors.New("error checking existing association")
 	}
 	if existing != nil {
-		return ErrVehicleAlreadyAssociated
+		return errors.New("vehicle is already associated with this customer")
 	}
 
 	customerVehicleDomain := &domain.CustomerVehicle{
@@ -74,7 +64,7 @@ func (s *UseCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 
 	_, err = s.customerVehicleRepo.Create(ctx, &customerVehicle)
 	if err != nil {
-		return ErrAssociationCreationFailed
+		return errors.New("error creating customer-vehicle association")
 	}
 
 	return nil
@@ -83,23 +73,23 @@ func (s *UseCase) AddVehicleToCustomer(ctx context.Context, customerID, vehicleI
 func (s *UseCase) RemoveVehicleFromCustomer(ctx context.Context, customerID, vehicleID uint) error {
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 	if err != nil {
-		return ErrCustomerNotFound
+		return errors.New("customer not found")
 	}
 	if customer == nil {
-		return ErrCustomerNotFound
+		return errors.New("customer not found")
 	}
 
 	vehicle, err := s.vehicleService.GetByID(ctx, vehicleID)
 	if err != nil {
-		return ErrVehicleNotFound
+		return errors.New("vehicle not found")
 	}
 	if vehicle == nil {
-		return ErrVehicleNotFound
+		return errors.New("vehicle not found")
 	}
 
 	err = s.customerVehicleRepo.DeleteByCustomerAndVehicle(ctx, customerID, vehicleID)
 	if err != nil {
-		return ErrAssociationRemovalFailed
+		return errors.New("error removing customer-vehicle association")
 	}
 
 	return nil
@@ -110,16 +100,16 @@ func (s *UseCase) GetCustomerVehicles(ctx context.Context, customerID uint) ([]d
 	customer, err := s.customerRepository.FindByID(ctx, customerID)
 
 	if err != nil {
-		return nil, ErrCustomerNotFound
+		return nil, errors.New("customer not found")
 	}
 
 	if customer == nil {
-		return nil, ErrCustomerNotFound
+		return nil, errors.New("customer not found")
 	}
 
 	customerVehicles, err := s.customerVehicleRepo.FindByCustomerID(ctx, customerID)
 	if err != nil {
-		return nil, ErrFetchingCustomerVehiclesFailed
+		return nil, errors.New("error fetching customer vehicles")
 	}
 
 	cvDomain := make([]domain.CustomerVehicle, 0, len(customerVehicles))

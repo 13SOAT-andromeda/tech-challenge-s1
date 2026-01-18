@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,11 +20,11 @@ func (b *mockHasher) Compare(hashedPassword, password []byte) error {
 type mockHasherFailed struct{}
 
 func (b *mockHasherFailed) Generate(password []byte, cost int) ([]byte, error) {
-	return []byte(""), ErrPasswordHash
+	return nil, errors.New("erro ao criar o hash da senha")
 }
 
 func (b *mockHasherFailed) Compare(hashedPassword, password []byte) error {
-	return ErrPasswordInvalid
+	return errors.New("senha inválida")
 }
 
 func TestWeakPassword(t *testing.T) {
@@ -31,7 +32,8 @@ func TestWeakPassword(t *testing.T) {
 
 	p, err := NewPassword(weakPass, &mockHasher{})
 
-	assert.ErrorIs(t, ErrPasswordInvalidFormat, err)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "senha deve conter pelo menos uma letra maiúscula, uma minúscula, um número e um caractere especial")
 	assert.Nil(t, p)
 }
 
@@ -40,7 +42,7 @@ func TestShortPassword(t *testing.T) {
 
 	p, err := NewPassword(emptyPass, &mockHasher{})
 
-	assert.ErrorIs(t, ErrPasswordTooShort, err)
+	assert.EqualError(t, err, "senha deve ter pelo menos 8 caracteres")
 	assert.Nil(t, p)
 }
 
@@ -49,7 +51,8 @@ func TestInvalidPassword(t *testing.T) {
 
 	p, err := NewPassword(invalidPass, &mockHasher{})
 
-	assert.ErrorIs(t, ErrPasswordInvalidFormat, err)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "senha deve conter pelo menos uma letra maiúscula, uma minúscula, um número e um caractere especial")
 	assert.Nil(t, p)
 }
 
@@ -92,12 +95,24 @@ func TestCompareValidPassword(t *testing.T) {
 func TestCompareInvalidPassword(t *testing.T) {
 	validPass := "P@ss123><!..."
 
-	p, _ := NewPassword(validPass, &mockHasherFailed{})
-	p.Hash()
+	p, _ := NewPassword(validPass, &mockHasher{})
 
-	err := p.Compare("invalidpass")
+	provided := "P@ss123><!"
 
-	assert.ErrorIs(t, ErrPasswordInvalid, err)
+	assert.NotEqual(t, p.GetValue(), provided)
+
+	err := p.ValidateEqual(provided)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "senha incorreta")
+}
+
+func TestNoPasswordAvailable(t *testing.T) {
+	p := &Password{}
+
+	err := p.ValidateEqual("P@ss123><!")
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "nenhuma senha disponível para comparar")
 }
 
 func TestInvalidHashPassword(t *testing.T) {
@@ -105,5 +120,7 @@ func TestInvalidHashPassword(t *testing.T) {
 
 	p := NewPasswordFromHash(hashed, &mockHasherFailed{})
 
-	assert.ErrorIs(t, ErrPasswordHash, p.Hash())
+	err := p.Hash()
+
+	assert.EqualError(t, err, "erro ao criar o hash da senha")
 }
