@@ -12,7 +12,7 @@ func TestCompanyInitialization(t *testing.T) {
 		Name:     "Teste Company",
 		Email:    "company_test@example.com",
 		Document: "12345678900",
-		Contact:  "11999999999",
+		Contact:  "11999999998",
 		Address: &Address{
 			Address:       "Rua Teste",
 			City:          "Sao Paulo",
@@ -27,7 +27,7 @@ func TestCompanyInitialization(t *testing.T) {
 	assert.Equal(t, "Teste Company", c.Name)
 	assert.Equal(t, "company_test@example.com", c.Email)
 	assert.Equal(t, "12345678900", c.Document)
-	assert.Equal(t, "11999999999", c.Contact)
+	assert.Equal(t, "11999999998", c.Contact)
 	assert.Equal(t, "Rua Teste", c.Address.Address)
 	assert.Equal(t, "Sao Paulo", c.Address.City)
 	assert.Equal(t, "123", c.Address.AddressNumber)
