@@ -29,6 +29,7 @@ on:
 
 jobs:
   build-and-deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: AWS
     env:
@@ -65,29 +66,48 @@ jobs:
       - name: Update Kubeconfig
         run: aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ vars.EKS_CLUSTER }}
 
-      - name: Deploy to K8s
+
+      - name: Definir variáveis de banco (RDS)
         run: |
-          RDS_ADDRESS=$(aws rds describe-db-instances --query "DBInstances[0].Endpoint.Address" --output text)
-          
-          cd k8s/overlays/aws
-          
-          cat <<'EOF' > .env.secrets
+          # Se possível, seja específico no RDS em vez de pegar o [0]:
+          RDS_ADDRESS=$(aws rds describe-db-instances \
+            --db-instance-identifier "${{ vars.RDS_INSTANCE_ID }}" \
+            --query "DBInstances[0].Endpoint.Address" --output text)
+          echo "RDS_ADDRESS=$RDS_ADDRESS" >> $GITHUB_ENV
+      
+
+      - name: Gerar arquivos de env do overlay
+        run: |
+          cat > k8s/overlays/aws/.env.secrets << 'EOF'
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
           MAILTRAP_TOKEN=${{ secrets.MAILTRAP_TOKEN }}
-          ADMIN_EMAIL=${{ vars.ADMIN_EMAIL }}
           EOF
           
-          echo "DB_HOST=$RDS_ADDRESS" > .env.host
+          # Se você quiser só mergear o host no ConfigMap (como no seu behavior: merge)
+          cat > k8s/overlays/aws/.env.host << EOF
+          DB_HOST=${RDS_ADDRESS}
+          EOF
+      
+
+      - name: Aplicar Kustomize
+        run: |
+          kubectl kustomize k8s/overlays/aws | \
+            sed "s|ECR_IMAGE:latest|${{ steps.login-ecr.outputs.registry }}/${{ vars.AWS_ECR_REPO }}:latest|g" | \
+            kubectl apply -f -
           
-          kustomize edit set image tech-challenge-api=${{ steps.login-ecr.outputs.registry }}/${{ vars.AWS_ECR_REPO }}:latest
-          
-          kustomize build . | \
-          kubectl apply -f - --prune -l app=tech-challenge-api
-          
+
+      - name: Restart deployment
+        run: |
           kubectl rollout restart deployment tech-challenge-api
-          
+      
+      
+
+#      - name: Deploy to K8s
+#        run: |
+#          RDS_ADDRESS=$(aws rds describe-db-instances --query "DBInstances[0].Endpoint.Address" --output text)
+#
 #          kubectl create secret generic api-secrets \
 #            --from-literal=DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
 #            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
