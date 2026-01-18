@@ -72,11 +72,11 @@ Onde procurar os manifests e a configuração do cluster:
 
 - Manifests Kubernetes: `k8s/`
 - Arquivo de configuração do kind usado pelo Makefile: `k8s/kind-config.yaml`
-- Guia passo-a-passo para criar o cluster local (instalação do kind, kubectl, notas): [development.md](./development.md)
+- Guia passo-a-passo para criar o cluster local (instalação do kind, kubectl, notas): [development.md](misc/development.md)
 
 Notas rápidas:
 
-- `make up` depende de ter `kind`, `kubectl` e `docker` instalados e em funcionamento (veja [development.md](./development.md) para detalhes de instalação).
+- `make up` depende de ter `kind`, `kubectl` e `docker` instalados e em funcionamento (veja [development.md](misc/development.md) para detalhes de instalação).
 - Se preferir um Postgres local em contêiner, use o comando de exemplo na seção "Banco de dados rápido com Docker".
 
 ### Localmente (sem Docker)
@@ -240,5 +240,7 @@ Se a aplicação falhar ao conectar-se ao banco de dados, verifique se o seu Pos
 ## 🔗 Misc
 
 -   **Postman Collection**: Você pode fazer o download da collection do Postman para testar os endpoints da API [aqui](./misc/Tech%20Challenge%20S1.postman.json).
--   **Guia de Desenvolvimento (kind & cluster local)**: [development.md](./development.md)
--   **Guia para Deploy na AWS**: [deploy.md](./deploy.md)
+-   **Guia de Desenvolvimento (kind & cluster local)**: [development.md](misc/development.md)
+-   **Guia para Deploy na AWS**: [deploy.md](misc/deploy.md)
+-   **Desenho de Arquitetura AWS**: [arquitetura-aws-tech-challenge-s1-soat-13.drawio.png](./misc/arquitetura-aws-tech-challenge-s1-soat-13.drawio.png)
+-   **Desenho de Arquitetura Local**: [arquitetura-local-tech-challenge-s1-soat-13.drawio.png](./misc/arquitetura-local-tech-challenge-s1-soat-13.drawio.png)
