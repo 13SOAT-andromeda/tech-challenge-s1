@@ -82,6 +82,7 @@ jobs:
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+          ADMIN_EMAIL=${{ vars.ADMIN_PASSWORD }}
           MAILTRAP_TOKEN=${{ secrets.MAILTRAP_TOKEN }}
           EOF
           
@@ -101,8 +102,6 @@ jobs:
       - name: Restart deployment
         run: |
           kubectl rollout restart deployment tech-challenge-api
-      
-      
 
 #      - name: Deploy to K8s
 #        run: |
