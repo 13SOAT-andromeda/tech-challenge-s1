@@ -11,6 +11,26 @@ images:
   - name: tech-challenge-api
     newName: ECR_IMAGE
 
+secretGenerator:
+  - name: api-secrets
+    behavior: replace
+    envs:
+      - .env.secrets
+
+configMapGenerator:
+  - name: api-config
+    behavior: replace
+    literals:
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_NAME=garagedb
+      - DB_SSLMODE=require
+      - DB_TIMEZONE=UTC
+      - ENV=production
+      - HTTP_PORT=8080
+    envs:
+      - .env.host
+
 patches:
   - target:
       kind: Deployment
