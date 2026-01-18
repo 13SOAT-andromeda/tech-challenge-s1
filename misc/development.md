@@ -108,6 +108,14 @@ kubectl logs -n default <nome-do-pod>
 - Se já existir um cluster com o mesmo nome, execute `kind delete cluster --name tech-challenge-api-local` antes de criar novamente.
 - O `make up` aplica o manifesto `k8s/postgres.yaml` para subir um Postgres dentro do cluster. Se preferir, você pode rodar seu próprio Postgres local e ajustar variáveis de ambiente da aplicação.
 
+## 🖼️ Diagrama de Arquitetura Local
+
+Abaixo está um diagrama de arquitetura local mostrando como o projeto é executado em um cluster Kind. Ele destaca o nó Kind local, Ingress, Metrics Server, o deployment da aplicação e a instância local do Postgres usada para testar o app durante o desenvolvimento.
+
+<img src="arquitetura-local-k8s-kind-challenge-s1-soat-13.drawio.png" alt="Diagrama de arquitetura Kubernetes local com Kind" width="700" style="width:700px;max-width:100%;height:auto;">
+
+*Figura 1: Diagrama de arquitetura local (Kind, Ingress, Postgres, HPA).* 
+
 ## Exemplos de comandos de verificação
 
 ```bash
@@ -128,4 +136,3 @@ kubectl get ingress -A
 ---
 
 Arquivo relacionado no repositório: `Makefile` (alvos `up` / `down`), `k8s/kind-config.yaml`, e os manifests em `k8s/`.
-

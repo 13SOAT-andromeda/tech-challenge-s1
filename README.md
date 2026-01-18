@@ -243,3 +243,4 @@ Se a aplicação falhar ao conectar-se ao banco de dados, verifique se o seu Pos
 -   **Guia de Desenvolvimento (kind & cluster local)**: [development.md](misc/development.md)
 -   **Guia para Deploy na AWS**: [deploy.md](misc/deploy.md)
 -   **Desenho de Arquitetura AWS**: [arquitetura-aws-tech-challenge-s1-soat-13.drawio.png](./misc/arquitetura-aws-tech-challenge-s1-soat-13.drawio.png)
+-   **Desenho de Arquitetura Local**: [arquitetura-local-tech-challenge-s1-soat-13.drawio.png](./misc/arquitetura-local-tech-challenge-s1-soat-13.drawio.png)

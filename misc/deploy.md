@@ -180,6 +180,14 @@ O processo de deploy pode levar vários minutos, especialmente na primeira execu
 
 **Ao final do processo, o Makefile exibirá automaticamente o endpoint por onde a aplicação está respondendo.**
 
+## 🖼️ Diagramas de Arquitetura
+
+Uma visão rápida da infraestrutura usada para o deploy na AWS é mostrada abaixo. Este diagrama exibe os principais componentes da AWS provisionados pelo Terraform (VPC, subnets públicas/privadas, cluster EKS, grupos de nós, instância RDS, S3 para tfstate e componentes relevantes de IAM/SG). Use isso para entender como os serviços se conectam e onde a aplicação e o banco de dados são executados.
+
+<img src="arquitetura-aws-tech-challenge-s1-soat-13.drawio.png" alt="AWS architecture diagram - EKS, RDS, VPC" style="width:700px;max-width:100%;height:auto;">
+
+*Figura 1: Diagrama de arquitetura AWS (EKS, RDS, VPC, S3, e componentes relacionados).* 
+
 ## ✅ Verificação e Troubleshooting
 
 ### Verificar Status do Deploy
