@@ -66,6 +66,16 @@ jobs:
       - name: Update Kubeconfig
         run: aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ vars.EKS_CLUSTER }}
 
+      - name: Configure Metrics
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+          
+          kubectl patch -n kube-system deployment metrics-server --type=json \
+          -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+          kubectl wait --namespace kube-system \
+          --for=condition=ready pod \
+          --selector=k8s-app=metrics-server \
+          --timeout=5s || true
 
       - name: Definir variáveis de banco (RDS)
         run: |
@@ -82,7 +92,7 @@ jobs:
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
-          ADMIN_EMAIL=${{ vars.ADMIN_PASSWORD }}
+          ADMIN_EMAIL=${{ vars.ADMIN_EMAIL }}
           MAILTRAP_TOKEN=${{ secrets.MAILTRAP_TOKEN }}
           EOF
           
