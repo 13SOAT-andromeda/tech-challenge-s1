@@ -69,7 +69,7 @@ jobs:
         run: |
           RDS_ADDRESS=$(aws rds describe-db-instances --query "DBInstances[0].Endpoint.Address" --output text)
           
-          cd k8s/overlays/aw
+          cd k8s/overlays/aws
           
           cat <<'EOF' > .env.secrets
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
