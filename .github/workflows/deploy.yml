@@ -1,0 +1,135 @@
+﻿name: Deploy EKS
+
+on:
+
+  push:
+    branches: [ main ]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'k8s/**'
+      - 'Dockerfile'
+
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'k8s/**'
+      - 'Dockerfile'
+
+#  workflow_run:
+#    workflows: ["Deploy Infra"]
+#    types:
+#      - completed
+
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+#    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: AWS
+    env:
+      AWS_REGION: us-east-1
+      TF_VAR_cluster_name: tech-challenge-api-cluster
+
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ vars.AWS_ECR_REPO }}
+          IMAGE_TAG: latest
+        run: |
+          # Build
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Update Kubeconfig
+        run: aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ vars.EKS_CLUSTER }}
+
+      - name: Configure Metrics
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+          
+          kubectl patch -n kube-system deployment metrics-server --type=json \
+          -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+          kubectl wait --namespace kube-system \
+          --for=condition=ready pod \
+          --selector=k8s-app=metrics-server \
+          --timeout=5s || true
+
+      - name: Definir variáveis de banco (RDS)
+        run: |
+          # Se possível, seja específico no RDS em vez de pegar o [0]:
+          RDS_ADDRESS=$(aws rds describe-db-instances \
+            --db-instance-identifier "${{ vars.RDS_INSTANCE_ID }}" \
+            --query "DBInstances[0].Endpoint.Address" --output text)
+          echo "RDS_ADDRESS=$RDS_ADDRESS" >> $GITHUB_ENV
+      
+
+      - name: Gerar arquivos de env do overlay
+        run: |
+          cat > k8s/overlays/aws/.env.secrets << 'EOF'
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+          ADMIN_EMAIL=${{ vars.ADMIN_EMAIL }}
+          MAILTRAP_TOKEN=${{ secrets.MAILTRAP_TOKEN }}
+          EOF
+          
+          # Se você quiser só mergear o host no ConfigMap (como no seu behavior: merge)
+          cat > k8s/overlays/aws/.env.host << EOF
+          DB_HOST=${RDS_ADDRESS}
+          EOF
+      
+
+      - name: Aplicar Kustomize
+        run: |
+          kubectl kustomize k8s/overlays/aws | \
+            sed "s|ECR_IMAGE:latest|${{ steps.login-ecr.outputs.registry }}/${{ vars.AWS_ECR_REPO }}:latest|g" | \
+            kubectl apply -f -
+          
+
+      - name: Restart deployment
+        run: |
+          kubectl rollout restart deployment tech-challenge-api
+
+#      - name: Deploy to K8s
+#        run: |
+#          RDS_ADDRESS=$(aws rds describe-db-instances --query "DBInstances[0].Endpoint.Address" --output text)
+#
+#          kubectl create secret generic api-secrets \
+#            --from-literal=DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+#            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+#            --from-literal=ADMIN_PASSWORD="${{ secrets.ADMIN_PASSWORD }}" \
+#            --from-literal=MAILTRAP_TOKEN="${{ secrets.MAILTRAP_TOKEN }}" \
+#            --dry-run=client -o yaml | kubectl apply -f -
+#
+#
+#          kubectl kustomize k8s/overlays/aws | \
+#            sed "s|ECR_IMAGE:latest|${{ steps.login-ecr.outputs.registry }}/${{ vars.AWS_ECR_REPO }}:latest|g" | \
+#            kubectl apply -f -
+#
+#          kubectl patch configmap api-config --type merge -p "{\"data\":{\"DB_HOST\":\"$RDS_ADDRESS\"}}"
+#
+#          # 4. Reinicia o deploy para garantir atualização
+#          kubectl rollout restart deployment tech-challenge-api
