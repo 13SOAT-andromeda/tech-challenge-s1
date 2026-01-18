@@ -19,15 +19,7 @@ secretGenerator:
 
 configMapGenerator:
   - name: api-config
-    behavior: replace
-    literals:
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_NAME=garagedb
-      - DB_SSLMODE=require
-      - DB_TIMEZONE=UTC
-      - ENV=production
-      - HTTP_PORT=8080
+    behavior: merge
     envs:
       - .env.host
 

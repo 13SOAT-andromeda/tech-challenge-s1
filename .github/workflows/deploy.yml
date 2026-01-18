@@ -81,7 +81,7 @@ jobs:
           
           echo "DB_HOST=$RDS_ADDRESS" > .env.host
           
-          FULL_IMAGE_NAME=${{ steps.login-ecr.outputs.registry }}/${{ vars.AWS_ECR_REPO }}:latest
+          kustomize edit set image tech-challenge-api=${{ steps.login-ecr.outputs.registry }}/${{ vars.AWS_ECR_REPO }}:latest
           
           kustomize build . | \
           kubectl apply -f - --prune -l app=tech-challenge-api
