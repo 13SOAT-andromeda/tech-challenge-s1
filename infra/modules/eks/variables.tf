@@ -3,7 +3,7 @@ variable "cluster_name" {
 }
 
 variable "lab_role_arn" {
-  description = "The ARN of the LabRole provided by the student environment"
+  description = "The ARN of the LabRole provided by the FIAP student environment"
   type        = string
 }
 
