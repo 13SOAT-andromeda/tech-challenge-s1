@@ -112,24 +112,3 @@ jobs:
       - name: Restart deployment
         run: |
           kubectl rollout restart deployment tech-challenge-api
-
-#      - name: Deploy to K8s
-#        run: |
-#          RDS_ADDRESS=$(aws rds describe-db-instances --query "DBInstances[0].Endpoint.Address" --output text)
-#
-#          kubectl create secret generic api-secrets \
-#            --from-literal=DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
-#            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-#            --from-literal=ADMIN_PASSWORD="${{ secrets.ADMIN_PASSWORD }}" \
-#            --from-literal=MAILTRAP_TOKEN="${{ secrets.MAILTRAP_TOKEN }}" \
-#            --dry-run=client -o yaml | kubectl apply -f -
-#
-#
-#          kubectl kustomize k8s/overlays/aws | \
-#            sed "s|ECR_IMAGE:latest|${{ steps.login-ecr.outputs.registry }}/${{ vars.AWS_ECR_REPO }}:latest|g" | \
-#            kubectl apply -f -
-#
-#          kubectl patch configmap api-config --type merge -p "{\"data\":{\"DB_HOST\":\"$RDS_ADDRESS\"}}"
-#
-#          # 4. Reinicia o deploy para garantir atualização
-#          kubectl rollout restart deployment tech-challenge-api
