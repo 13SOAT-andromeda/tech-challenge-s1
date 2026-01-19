@@ -1,18 +1,26 @@
-name: Deploy Infra
+name: Deploy Infrastructure to AWS
 
 on:
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'infra/**'
   push:
     branches: [ main ]
-    paths:
-      - 'infra/**'
-  workflow_dispatch:
 
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      infra: ${{ steps.filter.outputs.infra }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            infra:
+              - 'infra/**'
   terraform:
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.infra == 'true' }}
+
     name: Terraform Apply
     runs-on: ubuntu-latest
     environment: AWS
