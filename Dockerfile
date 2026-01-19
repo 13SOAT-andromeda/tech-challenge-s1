@@ -78,6 +78,12 @@ RUN addgroup -S nonroot && adduser -S nonroot -G nonroot && apk add --no-cache c
 # Copy the optimized, statically linked binary from the builder stage
 COPY --from=production_builder /usr/local/bin/main /app/main
 
+COPY --from=production_builder /app/internal/adapter/email/templates \
+     /app/internal/adapter/email/templates
+
+COPY --from=production_builder /app/swagger \
+/app/swagger
+
 # Ensure the binary is executable
 RUN chmod +x /app/main
 
