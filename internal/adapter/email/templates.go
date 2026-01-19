@@ -25,7 +25,7 @@ func LoadTemplate(template EmailTemplates) (string, error) {
 	content, err := os.ReadFile(templatePath)
 
 	if err != nil {
-		return "", fmt.Errorf("error on loading template")
+		return "", fmt.Errorf("error on loading template: %w", err)
 	}
 
 	return string(content), nil
