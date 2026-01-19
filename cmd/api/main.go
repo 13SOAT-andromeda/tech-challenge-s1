@@ -64,7 +64,7 @@ func main() {
 
 	accessExpiry, _ := time.ParseDuration(cfg.JWT.AccessTokenExpiry)
 	refreshExpiry, _ := time.ParseDuration(cfg.JWT.RefreshTokenExpiry)
-	apiUrl := cfg.Http.Url + ":" + cfg.Http.Port
+	apiUrl := cfg.Http.ApiUrl
 
 	// Repositories
 	customerRepository := repository.NewCustomerRepository(dbase)

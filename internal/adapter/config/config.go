@@ -20,6 +20,7 @@ type HttpConfig struct {
 	AllowedOrigins []string
 	Port           string
 	Url            string
+	ApiUrl         string
 }
 
 type DataBaseConfig struct {
@@ -80,6 +81,7 @@ func Init() (*Config, error) {
 		AllowedOrigins: allowedOriginList,
 		Port:           getEnv("HTTP_PORT", "8080"),
 		Url:            getEnv("HTTP_URL", "http://localhost"),
+		ApiUrl:         getEnv("API_URL", "http://localhost"),
 	}
 
 	jwt := &JWTConfig{

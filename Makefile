@@ -7,8 +7,10 @@ AWS_ECR_IMAGE=$(AWS_ACCOUNT).dkr.ecr.$(AWS_REGION).amazonaws.com/$(AWS_ECR_REPO)
 .PHONY: all up down deploy deploy-local deploy-aws switch-eck-aw build-aws apply-aws build load create-tfstate-bucket apply-terraform
 
 up: cluster deps build load deploy-local
-	@echo "Waiting for pods to be ready..."
-	kubectl wait --for=condition=ready pod -l app=tech-challenge-api --timeout=60s
+	@echo "Waiting for tech-challenge-api deployment..."
+	@sleep 3
+	@kubectl rollout status deployment/tech-challenge-api --timeout=120s || (echo "Deployment não ficou disponível. Verificando status...";  exit 1)
+	@kubectl wait --for=condition=ready pod -l app=tech-challenge-api --timeout=60s || (echo "Pods não ficaram prontos. Verificando status..."; exit 1)
 	@echo "✅ App is running at http://localhost/"
 
 down:
@@ -37,8 +39,10 @@ load:
 deploy-local:
 	@echo "Deploying local..."
 	kubectl apply -k k8s/overlays/local
-	@echo "Aguardando a inicialização do posgres..."
-	kubectl wait --for=condition=ready pod -l app=postgres --timeout=90s || true
+	@echo "Aguardando a inicialização do postgres..."
+	@sleep 3
+	@kubectl rollout status deployment/postgres --timeout=90s || true
+	@kubectl wait --for=condition=ready pod -l app=postgres --timeout=30s || true
 
 deploy-aws: apply-terraform switch-eck-aws deps build-aws apply-aws
 
