@@ -13,6 +13,7 @@ data:
   HTTP_PORT: "8080"
   HTTP_ALLOWED_ORIGINS: "*"
   MAILTRAP_URL: "https://send.api.mailtrap.io/api"
+  API_URL: "http://localhost"
 ---
 apiVersion: v1
 kind: Secret
