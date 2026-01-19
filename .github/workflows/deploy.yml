@@ -104,7 +104,7 @@ jobs:
           # Se você quiser só mergear o host no ConfigMap (como no seu behavior: merge)
           cat > k8s/overlays/aws/.env.host << EOF
           DB_HOST=${RDS_ADDRESS}
-          API_URL={API_URL}
+          API_URL=${API_URL}
           EOF
       
 
