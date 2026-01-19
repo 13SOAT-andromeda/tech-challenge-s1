@@ -79,17 +79,10 @@ jobs:
 
       - name: Definir variáveis de banco (RDS)
         run: |
-          # Se possível, seja específico no RDS em vez de pegar o [0]:
           RDS_ADDRESS=$(aws rds describe-db-instances \
             --db-instance-identifier "${{ vars.RDS_INSTANCE_ID }}" \
             --query "DBInstances[0].Endpoint.Address" --output text)
           echo "RDS_ADDRESS=$RDS_ADDRESS" >> $GITHUB_ENV
-
-      - name: Definir host da aplicação
-        run: |
-          API_URL=$(kubectl get svc tech-challenge-api-svc -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-          echo "API_URL=$API_URL" >> $GITHUB_ENV
-      
 
       - name: Gerar arquivos de env do overlay
         run: |
@@ -101,19 +94,43 @@ jobs:
           MAILTRAP_TOKEN=${{ secrets.MAILTRAP_TOKEN }}
           EOF
           
-          # Se você quiser só mergear o host no ConfigMap (como no seu behavior: merge)
           cat > k8s/overlays/aws/.env.host << EOF
           DB_HOST=${RDS_ADDRESS}
-          API_URL=${API_URL}
           EOF
-      
 
       - name: Aplicar Kustomize
         run: |
           kubectl kustomize k8s/overlays/aws | \
             sed "s|ECR_IMAGE:latest|${{ steps.login-ecr.outputs.registry }}/${{ vars.AWS_ECR_REPO }}:latest|g" | \
             kubectl apply -f -
+
+      - name: Aguardar LoadBalancer ser provisionado
+        run: |
+          echo "Aguardando LoadBalancer ser provisionado..."
+          timeout=300
+          elapsed=0
+          API_URL=""
+          while [ $elapsed -lt $timeout ]; do
+            API_URL=$(kubectl get svc tech-challenge-api-svc -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
+            if [ -n "$API_URL" ]; then
+              echo "LoadBalancer provisionado: $API_URL"
+              break
+            fi
+            echo "Aguardando... ($elapsed/$timeout segundos)"
+            sleep 5
+            elapsed=$((elapsed + 5))
+          done
           
+          if [ -z "$API_URL" ]; then
+            echo "Erro: LoadBalancer não foi provisionado a tempo"
+            exit 1
+          fi
+          
+          echo "API_URL=http://$API_URL" >> $GITHUB_ENV
+
+      - name: Atualizar ConfigMap com API_URL
+        run: |
+          kubectl patch configmap api-config --type merge -p "{\"data\":{\"API_URL\":\"${API_URL}\"}}"
 
       - name: Restart deployment
         run: |
