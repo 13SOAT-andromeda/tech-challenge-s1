@@ -19,7 +19,7 @@ module "eks" {
   # Pass the LabRole ARN down to the EKS module
   lab_role_arn = var.lab_role_arn
 
-  # Pass network details
+  # Pass AWS network details
   vpc_id          = module.network.vpc_id
   public_subnets  = module.network.public_subnets
   private_subnets = module.network.private_subnets
