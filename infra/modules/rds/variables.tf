@@ -5,7 +5,7 @@ variable "db_name" {
 }
 
 variable "engine_version" {
-  description = "Postgres version"
+  description = "Postgres engine version"
   type        = string
   default     = "15"
 }
