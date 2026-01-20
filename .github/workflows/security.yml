@@ -1,8 +1,7 @@
 ﻿name: Go SAST Report
 on:
-  push:
-    branches: [main, master]
   pull_request:
+    branches: [main, develop, release/**, feature/**]
 
 jobs:
   security-sast:

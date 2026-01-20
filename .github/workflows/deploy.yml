@@ -1,7 +1,10 @@
-﻿name: Deploy EKS
+﻿name: Deploy Application to AWS
 
 on:
-
+  workflow_run:
+    workflows: ["Deploy Infrastructure to AWS"]
+    types:
+      - completed
   push:
     branches: [ main ]
     paths:
@@ -10,36 +13,21 @@ on:
       - 'pkg/**'
       - 'k8s/**'
       - 'Dockerfile'
-
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'cmd/**'
-      - 'internal/**'
-      - 'pkg/**'
-      - 'k8s/**'
-      - 'Dockerfile'
-
-#  workflow_run:
-#    workflows: ["Deploy Infra"]
-#    types:
-#      - completed
-
   workflow_dispatch:
 
 jobs:
   build-and-deploy:
-#    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: AWS
     env:
       AWS_REGION: us-east-1
       TF_VAR_cluster_name: tech-challenge-api-cluster
-
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -79,7 +67,6 @@ jobs:
 
       - name: Definir variáveis de banco (RDS)
         run: |
-          # Se possível, seja específico no RDS em vez de pegar o [0]:
           RDS_ADDRESS=$(aws rds describe-db-instances \
             --db-instance-identifier "${{ vars.RDS_INSTANCE_ID }}" \
             --query "DBInstances[0].Endpoint.Address" --output text)
@@ -96,7 +83,6 @@ jobs:
           MAILTRAP_TOKEN=${{ secrets.MAILTRAP_TOKEN }}
           EOF
           
-          # Se você quiser só mergear o host no ConfigMap (como no seu behavior: merge)
           cat > k8s/overlays/aws/.env.host << EOF
           DB_HOST=${RDS_ADDRESS}
           EOF
