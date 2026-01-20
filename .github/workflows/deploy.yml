@@ -1,7 +1,10 @@
-﻿name: Deploy EKS
+﻿name: Deploy Application to AWS
 
 on:
-
+  workflow_run:
+    workflows: ["Deploy Infrastructure to AWS"]
+    types:
+      - completed
   push:
     branches: [ main ]
     paths:
@@ -10,36 +13,21 @@ on:
       - 'pkg/**'
       - 'k8s/**'
       - 'Dockerfile'
-
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'cmd/**'
-      - 'internal/**'
-      - 'pkg/**'
-      - 'k8s/**'
-      - 'Dockerfile'
-
-#  workflow_run:
-#    workflows: ["Deploy Infra"]
-#    types:
-#      - completed
-
   workflow_dispatch:
 
 jobs:
   build-and-deploy:
-#    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: AWS
     env:
       AWS_REGION: us-east-1
       TF_VAR_cluster_name: tech-challenge-api-cluster
-
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4

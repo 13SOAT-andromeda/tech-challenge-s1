@@ -1,6 +1,3 @@
-# infra/modules/eks/main.tf
-
-# 1. EKS Cluster (Control Plane)
 resource "aws_eks_cluster" "main" {
   name     = var.cluster_name
   role_arn = var.lab_role_arn
@@ -10,7 +7,6 @@ resource "aws_eks_cluster" "main" {
     subnet_ids              = concat(var.public_subnets, var.private_subnets)
     endpoint_public_access  = true
     endpoint_private_access = true
-    # Deleted: security_group_ids (AWS will use the default Managed SG)
   }
 
   access_config {
@@ -19,7 +15,6 @@ resource "aws_eks_cluster" "main" {
   }
 }
 
-# 2. Node Group (Workers)
 resource "aws_eks_node_group" "main" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${var.cluster_name}-nodes"
