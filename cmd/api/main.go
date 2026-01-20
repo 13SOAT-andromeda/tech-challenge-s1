@@ -93,9 +93,7 @@ func main() {
 
 	// UseCases
 	createCustomerUseCase := customerUseCase.NewCustomerUseCase(customerRepository, customerVehicleRepository, vehicleService)
-
 	sessionUseCase := sessionUseCase.NewSessionUseCase(userService, sessionService, jwtService, cfg)
-
 	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, customerService, emailService, orderRepository, orderProductRepository, orderMaintenanceRepository, apiUrl)
 
 	// Handlers

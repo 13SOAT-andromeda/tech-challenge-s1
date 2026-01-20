@@ -2,7 +2,6 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-# 1. VPC
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
@@ -12,13 +11,11 @@ resource "aws_vpc" "main" {
   }
 }
 
-# 2. Internet Gateway
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
   tags   = { Name = "${var.cluster_name}-igw" }
 }
 
-# 3. Subnets
 resource "aws_subnet" "public" {
   count                   = 2
   availability_zone       = data.aws_availability_zones.available.names[count.index]
@@ -42,7 +39,6 @@ resource "aws_subnet" "private" {
   }
 }
 
-# 4. NAT Gateway (Single NAT for Cost Savings in Lab)
 resource "aws_eip" "nat" {
   domain = "vpc"
 }
@@ -53,7 +49,6 @@ resource "aws_nat_gateway" "main" {
   depends_on    = [aws_internet_gateway.main]
 }
 
-# 5. Routes
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
   route {
