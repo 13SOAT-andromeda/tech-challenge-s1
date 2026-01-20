@@ -67,7 +67,6 @@ jobs:
 
       - name: Definir variáveis de banco (RDS)
         run: |
-          # Se possível, seja específico no RDS em vez de pegar o [0]:
           RDS_ADDRESS=$(aws rds describe-db-instances \
             --db-instance-identifier "${{ vars.RDS_INSTANCE_ID }}" \
             --query "DBInstances[0].Endpoint.Address" --output text)
@@ -84,7 +83,6 @@ jobs:
           MAILTRAP_TOKEN=${{ secrets.MAILTRAP_TOKEN }}
           EOF
           
-          # Se você quiser só mergear o host no ConfigMap (como no seu behavior: merge)
           cat > k8s/overlays/aws/.env.host << EOF
           DB_HOST=${RDS_ADDRESS}
           EOF
