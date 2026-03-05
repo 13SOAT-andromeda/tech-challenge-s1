@@ -1,20 +1,19 @@
 variable "cluster_name" {
-  type = string
-}
-
-variable "lab_role_arn" {
-  description = "The ARN of the LabRole provided by the FIAP student environment"
+  description = "Name of the EKS cluster"
   type        = string
 }
 
 variable "vpc_id" {
-  type = string
+  description = "VPC ID where the cluster will be deployed"
+  type        = string
 }
 
-variable "public_subnets" {
-  type = list(string)
+variable "subnet_ids" {
+  description = "Subnet IDs for the cluster"
+  type        = list(string)
 }
 
-variable "private_subnets" {
-  type = list(string)
+variable "role_arn" {
+  description = "IAM role ARN for the EKS cluster"
+  type        = string
 }

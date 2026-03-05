@@ -1,21 +1,19 @@
 resource "aws_db_subnet_group" "main" {
-  name = "${var.db_name}-subnet-group"  
-  subnet_ids = var.private_subnets
-
-  tags = {
-    Name = "${var.db_name}-subnet-group"
-  }
+  name       = "${var.db_name}-subnet-group"
+  subnet_ids = var.subnet_ids
 }
 
 resource "aws_security_group" "rds" {
-  name = "${var.db_name}-sg"
-  vpc_id = var.vpc_id
+  name        = "${var.db_name}-rds-sg"
+  description = "Security group for RDS instance"
+  vpc_id      = var.vpc_id
 
   ingress {
+    description     = "Allow PostgreSQL traffic from EKS"
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [var.eks_cluster_security_group_id]
+    security_groups = [var.eks_security_group_id]
   }
 
   egress {
@@ -24,37 +22,23 @@ resource "aws_security_group" "rds" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  
-  tags = {
-    Name = "${var.db_name}-sg"
-  }
 }
 
 resource "aws_db_instance" "main" {
-  identifier = "db-${var.db_name}"
+  identifier           = var.db_name
+  engine               = "postgres"
+  engine_version       = "15"
+  instance_class       = "db.t3.micro"
+  allocated_storage    = 20
+  storage_type         = "gp2"
   
-  db_name = "${var.db_name}"
-  username = "${var.db_user}"
-  password = "${var.db_pass}"
+  db_name              = var.db_name
+  username             = var.db_user
+  password             = var.db_password
   
-  engine = "postgres"
-  engine_version = "${var.engine_version}"
-  instance_class = var.instance_class
-
-  allocated_storage = var.allocated_storage
-  storage_type          = "gp3"
-  storage_encrypted      = true
-
-  db_subnet_group_name = aws_db_subnet_group.main.name
+  db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]
-  publicly_accessible = false
-
-  skip_final_snapshot = false
-  final_snapshot_identifier = "${var.db_name}-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
-  backup_retention_period = 7
-
-
-   tags = {
-    Name = "db-${var.db_name}"
-  }
+  
+  skip_final_snapshot    = true
+  publicly_accessible    = false
 }

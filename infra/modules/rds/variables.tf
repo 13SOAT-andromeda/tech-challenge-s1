@@ -1,51 +1,32 @@
 variable "db_name" {
-  description = "Name of database"
+  description = "Name of the database"
   type        = string
   default     = "garagedb"
 }
 
-variable "engine_version" {
-  description = "Postgres engine version"
-  type        = string
-  default     = "15"
-}
-
 variable "db_user" {
-  description = "DB User name"
+  description = "Username for the database"
   type        = string
   default     = "postgres"
-  sensitive = true
 }
 
-variable "db_pass" {
-  description = "DB User pass"
+variable "db_password" {
+  description = "Password for the database"
   type        = string
-  sensitive = true
+  sensitive   = true
 }
 
 variable "vpc_id" {
-  description = "ID da VPC"
+  description = "VPC ID where the RDS will be deployed"
   type        = string
 }
 
-variable "private_subnets" {
-  description = "IPs da subnet privada"
+variable "subnet_ids" {
+  description = "Subnet IDs for the RDS instance"
   type        = list(string)
 }
 
-variable "eks_cluster_security_group_id" {
-  description = "ID do grupo de segurança"
+variable "eks_security_group_id" {
+  description = "Security group ID of the EKS cluster to allow ingress"
   type        = string
-}
-
-variable "instance_class" {
-  description = "Instância do RDS"
-  type        = string
-  default     = "db.t3.micro"
-}
-
-variable "allocated_storage" {
-  description = "Espaço alocado para o DB"
-  type        = number
-  default     = 20
 }

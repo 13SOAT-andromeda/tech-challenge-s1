@@ -1,41 +1,35 @@
-terraform {
-  backend "s3" {
-    bucket = "tech-challenge-13-soat-tfstate"
-    key = "tfstate"
-    region = "us-east-1"
+provider "aws" {
+  region = "us-east-1"
+  default_tags {
+    tags = {
+      Terraform   = "true"
+      Environment = "dev"
+      Project     = "tech-challenge"
+    }
   }
 }
 
-module "network" {
-  source       = "./modules/network"
-  cluster_name = var.cluster_name
-  vpc_cidr     = var.vpc_cidr
+locals {
+  cluster_name = "eks-tech-challenge"
+}
+
+module "vpc" {
+  source       = "../modules/vpc"
+  cluster_name = local.cluster_name
 }
 
 module "eks" {
-  source       = "./modules/eks"
-  cluster_name = var.cluster_name
-
-  # Pass the LabRole ARN down to the EKS module
-  lab_role_arn = var.lab_role_arn
-
-  # Pass AWS network details
-  vpc_id          = module.network.vpc_id
-  public_subnets  = module.network.public_subnets
-  private_subnets = module.network.private_subnets
+  source       = "../modules/eks"
+  cluster_name = local.cluster_name
+  vpc_id       = module.vpc.vpc_id
+  subnet_ids   = module.vpc.private_subnets
+  role_arn     = var.cluster_role_arn
 }
 
 module "rds" {
-  source = "./modules/rds"
-
-  vpc_id          = module.network.vpc_id
-  private_subnets = module.network.private_subnets
-
-  eks_cluster_security_group_id = module.eks.cluster_security_group_id
-
-  db_name = "garagedb"
-  db_user = "postgres"
-  db_pass = var.db_password
-
-  depends_on = [module.eks]
+  source                = "../modules/rds"
+  db_password           = var.db_password
+  vpc_id                = module.vpc.vpc_id
+  subnet_ids            = module.vpc.private_subnets
+  eks_security_group_id = module.eks.cluster_security_group_id
 }
