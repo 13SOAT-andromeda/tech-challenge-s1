@@ -10,6 +10,7 @@ type User struct {
 	ID        uint       `json:"id"`
 	Name      string     `json:"name"`
 	Email     string     `json:"email"`
+	Document  *Document  `json:"document,omitempty"`
 	Contact   string     `json:"contact"`
 	Address   *Address   `json:"address"`
 	Password  *Password  `json:"-"`

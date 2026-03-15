@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/address"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/document"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
@@ -14,6 +15,7 @@ type Model struct {
 	gorm.Model
 	Name     string         `gorm:"not null"`
 	Email    string         `gorm:"not null"`
+	Document document.Model `gorm:"embedded;unique"`
 	Contact  string         `gorm:"not null"`
 	Address  *address.Model `gorm:"embedded"`
 	Password string         `gorm:"not null"`
@@ -26,8 +28,10 @@ func (*Model) TableName() string {
 
 func (m *Model) ToDomain() *domain.User {
 	pass := domain.NewPasswordFromHash(m.Password, encryption.NewBcryptHasher())
+	documentDomain := m.Document.ToDomain()
 
 	var addressDomain *domain.Address
+
 	if m.Address != nil {
 		addressDomain = m.Address.ToDomain()
 	} else {
@@ -35,6 +39,7 @@ func (m *Model) ToDomain() *domain.User {
 	}
 
 	var deletedAt *time.Time
+
 	if m.DeletedAt.Valid {
 		deletedAt = &m.DeletedAt.Time
 	}
@@ -43,6 +48,7 @@ func (m *Model) ToDomain() *domain.User {
 		ID:        m.ID,
 		Name:      m.Name,
 		Email:     m.Email,
+		Document:  documentDomain,
 		Contact:   m.Contact,
 		Role:      m.Role,
 		Password:  pass,
@@ -66,6 +72,8 @@ func (m *Model) FromDomain(d *domain.User) {
 	m.Password = d.Password.GetHashed()
 	m.CreatedAt = d.CreatedAt
 	m.UpdatedAt = d.UpdatedAt
+
+	m.Document.FromDomain(d.Document)
 
 	if d.DeletedAt != nil {
 		m.DeletedAt = gorm.DeletedAt{Time: *d.DeletedAt, Valid: true}

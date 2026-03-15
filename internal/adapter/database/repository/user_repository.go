@@ -29,6 +29,9 @@ func (u *userRepository) Search(ctx context.Context, params ports.UserSearch) []
 	if params.Email != "" {
 		q.Where("lower(email) LIKE ?", "%"+strings.ToLower(params.Email)+"%")
 	}
+	if params.Document != "" {
+		q = q.Where("document LIKE ?", "%"+params.Document+"%")
+	}
 	if params.Contact != "" {
 		q.Where("lower(contact) LIKE ?", "%"+strings.ToLower(params.Contact)+"%")
 	}
@@ -48,4 +51,20 @@ func (u *userRepository) GetByEmail(ctx context.Context, email string) (*user.Mo
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *userRepository) FindByDocument(ctx context.Context, document string) (*user.Model, error) {
+	var data user.Model
+
+	err := r.BaseRepository.db.WithContext(ctx).Unscoped().Where("document = ?", document).First(&data).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &data, nil
 }

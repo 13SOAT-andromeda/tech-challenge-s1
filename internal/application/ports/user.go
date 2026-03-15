@@ -8,20 +8,22 @@ import (
 )
 
 type UserSearch struct {
-	Name    string
-	Email   string
-	Contact string
+	Name     string
+	Email    string
+	Document string
+	Contact  string
 }
 
 type UserRepository interface {
 	Repository[user.Model]
 	Search(ctx context.Context, params UserSearch) []user.Model
+	FindByDocument(ctx context.Context, document string) (*user.Model, error)
 	GetByEmail(ctx context.Context, email string) (*user.Model, error)
 }
 
 type UserService interface {
 	Create(ctx context.Context, u domain.User) (*domain.User, error)
-	CreateAdminUser(ctx context.Context, email, password string) error
+	CreateAdminUser(ctx context.Context, email, password, document string) error
 	GetByID(ctx context.Context, id uint) (*domain.User, error)
 	GetByEmail(ctx context.Context, email string) (*domain.User, error)
 	Search(ctx context.Context, params map[string]interface{}) (*[]domain.User, error)

@@ -53,6 +53,7 @@ func TestUser(t *testing.T) {
 
 		userInput.Name = "João Marcos"
 		userInput.Email = "marcosjoao" + strconv.FormatInt(time.Now().Unix(), 10) + "@gmail.com"
+		userInput.Document = "42692605807"
 		userInput.Role = "administrator"
 		userInput.Contact = "11979664877"
 		userInput.Password = "Cassandra@123!"

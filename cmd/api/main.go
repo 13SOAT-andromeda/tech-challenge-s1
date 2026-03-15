@@ -111,7 +111,7 @@ func main() {
 	router := http.NewRouter(*cfg, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *vehicleHandler, *orderHandler, *sessionHandler, sessionService)
 	log.Printf("Starting HTTP server on port %s", cfg.Http.Port)
 
-	if err = userService.CreateAdminUser(ctx, cfg.AdminUser.Email, cfg.AdminUser.Password); err != nil {
+	if err = userService.CreateAdminUser(ctx, cfg.AdminUser.Email, cfg.AdminUser.Password, cfg.AdminUser.Document); err != nil {
 		log.Fatalf("failed on create admin user: %v", err)
 	}
 

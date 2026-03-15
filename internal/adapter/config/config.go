@@ -46,6 +46,7 @@ type MailTrapConfig struct {
 type AdminUserConfig struct {
 	Email    string
 	Password string
+	Document string
 }
 
 func getEnv(key, defaultValue string) string {
@@ -91,6 +92,7 @@ func Init() (*Config, error) {
 	adminUser := &AdminUserConfig{
 		Email:    getEnv("ADMIN_EMAIL", ""),
 		Password: getEnv("ADMIN_PASSWORD", ""),
+		Document: getEnv("ADMIN_DOCUMENT", ""),
 	}
 
 	mailTrap := &MailTrapConfig{

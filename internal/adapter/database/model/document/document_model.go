@@ -3,7 +3,7 @@ package document
 import "github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 
 type Model struct {
-	Document string `gorm:"not null"`
+	Document string `gorm:"column:document;not null;default"`
 }
 
 func (m *Model) ToDomain() *domain.Document {

@@ -22,6 +22,20 @@ func NewUserService(repo ports.UserRepository) *userService {
 
 func (s *userService) Create(ctx context.Context, u domain.User) (*domain.User, error) {
 
+	if u.Document == nil || u.Document.GetDocumentNumber() == "" {
+		return nil, errors.New("document is required")
+	}
+
+	existentUser, err := s.repo.FindByDocument(ctx, u.Document.GetDocumentNumber())
+
+	if err != nil {
+		return nil, err
+	}
+
+	if existentUser != nil {
+		return nil, errors.New("User already exists")
+	}
+
 	if u.Address == nil {
 		u.Address = &domain.Address{}
 	}
@@ -39,7 +53,7 @@ func (s *userService) Create(ctx context.Context, u domain.User) (*domain.User, 
 	userModel := &user.Model{}
 	userModel.FromDomain(&u)
 
-	_, err := s.repo.Create(ctx, userModel)
+	_, err = s.repo.Create(ctx, userModel)
 
 	if err != nil {
 		return nil, err
@@ -50,9 +64,24 @@ func (s *userService) Create(ctx context.Context, u domain.User) (*domain.User, 
 	return created, nil
 }
 
-func (s *userService) CreateAdminUser(ctx context.Context, email, password string) error {
+func (s *userService) CreateAdminUser(ctx context.Context, email, password, document string) error {
 
-	var err error
+	//existentUser, err := s.repo.FindByDocument(ctx, document)
+
+	doc, err := domain.NewDocument(document)
+	if err != nil {
+		return err
+	}
+
+	existentUser, err := s.repo.FindByDocument(ctx, doc.GetDocumentNumber())
+
+	if err != nil {
+		return err
+	}
+
+	if existentUser != nil {
+		return errors.New("User already exists")
+	}
 
 	if user, err := s.GetByEmail(ctx, email); err != nil {
 		return err
@@ -73,6 +102,7 @@ func (s *userService) CreateAdminUser(ctx context.Context, email, password strin
 	u := domain.User{
 		Name:      "Admin",
 		Email:     email,
+		Document:  doc,
 		Password:  p,
 		Contact:   "",
 		Role:      "administrator",
@@ -107,13 +137,17 @@ func (s *userService) GetByID(ctx context.Context, id uint) (*domain.User, error
 
 func (s *userService) Search(ctx context.Context, params map[string]interface{}) (*[]domain.User, error) {
 
-	uSearch := ports.UserSearch{Name: "", Email: "", Contact: ""}
+	uSearch := ports.UserSearch{Name: "", Email: "", Document: "", Contact: ""}
 	if params["name"] != nil {
 		uSearch.Name = params["name"].(string)
 	}
 
 	if params["email"] != nil {
 		uSearch.Email = params["email"].(string)
+	}
+
+	if params["document"] != nil {
+		uSearch.Document = params["document"].(string)
 	}
 
 	if params["contact"] != nil {
@@ -138,7 +172,39 @@ func (s *userService) Update(ctx context.Context, u domain.User) (*domain.User, 
 		return nil, errors.New("user not found")
 	}
 
+	existentUser, err := s.repo.FindByDocument(ctx, u.Document.GetDocumentNumber())
+
+	if err != nil {
+		return nil, err
+	}
+
+	if existentUser != nil {
+		return nil, errors.New("User already exists")
+	}
+
 	existingDomain := existingUser.ToDomain()
+
+	if u.Document != nil && u.Document.GetDocumentNumber() != "" {
+		newDoc := u.Document.GetDocumentNumber()
+		currentDoc := ""
+
+		if existingDomain.Document != nil {
+			currentDoc = existingDomain.Document.GetDocumentNumber()
+		}
+
+		// So consulta conflito quando o doc realmente mudou
+		if newDoc != currentDoc {
+			existentUser, err := s.repo.FindByDocument(ctx, newDoc)
+			if err != nil {
+				return nil, err
+			}
+
+			// Bloqueia apenas se o documento pertencer a OUTRO usuario
+			if existentUser != nil && existentUser.ID != existingUser.ID {
+				return nil, errors.New("User already exists")
+			}
+		}
+	}
 
 	if u.Email != "" && u.Email != existingDomain.Email {
 		if uMail, err := s.GetByEmail(ctx, u.Email); err != nil {

@@ -29,9 +29,12 @@ func TestUserService_Create_Success(t *testing.T) {
 	password, err := domain.NewPassword("TestPass123!", mockHasher)
 	assert.NoError(t, err)
 
+	doc, _ := domain.NewDocument("42692605807")
+
 	inputUser := domain.User{
 		Name:     "João Silva",
 		Email:    "joao@test.com",
+		Document: doc,
 		Contact:  "11999999999",
 		Role:     "administrator",
 		Password: password,
@@ -52,6 +55,7 @@ func TestUserService_Create_Success(t *testing.T) {
 	// Configurar o mock
 	mockRepo.On("Create", ctx, mock.AnythingOfType("*user.Model")).Return(&mockModel, nil)
 	mockRepo.On("GetByEmail", ctx, inputUser.Email).Return(nil, nil)
+	mockRepo.On("FindByDocument", ctx, "42692605807").Return(nil, nil)
 
 	// Act
 	result, err := service.Create(ctx, inputUser)
@@ -61,6 +65,7 @@ func TestUserService_Create_Success(t *testing.T) {
 	assert.NotNil(t, result)
 	assert.Equal(t, "João Silva", result.Name)
 	assert.Equal(t, "joao@test.com", result.Email)
+	assert.Equal(t, "42692605807", result.Document.GetDocumentNumber())
 	assert.Equal(t, "administrator", result.Role)
 	assert.Nil(t, result.DeletedAt)
 	mockRepo.AssertExpectations(t)
@@ -151,7 +156,7 @@ func TestUserService_CreateAdminUser_EmailAlreadyExists(t *testing.T) {
 	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(&user.Model{Email: "admin@admin.com"}, nil)
 
 	// Act
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!", "42692605807")
 
 	// Assert
 	assert.NoError(t, err)
@@ -167,7 +172,7 @@ func TestUserService_CreateAdminUser_EmailError(t *testing.T) {
 	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(nil, errors.New("error on consult email"))
 
 	// Act
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!", "42692605807")
 
 	// Assert
 	assert.Error(t, err)
@@ -203,7 +208,7 @@ func TestUserService_CreateAdminUser_Success(t *testing.T) {
 	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(nil, nil)
 
 	// Act
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!", "42692605807")
 
 	// Assert
 	assert.NoError(t, err)
@@ -220,7 +225,7 @@ func TestUserService_CreateAdminUser_CreateError(t *testing.T) {
 	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(nil, nil)
 
 	// Act
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!", "42692605807")
 
 	// Assert
 	assert.Error(t, err)

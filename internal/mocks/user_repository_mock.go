@@ -25,3 +25,11 @@ func (m *MockUserRepository) GetByEmail(ctx context.Context, email string) (*use
 	}
 	return args.Get(0).(*user.Model), args.Error(1)
 }
+
+func (m *MockUserRepository) FindByDocument(ctx context.Context, document string) (*user.Model, error) {
+	args := m.Called(ctx, document)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*user.Model), args.Error(1)
+}

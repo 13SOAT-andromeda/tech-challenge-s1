@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"encoding/json"
 	"errors"
 	"regexp"
 	"strconv"
@@ -9,6 +10,22 @@ import (
 
 type Document struct {
 	Number string `json:"number"`
+}
+
+func (d *Document) MarshalJSON() ([]byte, error) {
+	if d == nil {
+		return []byte("null"), nil
+	}
+	return json.Marshal(d.Number)
+}
+
+func (d *Document) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	d.Number = s
+	return nil
 }
 
 func RestoreDocument(raw string) Document {
