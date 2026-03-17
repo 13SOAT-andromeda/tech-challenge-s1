@@ -3,7 +3,12 @@ package main
 import (
 	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
+
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database"
@@ -31,10 +36,19 @@ import (
 )
 
 func main() {
+	defer tracer.Stop()
+
 	cfg, err := config.Init()
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
+
+	tracer.Start(
+		tracer.WithEnv(cfg.Env),
+		tracer.WithService("tech-challenge-api"),
+		tracer.WithServiceVersion(cfg.Version),
+	)
+
 	ctx := context.Background()
 	db, err := database.Init(ctx, *cfg.Database)
 	if err != nil {
@@ -119,4 +133,10 @@ func main() {
 		log.Fatalf("failed to start server: %v", err)
 	}
 
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGTERM)
+	go func() {
+		<-sigChan
+		tracer.Stop()
+	}()
 }
