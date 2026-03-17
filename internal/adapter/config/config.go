@@ -12,6 +12,7 @@ type Config struct {
 	Http      *HttpConfig
 	JWT       *JWTConfig
 	Env       string
+	Version   string
 	AdminUser *AdminUserConfig
 	MailTrap  *MailTrapConfig
 }
@@ -105,6 +106,7 @@ func Init() (*Config, error) {
 		Http:      http,
 		JWT:       jwt,
 		Env:       getEnv("ENV", "development"),
+		Version:   "1.0.0",
 		AdminUser: adminUser,
 		MailTrap:  mailTrap,
 	}, nil
