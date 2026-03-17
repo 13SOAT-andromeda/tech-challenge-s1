@@ -21,3 +21,14 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: Never
+  - target:
+      kind: DatadogAgent
+      name: datadog
+    patch: |-
+      - op: add
+        path: /spec/override
+        value:
+          nodeAgent:
+            env:
+              - name: DD_HOSTNAME
+                value: tech-challenge-local
