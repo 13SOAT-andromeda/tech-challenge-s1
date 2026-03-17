@@ -11,6 +11,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
+	gintrace "github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2"
 	swaggerFiles "github.com/swaggo/files"
 	swagger "github.com/swaggo/gin-swagger"
 )
@@ -41,6 +42,7 @@ func NewRouter(
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 
 	router := gin.New()
+	router.Use(gintrace.Middleware("tech-challenge-api"))
 	router.Use(gin.Logger(), gin.Recovery(), cors.New(corsConfig))
 
 	// Initialize auth middleware
