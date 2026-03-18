@@ -42,7 +42,7 @@ func NewRouter(
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 
 	router := gin.New()
-	router.Use(gintrace.Middleware("tech-challenge-api"))
+	router.Use(gintrace.Middleware("tech-challenge-api", gintrace.WithUseGinErrors(), gintrace.WithAnalytics(true)))
 	router.Use(gin.Logger(), gin.Recovery(), cors.New(corsConfig))
 
 	// Initialize auth middleware
