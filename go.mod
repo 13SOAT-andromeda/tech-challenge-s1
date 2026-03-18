@@ -19,6 +19,14 @@ require (
 )
 
 require (
+	github.com/DataDog/dd-trace-go/contrib/gorm.io/gorm.v1/v2 v2.6.0
+	github.com/DataDog/gostackparse v0.7.0 // indirect
+	github.com/google/pprof v0.0.0-20241029153458-d1b30febd7db // indirect
+	github.com/richardartoul/molecule v1.0.1-0.20240531184615-7ca0df43c0b3 // indirect
+	github.com/spaolacci/murmur3 v1.1.0 // indirect
+)
+
+require (
 	github.com/DataDog/datadog-agent/comp/core/tagger/origindetection v0.71.0 // indirect
 	github.com/DataDog/datadog-agent/pkg/obfuscate v0.71.0 // indirect
 	github.com/DataDog/datadog-agent/pkg/opentelemetry-mapping-go/otlp/attributes v0.71.0 // indirect
@@ -65,7 +73,7 @@ require (
 	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/pgx/v5 v5.5.4 // indirect
+	github.com/jackc/pgx/v5 v5.6.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
