@@ -57,7 +57,7 @@ func (h *VehicleHandler) Create(ctx *gin.Context) {
 		Color: json.Color,
 	}
 
-	vehicle, err := h.service.Create(ctx, v)
+	vehicle, err := h.service.Create(ctx.Request.Context(), v)
 
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
@@ -71,7 +71,7 @@ func (h *VehicleHandler) GetAll(ctx *gin.Context) {
 	u := ctx.Request.URL.Query()
 	params := converters.ParamsToMap(u)
 
-	vehicles, err := h.service.GetAll(ctx, params)
+	vehicles, err := h.service.GetAll(ctx.Request.Context(), params)
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -88,7 +88,7 @@ func (h *VehicleHandler) GetByID(ctx *gin.Context) {
 		return
 	}
 
-	vehicle, err := h.service.GetByID(ctx, uint(id))
+	vehicle, err := h.service.GetByID(ctx.Request.Context(), uint(id))
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -131,7 +131,7 @@ func (h *VehicleHandler) Update(ctx *gin.Context) {
 		Color: json.Color,
 	}
 
-	updated, err := h.service.Update(ctx, v)
+	updated, err := h.service.Update(ctx.Request.Context(), v)
 
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
@@ -149,7 +149,7 @@ func (h *VehicleHandler) Delete(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.service.Delete(ctx, uint(id)); err != nil {
+	if err := h.service.Delete(ctx.Request.Context(), uint(id)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}

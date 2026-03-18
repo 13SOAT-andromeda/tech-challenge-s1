@@ -41,7 +41,7 @@ func (h *SessionHandler) Login(ctx *gin.Context) {
 		Password: req.Password,
 	}
 
-	output, err := h.useCase.Login(ctx, input)
+	output, err := h.useCase.Login(ctx.Request.Context(), input)
 	if err != nil {
 		response.RespondError(ctx, mapErrorToStatus(err), err.Error())
 		return
@@ -67,7 +67,7 @@ func (h *SessionHandler) Validate(ctx *gin.Context) {
 		Token: token,
 	}
 
-	output, err := h.useCase.Validate(ctx, input)
+	output, err := h.useCase.Validate(ctx.Request.Context(), input)
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -87,7 +87,7 @@ func (h *SessionHandler) Refresh(ctx *gin.Context) {
 		RefreshToken: req.RefreshToken,
 	}
 
-	output, err := h.useCase.Refresh(ctx, input)
+	output, err := h.useCase.Refresh(ctx.Request.Context(), input)
 	if err != nil {
 		response.RespondError(ctx, mapErrorToStatus(err), err.Error())
 		return
@@ -107,7 +107,7 @@ func (h *SessionHandler) Logout(ctx *gin.Context) {
 		RefreshToken: req.RefreshToken,
 	}
 
-	err := h.useCase.Logout(ctx, input)
+	err := h.useCase.Logout(ctx.Request.Context(), input)
 	if err != nil {
 		response.RespondError(ctx, mapErrorToStatus(err), err.Error())
 		return
