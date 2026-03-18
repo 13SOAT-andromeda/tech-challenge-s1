@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/profiler"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database"
@@ -36,18 +37,40 @@ import (
 )
 
 func main() {
-	defer tracer.Stop()
+	defer func() {
+		tracer.Stop()
+		profiler.Stop()
+	}()
 
 	cfg, err := config.Init()
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	tracer.Start(
+	err = profiler.Start(
+		profiler.WithEnv(cfg.Env),
+		profiler.WithService("tech-challenge-api"),
+		profiler.WithVersion(cfg.Version),
+		profiler.WithTags("layer:api"),
+		profiler.WithProfileTypes(
+			profiler.CPUProfile,
+			profiler.HeapProfile,
+		),
+	)
+
+	if err != nil {
+		log.Fatalf("Error on start datadog profiler: %s", err)
+	}
+
+	err = tracer.Start(
 		tracer.WithEnv(cfg.Env),
 		tracer.WithService("tech-challenge-api"),
 		tracer.WithServiceVersion(cfg.Version),
 	)
+
+	if err != nil {
+		log.Fatalf("Error on start datadog tracer: %s", err)
+	}
 
 	ctx := context.Background()
 	db, err := database.Init(ctx, *cfg.Database)
