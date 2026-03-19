@@ -32,3 +32,5 @@ patches:
             env:
               - name: DD_HOSTNAME
                 value: tech-challenge-local
+              - name: DD_KUBELET_TLS_VERIFY
+                value: "false"
