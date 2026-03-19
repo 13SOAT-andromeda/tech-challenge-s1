@@ -27,10 +27,6 @@ go.work.sum
 # env file
 .env
 
-# Local development files
-main
-api
-
 # Editor/IDE
 .idea/
 .vscode/
