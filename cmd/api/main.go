@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
+	"go.uber.org/zap"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database"
@@ -37,14 +37,24 @@ import (
 )
 
 func main() {
+
+	logger, err := zap.NewProduction()
+
 	defer func() {
 		tracer.Stop()
 		profiler.Stop()
+		logger.Sync()
 	}()
+
+	sugar := logger.Sugar()
+
+	if err != nil {
+		sugar.Fatalf("Error on start logger zap: %s", err)
+	}
 
 	cfg, err := config.Init()
 	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
+		sugar.Fatalf("failed to load config: %v", err)
 	}
 
 	err = profiler.Start(
@@ -59,7 +69,7 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatalf("Error on start datadog profiler: %s", err)
+		sugar.Fatalf("Error on start datadog profiler: %s", err)
 	}
 
 	err = tracer.Start(
@@ -69,15 +79,16 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatalf("Error on start datadog tracer: %s", err)
+		sugar.Fatalf("Error on start datadog tracer: %s", err)
 	}
 
 	ctx := context.Background()
 	db, err := database.Init(ctx, *cfg.Database)
 	if err != nil {
-		log.Fatalf("failed to connect database: %v", err)
+		sugar.Fatalf("failed to connect database: %v", err)
 	}
-	log.Printf("Connecting to database")
+
+	sugar.Infof("Connecting to database")
 
 	err = db.AutoMigrate(
 		&customer.Model{},
@@ -94,7 +105,7 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatalf("Error to executing migration: %s", err)
+		sugar.Fatalf("Error to executing migration: %s", err)
 	}
 
 	dbase := db.GetDB()
@@ -145,15 +156,15 @@ func main() {
 		sessionUseCase,
 	)
 
-	router := http.NewRouter(*cfg, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *vehicleHandler, *orderHandler, *sessionHandler, sessionService)
-	log.Printf("Starting HTTP server on port %s", cfg.Http.Port)
+	router := http.NewRouter(*cfg, logger, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *vehicleHandler, *orderHandler, *sessionHandler, sessionService)
+	sugar.Info("Starting HTTP server on port %s", cfg.Http.Port)
 
 	if err = userService.CreateAdminUser(ctx, cfg.AdminUser.Email, cfg.AdminUser.Password); err != nil {
-		log.Fatalf("failed on create admin user: %v", err)
+		sugar.Fatalf("failed on create admin user: %v", err)
 	}
 
 	if err = router.Server(":" + cfg.Http.Port); err != nil {
-		log.Fatalf("failed to start server: %v", err)
+		sugar.Fatalf("failed to start server: %v", err)
 	}
 
 	sigChan := make(chan os.Signal, 1)
