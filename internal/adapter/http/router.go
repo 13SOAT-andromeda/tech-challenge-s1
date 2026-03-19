@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
@@ -10,8 +11,12 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	gintrace "github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	ginzap "github.com/gin-contrib/zap"
 	swaggerFiles "github.com/swaggo/files"
 	swagger "github.com/swaggo/gin-swagger"
 )
@@ -22,6 +27,7 @@ type Router struct {
 
 func NewRouter(
 	config config.Config,
+	logger *zap.Logger,
 	customerHandler handlers.CustomerHandler,
 	companyHandler handlers.CompanyHandler,
 	maintenanceHandler handlers.MaintenanceHandler,
@@ -42,8 +48,27 @@ func NewRouter(
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 
 	router := gin.New()
-	router.Use(gintrace.Middleware("tech-challenge-api", gintrace.WithUseGinErrors(), gintrace.WithAnalytics(true)))
-	router.Use(gin.Logger(), gin.Recovery(), cors.New(corsConfig))
+	router.Use(gintrace.Middleware("tech-challenge-api", gintrace.WithUseGinErrors(), gintrace.WithAnalytics(true), gintrace.WithStatusCheck(func(statusCode int) bool {
+		return statusCode >= 400
+	})))
+	router.Use(ginzap.GinzapWithConfig(logger, &ginzap.Config{
+		UTC:        true,
+		TimeFormat: time.RFC3339,
+		Context: ginzap.Fn(func(c *gin.Context) []zapcore.Field {
+			fields := []zapcore.Field{}
+			span, ok := tracer.SpanFromContext(c.Request.Context())
+
+			if ok {
+				fields = append(fields, zap.String("trace_id", span.Context().TraceID()))
+				fields = append(fields, zap.String("span_id", span.String()))
+			}
+			return fields
+		}),
+	}))
+	router.Use(ginzap.RecoveryWithZap(logger, true))
+	router.Use(
+		cors.New(corsConfig),
+	)
 
 	// Initialize auth middleware
 	authMiddleware := middlewares.NewAuthMiddleware(&config, sessionService)
