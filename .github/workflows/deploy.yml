@@ -68,10 +68,10 @@ jobs:
       - name: Gerar arquivos de env do overlay
         run: |
           cat > k8s/overlays/aws/.env.secrets << 'EOF'
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_PASSWORD=${{ secrets.AWS_RDS_DB_PASSWORD }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
-          ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
-          ADMIN_EMAIL=${{ vars.ADMIN_EMAIL }}
+          ADMIN_PASSWORD=${{ secrets.USER_ADMIN_PASSWORD }}
+          ADMIN_EMAIL=${{ vars.USER_ADMIN_EMAIL }}
           MAILTRAP_TOKEN=${{ secrets.MAILTRAP_TOKEN }}
           EOF
           
