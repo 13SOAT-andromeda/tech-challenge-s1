@@ -2,15 +2,14 @@ name: Deploy Application to AWS
 
 on:
   push:
-    branches: [ main, master ]
-    paths:
-      - 'cmd/**'
-      - 'internal/**'
-      - 'pkg/**'
-      - 'k8s/**'
-      - 'Dockerfile'
-      - '.github/workflows/deploy.yml'
-  workflow_dispatch:
+    branches: [ main ]
+    # paths:
+    #   - 'cmd/**'
+    #   - 'internal/**'
+    #   - 'pkg/**'
+    #   - 'k8s/**'
+    #   - 'Dockerfile'
+    #   - '.github/workflows/deploy.yml'
 
 jobs:
   build-and-deploy:
