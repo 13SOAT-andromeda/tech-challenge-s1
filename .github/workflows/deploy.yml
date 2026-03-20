@@ -3,18 +3,17 @@ name: Deploy Application to AWS
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'cmd/**'
-      - 'internal/**'
-      - 'pkg/**'
-      - 'k8s/**'
-      - 'Dockerfile'
-  workflow_dispatch:
+    # paths:
+    #   - 'cmd/**'
+    #   - 'internal/**'
+    #   - 'pkg/**'
+    #   - 'k8s/**'
+    #   - 'Dockerfile'
+    #   - '.github/workflows/deploy.yml'
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: AWS
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
     steps:
@@ -60,7 +59,7 @@ jobs:
       - name: Definir variáveis de banco (RDS)
         run: |
           RDS_ADDRESS=$(aws rds describe-db-instances \
-            --db-instance-identifier "${{ vars.RDS_INSTANCE_ID }}" \
+            --db-instance-identifier garagedb \
             --query "DBInstances[0].Endpoint.Address" --output text)
           echo "RDS_ADDRESS=$RDS_ADDRESS" >> $GITHUB_ENV
 
@@ -70,7 +69,7 @@ jobs:
           DB_PASSWORD=${{ secrets.AWS_RDS_DB_PASSWORD }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           ADMIN_PASSWORD=${{ secrets.USER_ADMIN_PASSWORD }}
-          ADMIN_EMAIL=${{ vars.USER_ADMIN_EMAIL }}
+          ADMIN_EMAIL=${{ secrets.USER_EMAIL_PASSWORD }}
           MAILTRAP_TOKEN=${{ secrets.MAILTRAP_TOKEN }}
           EOF
           
