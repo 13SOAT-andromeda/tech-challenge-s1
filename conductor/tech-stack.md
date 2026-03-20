@@ -17,7 +17,8 @@
 ## Infrastructure & DevOps
 - **Docker:** Containerization of the API and its environment.
 - **Kubernetes (Kind):** Local cluster simulation for production parity.
-- **AWS (EKS):** Target platform for scalable deployments.
+- **AWS (EKS):** Target platform for scalable deployments, integrated with GitHub Actions and Lab Role ARN for IAM.
+- **Secret Management:** Integration with GitHub Secrets for production and `.env` fallback for local development.
 
 ## Architecture
 - **Hexagonal Architecture:** Decoupling business logic from infrastructure using Ports and Adapters.
