@@ -14,7 +14,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: AWS
     env:
       AWS_REGION: us-east-1
     steps:
