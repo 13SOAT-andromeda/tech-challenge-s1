@@ -27,9 +27,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ vars.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_CLUSTER_ROLE_ARN }}
-          role-duration-seconds: 1200
-          role-skip-session-tagging: true
 
       - name: Login to Amazon ECR
         id: login-ecr
