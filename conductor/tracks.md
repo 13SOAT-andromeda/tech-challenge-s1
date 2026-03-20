@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Refactor Infrastructure into API and Update EKS Deployment**
+- [x] **Track: Refactor Infrastructure into API and Update EKS Deployment**
   *Link: [./tracks/infra_refactor_20260320/](./tracks/infra_refactor_20260320/)*
