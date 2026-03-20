@@ -43,7 +43,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Update Kubeconfig
-        run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name eks-tech-challenge
+        run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name eks-tech-challenge-cluster
 
       - name: Configure Metrics
         run: |
@@ -83,14 +83,14 @@ jobs:
             sed "s|ECR_IMAGE:latest|${{ steps.login-ecr.outputs.registry }}/tech-challenge-repo:latest|g" | \
             kubectl apply -f -
 
-      - name: Aguardar LoadBalancer ser provisionado
+      - name: Aguardar Ingress ser provisionado
         run: |
-          echo "Aguardando LoadBalancer ser provisionado..."
+          echo "Aguardando Ingress (ALB) ser provisionado..."
           timeout=300
           elapsed=0
           API_URL=""
           while [ $elapsed -lt $timeout ]; do
-            API_URL=$(kubectl get svc tech-challenge-api-svc -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
+            API_URL=$(kubectl get ingress tech-challenge-api-ingress -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
             if [ -n "$API_URL" ]; then
               echo "LoadBalancer provisionado: $API_URL"
               break
