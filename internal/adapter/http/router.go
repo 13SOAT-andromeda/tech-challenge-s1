@@ -48,9 +48,16 @@ func NewRouter(
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 
 	router := gin.New()
-	router.Use(gintrace.Middleware("tech-challenge-api", gintrace.WithUseGinErrors(), gintrace.WithAnalytics(true), gintrace.WithStatusCheck(func(statusCode int) bool {
-		return statusCode >= 400
-	})))
+	router.Use(gintrace.Middleware("tech-challenge-api",
+		gintrace.WithUseGinErrors(),
+		gintrace.WithAnalytics(true),
+		gintrace.WithIgnoreRequest(func(c *gin.Context) bool {
+			return c.Request.URL.Path == "/health"
+		}),
+		gintrace.WithStatusCheck(func(statusCode int) bool {
+			return statusCode >= 400
+		}),
+	))
 	router.Use(ginzap.GinzapWithConfig(logger, &ginzap.Config{
 		UTC:        true,
 		TimeFormat: time.RFC3339,
