@@ -18,6 +18,7 @@ type Model struct {
 	DateOut           *time.Time
 	DateApproved      *time.Time
 	DateRejected      *time.Time
+	LastStatusAt      *time.Time
 	Status            string
 	VehicleKilometers int
 	Note              *string
@@ -79,12 +80,19 @@ func (m *Model) ToDomain() *domain.Order {
 		}
 	}
 
+	last := m.LastStatusAt
+	if last == nil {
+		t := m.DateIn
+		last = &t
+	}
+
 	return &domain.Order{
 		ID:                m.ID,
 		DateIn:            m.DateIn,
 		DateOut:           m.DateOut,
 		DateApproved:      m.DateApproved,
 		DateRejected:      m.DateRejected,
+		LastStatusAt:      last,
 		Status:            domain.OrderStatus(m.Status),
 		VehicleKilometers: m.VehicleKilometers,
 		Note:              m.Note,
@@ -106,6 +114,12 @@ func (m *Model) FromDomain(d *domain.Order) {
 	m.DateOut = d.DateOut
 	m.DateApproved = d.DateApproved
 	m.DateRejected = d.DateRejected
+	if d.LastStatusAt != nil {
+		m.LastStatusAt = d.LastStatusAt
+	} else if d.ID == 0 {
+		t := d.DateIn
+		m.LastStatusAt = &t
+	}
 	m.Status = string(d.Status)
 	m.VehicleKilometers = d.VehicleKilometers
 	m.Note = d.Note

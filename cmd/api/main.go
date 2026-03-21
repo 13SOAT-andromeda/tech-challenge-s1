@@ -7,6 +7,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/DataDog/datadog-go/v5/statsd"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
 	"go.uber.org/zap"
@@ -28,12 +29,13 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/email"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
+	appmetrics "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/metrics"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/jwt"
-
 	customerUseCase "github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/customer"
 	orderUsecase "github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/order"
 	sessionUseCase "github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/session"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/jwt"
 )
 
 func main() {
@@ -59,7 +61,7 @@ func main() {
 
 	err = profiler.Start(
 		profiler.WithEnv(cfg.Env),
-		profiler.WithService("tech-challenge-api"),
+		profiler.WithService(cfg.Service),
 		profiler.WithVersion(cfg.Version),
 		profiler.WithTags("layer:api"),
 		profiler.WithProfileTypes(
@@ -74,7 +76,7 @@ func main() {
 
 	err = tracer.Start(
 		tracer.WithEnv(cfg.Env),
-		tracer.WithService("tech-challenge-api"),
+		tracer.WithService(cfg.Service),
 		tracer.WithServiceVersion(cfg.Version),
 	)
 
@@ -114,6 +116,24 @@ func main() {
 	refreshExpiry, _ := time.ParseDuration(cfg.JWT.RefreshTokenExpiry)
 	apiUrl := cfg.Http.ApiUrl
 
+	var orderMetrics ports.OrderMetrics = appmetrics.NoopOrderMetrics{}
+	if !cfg.DogStatsD.Disabled && cfg.DogStatsD.Addr != "" {
+		statsdClient, errStatsd := statsd.New(cfg.DogStatsD.Addr,
+			statsd.WithNamespace("tech_challenge."),
+			statsd.WithTags([]string{
+				"env:" + cfg.Env,
+				"service:" + cfg.Service,
+				"version:" + cfg.Version,
+			}),
+		)
+		if errStatsd != nil {
+			sugar.Warnw("dogstatsd indisponível, métricas de ordem desativadas", "error", errStatsd)
+		} else {
+			defer statsdClient.Close()
+			orderMetrics = appmetrics.NewOrderStatsd(statsdClient)
+		}
+	}
+
 	// Repositories
 	customerRepository := repository.NewCustomerRepository(dbase)
 	companyRepository := repository.NewCompanyRepository(dbase)
@@ -142,7 +162,7 @@ func main() {
 	// UseCases
 	createCustomerUseCase := customerUseCase.NewCustomerUseCase(customerRepository, customerVehicleRepository, vehicleService)
 	sessionUseCase := sessionUseCase.NewSessionUseCase(userService, sessionService, jwtService, cfg)
-	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, customerService, emailService, orderRepository, orderProductRepository, orderMaintenanceRepository, apiUrl)
+	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, customerService, emailService, orderRepository, orderProductRepository, orderMaintenanceRepository, apiUrl, orderMetrics)
 
 	// Handlers
 	customerHandler := handlers.NewCustomerHandler(customerService, createCustomerUseCase)

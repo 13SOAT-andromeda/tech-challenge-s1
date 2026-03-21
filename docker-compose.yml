@@ -61,7 +61,10 @@ services:
       DD_UNIVERSAL_SERVICE_MONITORING_ENABLED: "true"
 
       DD_PROCESS_CONFIG_PROCESS_COLLECTION_ENABLED: "true"
+
+      DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true"
     ports:
+      - "8125:8125/udp"
       - "8126:8126"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro

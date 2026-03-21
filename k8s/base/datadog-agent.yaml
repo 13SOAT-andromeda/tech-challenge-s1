@@ -44,3 +44,6 @@ spec:
         enabled: true
     usm:
       enabled: true
+    dogstatsd:
+      hostPortConfig:
+        enabled: true
