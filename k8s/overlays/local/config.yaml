@@ -1,5 +1,3 @@
-# DogStatsD usa DD_AGENT_HOST:8125 (UDP). Com hostPort no node, pode ser necessário
-# DD_AGENT_HOST=status.hostIP via downward API no Deployment.
 apiVersion: v1
 kind: ConfigMap
 metadata:
