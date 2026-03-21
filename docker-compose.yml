@@ -26,8 +26,8 @@ services:
     environment:
       DD_AGENT_HOST: datadog-agent
       DD_ENV: ${ENV:-local}
-      DD_SERVICE: tech-challenge-api
-      DD_VERSION: ${API_VERSION:-local}
+      DD_SERVICE: ${DD_SERVICE:-tech-challenge-api}
+      DD_VERSION: ${API_VERSION:-1.0.0}
     ports:
       - "8080:8080"
     restart: on-failure
@@ -43,11 +43,8 @@ services:
     env_file:
       - .env
     environment:
-      DD_API_KEY: ${DATADOG_API_KEY}
-      DD_SITE: ${DATADOG_SITE}
-      DD_ENV: ${ENV:-local}
-      DD_SERVICE: tech-challenge-api
-      DD_VERSION: ${API_VERSION:-local}
+      DD_API_KEY: ${DD_API_KEY}
+      DD_SITE: ${DD_SITE}
 
       DD_APM_ENABLED: "true"
       DD_APM_NON_LOCAL_TRAFFIC: "true"
