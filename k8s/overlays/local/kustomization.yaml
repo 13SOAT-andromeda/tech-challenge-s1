@@ -26,11 +26,9 @@ patches:
       name: datadog
     patch: |-
       - op: add
-        path: /spec/override
+        path: /spec/override/nodeAgent/env
         value:
-          nodeAgent:
-            env:
-              - name: DD_HOSTNAME
-                value: tech-challenge-local
-              - name: DD_KUBELET_TLS_VERIFY
-                value: "false"
+          - name: DD_HOSTNAME
+            value: tech-challenge-local
+          - name: DD_KUBELET_TLS_VERIFY
+            value: "false"

@@ -47,3 +47,14 @@ spec:
     dogstatsd:
       hostPortConfig:
         enabled: true
+  override:
+    nodeAgent:
+      extraConfd:
+        configDataMap:
+          http_check.yaml: |
+            init_config:
+
+            instances:
+              - name: tech-challenge-api-health
+                url: http://tech-challenge-api-svc.default.svc.cluster.local/health
+                timeout: 5
