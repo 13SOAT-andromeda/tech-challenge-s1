@@ -25,15 +25,12 @@ func TestAddVehicleToCustomer_Success(t *testing.T) {
 	vehicleID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Name:  "Gedan Magalhaes",
-		Email: "gedan@example.com",
 	}
 	expectedCustomer.ID = customerID
 
 	expectedVehicle := &domain.Vehicle{
 		ID:    vehicleID,
 		Brand: "Toyota",
-		Name:  "Corolla 2020",
 	}
 
 	mockRepo.On("FindByID", ctx, customerID).Return(expectedCustomer, nil)
@@ -101,7 +98,6 @@ func TestAddVehicleToCustomer_VehicleNotFound(t *testing.T) {
 	vehicleID := uint(999)
 
 	expectedCustomer := &customer.Model{
-		Name: "Gedan Magalhaes",
 	}
 	expectedCustomer.ID = customerID
 
@@ -128,7 +124,6 @@ func TestAddVehicleToCustomer_VehicleNil(t *testing.T) {
 	vehicleID := uint(999)
 
 	expectedCustomer := &customer.Model{
-		Name: "Gedan Magalhaes",
 	}
 	expectedCustomer.ID = customerID
 
@@ -156,15 +151,12 @@ func TestAddVehicleToCustomer_AlreadyAssociated(t *testing.T) {
 	vehicleID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Name:  "Gedan Magalhaes",
-		Email: "gedan@example.com",
 	}
 	expectedCustomer.ID = customerID
 
 	expectedVehicle := &domain.Vehicle{
 		ID:    vehicleID,
 		Brand: "Toyota",
-		Name:  "Corolla 2020",
 	}
 
 	existingAssociation := &customer_vehicle.Model{
@@ -197,7 +189,6 @@ func TestAddVehicleToCustomer_ErrorCheckingExisting(t *testing.T) {
 	vehicleID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Name: "Gedan Magalhaes",
 	}
 	expectedCustomer.ID = customerID
 
@@ -231,7 +222,6 @@ func TestAddVehicleToCustomer_CreateError(t *testing.T) {
 	vehicleID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Name: "Gedan Magalhaes",
 	}
 	expectedCustomer.ID = customerID
 
@@ -266,7 +256,6 @@ func TestRemoveVehicleFromCustomer_Success(t *testing.T) {
 	vehicleID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Name: "Gedan Magalhaes",
 	}
 	expectedCustomer.ID = customerID
 
@@ -339,7 +328,6 @@ func TestRemoveVehicleFromCustomer_VehicleNotFound(t *testing.T) {
 	vehicleID := uint(999)
 
 	expectedCustomer := &customer.Model{
-		Name: "Gedan Magalhaes",
 	}
 	expectedCustomer.ID = customerID
 
@@ -365,7 +353,6 @@ func TestRemoveVehicleFromCustomer_VehicleNil(t *testing.T) {
 	vehicleID := uint(999)
 
 	expectedCustomer := &customer.Model{
-		Name: "Gedan Magalhaes",
 	}
 	expectedCustomer.ID = customerID
 
@@ -391,7 +378,6 @@ func TestRemoveVehicleFromCustomer_DeleteError(t *testing.T) {
 	vehicleID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Name: "Gedan Magalhaes",
 	}
 	expectedCustomer.ID = customerID
 
@@ -423,8 +409,6 @@ func TestGetCustomerVehicles_Success(t *testing.T) {
 	customerID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Name:  "Gedan Magalhaes",
-		Email: "gedan@example.com",
 	}
 	expectedCustomer.ID = customerID
 
@@ -530,7 +514,6 @@ func TestGetCustomerVehicles_FetchError(t *testing.T) {
 	customerID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Name: "Gedan Magalhaes",
 	}
 	expectedCustomer.ID = customerID
 
@@ -557,7 +540,6 @@ func TestGetCustomerVehicles_EmptyList(t *testing.T) {
 	customerID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Name: "Gedan Magalhaes",
 	}
 	expectedCustomer.ID = customerID
 
@@ -583,7 +565,6 @@ func TestGetCustomerVehicles_SkipsInvalidVehicles(t *testing.T) {
 	customerID := uint(1)
 
 	expectedCustomer := &customer.Model{
-		Name: "Gedan Magalhaes",
 	}
 	expectedCustomer.ID = customerID
 
@@ -598,7 +579,6 @@ func TestGetCustomerVehicles_SkipsInvalidVehicles(t *testing.T) {
 
 	invalidVehicle := vehicle.Model{
 		Plate: "INVALID",
-		Name:  "Invalid Name",
 		Year:  0,
 		Brand: "Invalid",
 		Color: "Invalid",
