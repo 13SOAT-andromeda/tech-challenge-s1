@@ -6,6 +6,8 @@ namespace: default
 resources:
   - ../../base
   - config.yaml
+  - ingress.yaml
+  - alb-controller.yaml
 
 images:
   - name: tech-challenge-api
@@ -31,13 +33,6 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: Always
-  - target:
-      kind: Service
-      name: tech-challenge-api-svc
-    patch: |-
-      - op: replace
-        path: /spec/type
-        value: LoadBalancer
 
 generatorOptions:
    disableNameSuffixHash: true

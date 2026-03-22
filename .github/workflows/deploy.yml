@@ -1,33 +1,24 @@
-﻿name: Deploy Application to AWS
+name: Deploy Application to AWS
 
 on:
-  workflow_run:
-    workflows: ["Deploy Infrastructure to AWS"]
-    types:
-      - completed
   push:
     branches: [ main ]
-    paths:
-      - 'cmd/**'
-      - 'internal/**'
-      - 'pkg/**'
-      - 'k8s/**'
-      - 'Dockerfile'
-  workflow_dispatch:
+    # paths:
+    #   - 'cmd/**'
+    #   - 'internal/**'
+    #   - 'pkg/**'
+    #   - 'k8s/**'
+    #   - 'Dockerfile'
+    #   - '.github/workflows/deploy.yml'
 
 jobs:
   build-and-deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    environment: AWS
     env:
-      AWS_REGION: us-east-1
-      TF_VAR_cluster_name: tech-challenge-api-cluster
+      AWS_REGION: ${{ secrets.AWS_REGION }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -35,7 +26,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -44,7 +35,7 @@ jobs:
       - name: Build and Push Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ vars.AWS_ECR_REPO }}
+          ECR_REPOSITORY: tech-challenge-repo
           IMAGE_TAG: latest
         run: |
           # Build
@@ -52,7 +43,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Update Kubeconfig
-        run: aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ vars.EKS_CLUSTER }}
+        run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name eks-tech-challenge-cluster
 
       - name: Configure Metrics
         run: |
@@ -68,17 +59,17 @@ jobs:
       - name: Definir variáveis de banco (RDS)
         run: |
           RDS_ADDRESS=$(aws rds describe-db-instances \
-            --db-instance-identifier "${{ vars.RDS_INSTANCE_ID }}" \
+            --db-instance-identifier garagedb \
             --query "DBInstances[0].Endpoint.Address" --output text)
           echo "RDS_ADDRESS=$RDS_ADDRESS" >> $GITHUB_ENV
 
       - name: Gerar arquivos de env do overlay
         run: |
           cat > k8s/overlays/aws/.env.secrets << 'EOF'
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_PASSWORD=${{ secrets.AWS_RDS_DB_PASSWORD }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
-          ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
-          ADMIN_EMAIL=${{ vars.ADMIN_EMAIL }}
+          ADMIN_PASSWORD=${{ secrets.USER_ADMIN_PASSWORD }}
+          ADMIN_EMAIL=${{ secrets.USER_EMAIL_PASSWORD }}
           MAILTRAP_TOKEN=${{ secrets.MAILTRAP_TOKEN }}
           EOF
           
@@ -89,17 +80,17 @@ jobs:
       - name: Aplicar Kustomize
         run: |
           kubectl kustomize k8s/overlays/aws | \
-            sed "s|ECR_IMAGE:latest|${{ steps.login-ecr.outputs.registry }}/${{ vars.AWS_ECR_REPO }}:latest|g" | \
+            sed "s|ECR_IMAGE:latest|${{ steps.login-ecr.outputs.registry }}/tech-challenge-repo:latest|g" | \
             kubectl apply -f -
 
-      - name: Aguardar LoadBalancer ser provisionado
+      - name: Aguardar Ingress ser provisionado
         run: |
-          echo "Aguardando LoadBalancer ser provisionado..."
+          echo "Aguardando Ingress (ALB) ser provisionado..."
           timeout=300
           elapsed=0
           API_URL=""
           while [ $elapsed -lt $timeout ]; do
-            API_URL=$(kubectl get svc tech-challenge-api-svc -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
+            API_URL=$(kubectl get ingress tech-challenge-api-ingress -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
             if [ -n "$API_URL" ]; then
               echo "LoadBalancer provisionado: $API_URL"
               break

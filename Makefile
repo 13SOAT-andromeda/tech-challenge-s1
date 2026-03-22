@@ -75,7 +75,8 @@ apply-aws:
 		--type merge \
 		-p '{"data":{"DB_HOST":"'$$RDS_ADDRESS'"}}' && \
 	kubectl rollout restart deployment tech-challenge-api && \
-	kubectl get svc tech-challenge-api-svc | awk '{print $$4}'
+	kubectl get ingress tech-challenge-api-ingress -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+
 
 deploy:
 ifeq ($(ENV),aws)
