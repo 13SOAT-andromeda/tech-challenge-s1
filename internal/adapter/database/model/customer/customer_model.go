@@ -3,20 +3,16 @@ package customer
 import (
 	"time"
 
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/address"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/document"
+	personModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/person"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"gorm.io/gorm"
 )
 
 type Model struct {
 	gorm.Model
-	Name     string `gorm:"not null"`
-	Email    string
-	Document document.Model `gorm:"embedded;unique"`
-	Type     string         `gorm:"not null"`
-	Contact  string         `gorm:"not null"`
-	Address  *address.Model `gorm:"embedded"`
+	Type     string            `gorm:"not null"`
+	PersonID uint              `gorm:"not null"`
+	Person   personModel.Model `gorm:"foreignKey:PersonID;references:ID"`
 }
 
 func (*Model) TableName() string {
@@ -24,34 +20,24 @@ func (*Model) TableName() string {
 }
 
 func (m *Model) ToDomain() *domain.Customer {
-
-	documentDomain := domain.RestoreDocument(m.Document.Document)
-
-	var addressDomain *domain.Address
-
-	if m.Address != nil {
-		addressDomain = m.Address.ToDomain()
-	} else {
-		addressDomain = nil
-	}
-
 	var deletedAt *time.Time
-
 	if m.DeletedAt.Valid {
 		deletedAt = &m.DeletedAt.Time
 	}
 
+	var person *domain.Person
+	if m.Person.ID != 0 {
+		person = m.Person.ToDomain()
+	}
+
 	return &domain.Customer{
 		ID:        m.ID,
-		Name:      m.Name,
-		Email:     m.Email,
-		Document:  &documentDomain,
 		Type:      m.Type,
-		Contact:   m.Contact,
+		PersonID:  m.PersonID,
+		Person:    person,
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
 		DeletedAt: deletedAt,
-		Address:   addressDomain,
 	}
 }
 
@@ -61,16 +47,10 @@ func (m *Model) FromDomain(d *domain.Customer) {
 	}
 
 	m.ID = d.ID
-	m.Name = d.Name
-	m.Email = d.Email
 	m.Type = d.Type
-	m.Contact = d.Contact
+	m.PersonID = d.PersonID
 
-	m.Document.FromDomain(d.Document)
-
-	if m.Address == nil {
-		m.Address = &address.Model{}
+	if d.Person != nil {
+		m.Person.FromDomain(d.Person)
 	}
-
-	m.Address.FromDomain(d.Address)
 }

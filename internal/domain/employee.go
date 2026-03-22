@@ -2,12 +2,12 @@ package domain
 
 import "time"
 
-type Customer struct {
+type Employee struct {
 	ID        uint       `json:"id"`
-	Type      string     `json:"type"`
+	Position  string     `json:"position"`
 	PersonID  uint       `json:"person_id"`
 	Person    *Person    `json:"person,omitempty"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }

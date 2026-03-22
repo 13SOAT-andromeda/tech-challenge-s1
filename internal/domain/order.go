@@ -55,7 +55,7 @@ type Order struct {
 	DiagnosticNote    *string        `json:"diagnostic_note"`
 	Price             *float64       `json:"price"`
 	CustomerVehicleID uint           `json:"customer_vehicle_id"`
-	UserID            uint           `json:"user_id"`
+	EmployeeID        uint           `json:"employee_id"`
 	CompanyID         uint           `json:"company_id"`
 	Vehicle           *Vehicle       `json:"vehicle,omitempty"`
 	Products          *[]Product     `json:"products,omitempty"`
