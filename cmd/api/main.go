@@ -87,7 +87,7 @@ func main() {
 
 	// Services
 	vehicleService := services.NewVehicleService(vehicleRepository)
-	customerService := services.NewCustomerService(customerRepository, customerVehicleRepository, vehicleService, personRepository)
+	customerService := services.NewCustomerService(customerRepository, personRepository, userRepository)
 	companyService := services.NewCompanyService(companyRepository)
 	maintenanceService := services.NewMaintenanceService(maintenanceRepository, orderMaintenanceRepository)
 	productService := services.NewProductService(productRepository)

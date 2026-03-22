@@ -15,8 +15,8 @@ type MockCustomerService struct {
 
 var _ ports.CustomerService = (*MockCustomerService)(nil)
 
-func (m *MockCustomerService) Create(ctx context.Context, p domain.Customer) (*domain.Customer, error) {
-	args := m.Called(ctx, p)
+func (m *MockCustomerService) Create(ctx context.Context, p domain.Customer, password *domain.Password) (*domain.Customer, error) {
+	args := m.Called(ctx, p, password)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

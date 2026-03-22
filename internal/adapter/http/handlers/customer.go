@@ -8,6 +8,7 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
 	"github.com/gin-gonic/gin"
 )
 
@@ -35,6 +36,7 @@ type CreateCustomerRequest struct {
 	Neighborhood  string `json:"neighborhood" binding:"required"`
 	Country       string `json:"country" binding:"required"`
 	ZipCode       string `json:"zip_code" binding:"required"`
+	Password      string `json:"password" binding:"required"`
 }
 
 func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
@@ -45,6 +47,12 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 	}
 
 	doc, err := domain.NewDocument(json.Document)
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	password, err := domain.NewPassword(json.Password, encryption.NewBcryptHasher())
 	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -68,7 +76,7 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 		},
 	}
 
-	customer, err := h.service.Create(ctx, c)
+	customer, err := h.service.Create(ctx, c, password)
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return

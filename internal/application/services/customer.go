@@ -7,28 +7,27 @@ import (
 
 	customerModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	personModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/person"
+	userModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
 )
 
 type customerService struct {
-	repo                ports.CustomerRepository
-	customerVehicleRepo ports.CustomerVehicleRepository
-	vehicleService      ports.VehicleService
-	personRepo          ports.PersonRepository
+	repo       ports.CustomerRepository
+	personRepo ports.PersonRepository
+	userRepo   ports.UserRepository
 }
 
-func NewCustomerService(repo ports.CustomerRepository, customerVehicleRepo ports.CustomerVehicleRepository, vehicleService ports.VehicleService, personRepo ports.PersonRepository) *customerService {
+func NewCustomerService(repo ports.CustomerRepository, personRepo ports.PersonRepository, userRepo ports.UserRepository) *customerService {
 	return &customerService{
-		repo:                repo,
-		customerVehicleRepo: customerVehicleRepo,
-		vehicleService:      vehicleService,
-		personRepo:          personRepo,
+		repo:       repo,
+		personRepo: personRepo,
+		userRepo:   userRepo,
 	}
 }
 
-func (s *customerService) Create(ctx context.Context, c domain.Customer) (*domain.Customer, error) {
+func (s *customerService) Create(ctx context.Context, c domain.Customer, password *domain.Password) (*domain.Customer, error) {
 	if c.Person == nil {
 		c.Person = &domain.Person{}
 	}
@@ -44,7 +43,17 @@ func (s *customerService) Create(ctx context.Context, c domain.Customer) (*domai
 			return nil, err
 		}
 		if existing != nil {
-			return nil, errors.New("Customer already exists")
+			return nil, errors.New("customer already exists")
+		}
+	}
+
+	if c.Person.Email != "" {
+		existingUser, err := s.userRepo.GetByEmail(ctx, c.Person.Email)
+		if err != nil {
+			return nil, err
+		}
+		if existingUser != nil {
+			return nil, errors.New("email já existe")
 		}
 	}
 
@@ -63,6 +72,20 @@ func (s *customerService) Create(ctx context.Context, c domain.Customer) (*domai
 
 	response, err := s.repo.Create(ctx, &model)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := password.Hash(); err != nil {
+		return nil, err
+	}
+
+	um := &userModel.Model{
+		Password: password.GetHashed(),
+		Role:     "customer",
+		PersonID: createdPerson.ID,
+		Person:   *createdPerson,
+	}
+	if _, err := s.userRepo.Create(ctx, um); err != nil {
 		return nil, err
 	}
 
