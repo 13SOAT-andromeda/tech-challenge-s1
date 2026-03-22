@@ -20,17 +20,26 @@ func NewUserRepository(db *gorm.DB) ports.UserRepository {
 	}
 }
 
+func (u *userRepository) FindByID(ctx context.Context, id uint) (*user.Model, error) {
+	var entity user.Model
+	err := u.db.WithContext(ctx).Joins("Person").First(&entity, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &entity, nil
+}
+
 func (u *userRepository) Search(ctx context.Context, params ports.UserSearch) []user.Model {
 	users := []user.Model{}
-	q := u.db.Model(&users)
+	q := u.db.Joins("Person")
 	if params.Name != "" {
-		q.Where("lower(name) LIKE ?", "%"+strings.ToLower(params.Name)+"%")
+		q = q.Where(`lower("Person"."name") LIKE ?`, "%"+strings.ToLower(params.Name)+"%")
 	}
 	if params.Email != "" {
-		q.Where("lower(email) LIKE ?", "%"+strings.ToLower(params.Email)+"%")
+		q = q.Where(`lower("Person"."email") LIKE ?`, "%"+strings.ToLower(params.Email)+"%")
 	}
 	if params.Contact != "" {
-		q.Where("lower(contact) LIKE ?", "%"+strings.ToLower(params.Contact)+"%")
+		q = q.Where(`lower("Person"."contact") LIKE ?`, "%"+strings.ToLower(params.Contact)+"%")
 	}
 	q.Find(&users)
 
@@ -38,8 +47,11 @@ func (u *userRepository) Search(ctx context.Context, params ports.UserSearch) []
 }
 
 func (u *userRepository) GetByEmail(ctx context.Context, email string) (*user.Model, error) {
-	user := user.Model{}
-	err := u.db.Where("email = ?", email).First(&user).Error
+	var entity user.Model
+	err := u.db.WithContext(ctx).
+		Joins("Person").
+		Where(`"Person"."email" = ?`, email).
+		First(&entity).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -47,5 +59,5 @@ func (u *userRepository) GetByEmail(ctx context.Context, email string) (*user.Mo
 		}
 		return nil, err
 	}
-	return &user, nil
+	return &entity, nil
 }
