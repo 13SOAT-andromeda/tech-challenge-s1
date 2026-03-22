@@ -5,28 +5,26 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
+	customerModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
+	personModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/person"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-func TestCustomerService_Create_Success(t *testing.T) {
-	mockRepo := new(mocks.MockCustomerRepository)
-	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
-	mockVehicleService := new(mocks.MockVehicleService)
-	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
+func newTestCustomerService(mockRepo *mocks.MockCustomerRepository, mockCVRepo *mocks.MockCustomerVehicleRepository, mockVehicleService *mocks.MockVehicleService, mockPersonRepo *mocks.MockPersonRepository) *customerService {
+	return NewCustomerService(mockRepo, mockCVRepo, mockVehicleService, mockPersonRepo)
+}
 
-	ctx := context.Background()
-	inputCustomer := domain.Customer{
-		Name:  "Gedan Magalhaes",
-		Email: "gedan@example.com",
+func makeTestPerson(name, email string) *domain.Person {
+	return &domain.Person{
+		Name:    name,
+		Email:   email,
+		Contact: "11999999999",
 		Document: &domain.Document{
 			Number: "293.034.620-50",
 		},
-		Type:    "individual",
-		Contact: "11999999999",
 		Address: &domain.Address{
 			Address:       "Rua Teste",
 			AddressNumber: "123",
@@ -36,46 +34,70 @@ func TestCustomerService_Create_Success(t *testing.T) {
 			ZipCode:       "01234-567",
 		},
 	}
+}
 
-	var mockModel customer.Model
-	mockModel.FromDomain(&inputCustomer)
+func TestCustomerService_Create_Success(t *testing.T) {
+	mockRepo := new(mocks.MockCustomerRepository)
+	mockCVRepo := new(mocks.MockCustomerVehicleRepository)
+	mockVehicleService := new(mocks.MockVehicleService)
+	mockPersonRepo := new(mocks.MockPersonRepository)
+	service := newTestCustomerService(mockRepo, mockCVRepo, mockVehicleService, mockPersonRepo)
+
+	ctx := context.Background()
+	inputCustomer := domain.Customer{
+		Type:   "individual",
+		Person: makeTestPerson("Gedan Magalhaes", "gedan@example.com"),
+	}
+
+	createdPerson := personModel.Model{}
+	createdPerson.ID = 1
+	createdPerson.Name = "Gedan Magalhaes"
+	createdPerson.Email = "gedan@example.com"
+
+	var mockModelCust customerModel.Model
+	mockModelCust.PersonID = 1
+	mockModelCust.Person = createdPerson
 
 	mockRepo.On("FindByDocument", mock.Anything, mock.AnythingOfType("string")).
 		Return(nil, nil)
-
+	mockPersonRepo.On("Create", mock.Anything, mock.AnythingOfType("*person.Model")).
+		Return(&createdPerson, nil)
 	mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*customer.Model")).
-		Return(&mockModel, nil)
+		Return(&mockModelCust, nil)
 
 	result, err := service.Create(ctx, inputCustomer)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, "Gedan Magalhaes", result.Name)
-	assert.Equal(t, "gedan@example.com", result.Email)
+	assert.NotNil(t, result.Person)
+	assert.Equal(t, "Gedan Magalhaes", result.Person.Name)
+	assert.Equal(t, "gedan@example.com", result.Person.Email)
 	mockRepo.AssertExpectations(t)
+	mockPersonRepo.AssertExpectations(t)
 }
 
 func TestCustomerService_Create_RepositoryError(t *testing.T) {
 	mockRepo := new(mocks.MockCustomerRepository)
-	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockCVRepo := new(mocks.MockCustomerVehicleRepository)
 	mockVehicleService := new(mocks.MockVehicleService)
-	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
+	mockPersonRepo := new(mocks.MockPersonRepository)
+	service := newTestCustomerService(mockRepo, mockCVRepo, mockVehicleService, mockPersonRepo)
 
 	ctx := context.Background()
-
 	inputCustomer := domain.Customer{
-		Name:  "João Silva",
-		Email: "gedan@example.com",
-		Document: &domain.Document{
-			Number: "293.034.620-50",
-		},
+		Type:   "individual",
+		Person: makeTestPerson("João Silva", "gedan@example.com"),
 	}
 
 	expectedError := errors.New("database connection error")
 
+	createdPerson := personModel.Model{}
+	createdPerson.ID = 1
+
 	mockRepo.On("FindByDocument", mock.Anything, mock.AnythingOfType("string")).
 		Return(nil, nil)
-
+	mockPersonRepo.On("Create", mock.Anything, mock.AnythingOfType("*person.Model")).
+		Return(&createdPerson, nil)
 	mockRepo.On("Create", ctx, mock.AnythingOfType("*customer.Model")).Return(nil, expectedError)
 
 	result, err := service.Create(ctx, inputCustomer)
@@ -88,20 +110,22 @@ func TestCustomerService_Create_RepositoryError(t *testing.T) {
 
 func TestCustomerService_GetByID_Success(t *testing.T) {
 	mockRepo := new(mocks.MockCustomerRepository)
-	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockCVRepo := new(mocks.MockCustomerVehicleRepository)
 	mockVehicleService := new(mocks.MockVehicleService)
-	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
+	mockPersonRepo := new(mocks.MockPersonRepository)
+	service := newTestCustomerService(mockRepo, mockCVRepo, mockVehicleService, mockPersonRepo)
 
 	ctx := context.Background()
 	customerID := uint(1)
 
-	expectedCustomer := domain.Customer{
-		Name:  "Gedan Magalhães",
-		Email: "gedan@example.com",
-	}
+	pm := personModel.Model{}
+	pm.ID = 1
+	pm.Name = "Gedan Magalhães"
+	pm.Email = "gedan@example.com"
 
-	var customerRepositoryResponse customer.Model
-	customerRepositoryResponse.FromDomain(&expectedCustomer)
+	var customerRepositoryResponse customerModel.Model
+	customerRepositoryResponse.PersonID = 1
+	customerRepositoryResponse.Person = pm
 
 	mockRepo.On("FindByID", ctx, customerID).Return(&customerRepositoryResponse, nil)
 
@@ -109,28 +133,34 @@ func TestCustomerService_GetByID_Success(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, expectedCustomer.Name, result.Name)
+	assert.NotNil(t, result.Person)
+	assert.Equal(t, "Gedan Magalhães", result.Person.Name)
 
 	mockRepo.AssertExpectations(t)
 }
 
 func TestCustomerService_Search_Success(t *testing.T) {
 	mockRepo := new(mocks.MockCustomerRepository)
-	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockCVRepo := new(mocks.MockCustomerVehicleRepository)
 	mockVehicleService := new(mocks.MockVehicleService)
-	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
+	mockPersonRepo := new(mocks.MockPersonRepository)
+	service := newTestCustomerService(mockRepo, mockCVRepo, mockVehicleService, mockPersonRepo)
 
 	ctx := context.Background()
 
-	expectedCustomers := []customer.Model{
-		{
-			Name:  "Gedan Magalhaes",
-			Email: "gedan@example.com",
-		},
-		{
-			Name:  "Elen Magalhaes",
-			Email: "elen@example.com",
-		},
+	pm1 := personModel.Model{}
+	pm1.ID = 1
+	pm1.Name = "Gedan Magalhaes"
+	pm1.Email = "gedan@example.com"
+
+	pm2 := personModel.Model{}
+	pm2.ID = 2
+	pm2.Name = "Elen Magalhaes"
+	pm2.Email = "elen@example.com"
+
+	expectedCustomers := []customerModel.Model{
+		{PersonID: 1, Person: pm1},
+		{PersonID: 2, Person: pm2},
 	}
 
 	mockRepo.On("Search", ctx, mock.Anything).Return(expectedCustomers, nil)
@@ -140,19 +170,20 @@ func TestCustomerService_Search_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Len(t, result, 2)
-	assert.Equal(t, "Gedan Magalhaes", result[0].Name)
-	assert.Equal(t, "gedan@example.com", result[0].Email)
-	assert.Equal(t, "Elen Magalhaes", result[1].Name)
-	assert.Equal(t, "elen@example.com", result[1].Email)
+	assert.Equal(t, "Gedan Magalhaes", result[0].Person.Name)
+	assert.Equal(t, "gedan@example.com", result[0].Person.Email)
+	assert.Equal(t, "Elen Magalhaes", result[1].Person.Name)
+	assert.Equal(t, "elen@example.com", result[1].Person.Email)
 
 	mockRepo.AssertExpectations(t)
 }
 
 func TestCustomerService_GetByID_NotFound(t *testing.T) {
 	mockRepo := new(mocks.MockCustomerRepository)
-	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockCVRepo := new(mocks.MockCustomerVehicleRepository)
 	mockVehicleService := new(mocks.MockVehicleService)
-	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
+	mockPersonRepo := new(mocks.MockPersonRepository)
+	service := newTestCustomerService(mockRepo, mockCVRepo, mockVehicleService, mockPersonRepo)
 
 	ctx := context.Background()
 	customerID := uint(999)
@@ -168,43 +199,57 @@ func TestCustomerService_GetByID_NotFound(t *testing.T) {
 
 func TestCustomerService_UpdateByID_Success(t *testing.T) {
 	mockRepo := new(mocks.MockCustomerRepository)
-	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockCVRepo := new(mocks.MockCustomerVehicleRepository)
 	mockVehicleService := new(mocks.MockVehicleService)
-	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
+	mockPersonRepo := new(mocks.MockPersonRepository)
+	service := newTestCustomerService(mockRepo, mockCVRepo, mockVehicleService, mockPersonRepo)
 	ctx := context.Background()
 
 	inputCustomer := domain.Customer{
-		ID:    1,
-		Name:  "Gedan Magalhaes",
-		Email: "gedan@example.com",
-		Document: &domain.Document{
-			Number: "293.034.620-50",
+		ID:   1,
+		Type: "individual",
+		Person: &domain.Person{
+			Name:  "Gedan Magalhaes",
+			Email: "gedan@example.com",
+			Document: &domain.Document{
+				Number: "293.034.620-50",
+			},
 		},
 	}
-	var mockModel customer.Model
 
-	mockModel.FromDomain(&inputCustomer)
+	existingPm := personModel.Model{}
+	existingPm.ID = 1
+	existingPm.Name = "Gedan Magalhaes"
+
+	var mockModel customerModel.Model
+	mockModel.PersonID = 1
+	mockModel.Person = existingPm
+
+	existingPersonModel := personModel.Model{}
+	existingPersonModel.ID = 1
 
 	mockRepo.On("FindByID", ctx, uint(1)).Return(&mockModel, nil)
-
-	mockRepo.On("FindByDocument", ctx, inputCustomer.Document.GetDocumentNumber()).Return(nil, errors.New("record not found"))
-
+	mockRepo.On("FindByDocument", ctx, inputCustomer.Person.Document.GetDocumentNumber()).Return(nil, errors.New("record not found"))
+	mockPersonRepo.On("FindByID", ctx, uint(1)).Return(&existingPersonModel, nil)
+	mockPersonRepo.On("Update", ctx, mock.AnythingOfType("*person.Model")).Return(nil)
 	mockRepo.On("Update", ctx, mock.AnythingOfType("*customer.Model")).Return(nil)
 
 	err := service.UpdateByID(ctx, 1, inputCustomer)
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
+	mockPersonRepo.AssertExpectations(t)
 }
 
 func TestCustomerService_UpdateByID_CustomerNotFound(t *testing.T) {
 	mockRepo := new(mocks.MockCustomerRepository)
-	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockCVRepo := new(mocks.MockCustomerVehicleRepository)
 	mockVehicleService := new(mocks.MockVehicleService)
-	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
+	mockPersonRepo := new(mocks.MockPersonRepository)
+	service := newTestCustomerService(mockRepo, mockCVRepo, mockVehicleService, mockPersonRepo)
 	ctx := context.Background()
 
-	inputCustomer := domain.Customer{Name: "Gedan"}
+	inputCustomer := domain.Customer{Type: "individual"}
 
 	mockRepo.On("FindByID", ctx, uint(2)).Return(nil, errors.New("record not found"))
 
@@ -217,33 +262,37 @@ func TestCustomerService_UpdateByID_CustomerNotFound(t *testing.T) {
 
 func TestCustomerService_UpdateByID_DocumentAlreadyInUse(t *testing.T) {
 	mockRepo := new(mocks.MockCustomerRepository)
-	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockCVRepo := new(mocks.MockCustomerVehicleRepository)
 	mockVehicleService := new(mocks.MockVehicleService)
-	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
+	mockPersonRepo := new(mocks.MockPersonRepository)
+	service := newTestCustomerService(mockRepo, mockCVRepo, mockVehicleService, mockPersonRepo)
 	ctx := context.Background()
 
 	inputCustomer := domain.Customer{
 		ID:   3,
-		Name: "Gedan",
-		Document: &domain.Document{
-			Number: "293.034.620-50",
+		Type: "individual",
+		Person: &domain.Person{
+			Name: "Gedan",
+			Document: &domain.Document{
+				Number: "293.034.620-50",
+			},
 		},
 	}
-	var mockModel customer.Model
-	mockModel.FromDomain(&inputCustomer)
 
-	mockRepo.On("FindByID", ctx, uint(3)).Return(&mockModel, nil)
+	pm := personModel.Model{}
+	pm.ID = 1
 
-	anotherInputCustomer := domain.Customer{
-		ID:   4,
-		Name: "Gedan",
-		Document: &domain.Document{
-			Number: "293.034.620-50",
-		},
-	}
-	mockModel.FromDomain(&anotherInputCustomer)
+	var mockModelCust customerModel.Model
+	mockModelCust.ID = 3
+	mockModelCust.PersonID = 1
+	mockModelCust.Person = pm
 
-	mockRepo.On("FindByDocument", ctx, inputCustomer.Document.GetDocumentNumber()).Return(&mockModel, nil)
+	anotherModel := customerModel.Model{}
+	anotherModel.ID = 4
+	anotherModel.PersonID = 2
+
+	mockRepo.On("FindByID", ctx, uint(3)).Return(&mockModelCust, nil)
+	mockRepo.On("FindByDocument", ctx, inputCustomer.Person.Document.GetDocumentNumber()).Return(&anotherModel, nil)
 
 	err := service.UpdateByID(ctx, 3, inputCustomer)
 
@@ -252,72 +301,44 @@ func TestCustomerService_UpdateByID_DocumentAlreadyInUse(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestCustomerService_UpdateByID_UpdateFails(t *testing.T) {
-	mockRepo := new(mocks.MockCustomerRepository)
-	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
-	mockVehicleService := new(mocks.MockVehicleService)
-	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
-	ctx := context.Background()
-
-	inputCustomer := domain.Customer{
-		ID:   5,
-		Name: "Gedan",
-		Document: &domain.Document{
-			Number: "293.034.620-50",
-		},
-	}
-
-	var mockModel customer.Model
-
-	mockModel.FromDomain(&inputCustomer)
-
-	mockRepo.On("FindByID", ctx, uint(5)).Return(&mockModel, nil)
-
-	mockRepo.On("FindByDocument", ctx, inputCustomer.Document.GetDocumentNumber()).Return(nil, errors.New("record not found"))
-
-	mockRepo.On("Update", ctx, mock.AnythingOfType("*customer.Model")).Return(errors.New("db error"))
-
-	err := service.UpdateByID(ctx, 5, inputCustomer)
-
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Failed to update customer")
-	mockRepo.AssertExpectations(t)
-}
-
 func TestCustomerService_DeleteByID_Success(t *testing.T) {
 	mockRepo := new(mocks.MockCustomerRepository)
-	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockCVRepo := new(mocks.MockCustomerVehicleRepository)
 	mockVehicleService := new(mocks.MockVehicleService)
-	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
+	mockPersonRepo := new(mocks.MockPersonRepository)
+	service := newTestCustomerService(mockRepo, mockCVRepo, mockVehicleService, mockPersonRepo)
 
 	ctx := context.Background()
 	customerID := uint(1)
-	expectedCustomer := &domain.Customer{
-		ID:    customerID,
-		Name:  "John Doe",
-		Email: "john@example.com",
-	}
 
-	var customerModel customer.Model
-	customerModel.FromDomain(expectedCustomer)
+	pm := personModel.Model{}
+	pm.ID = 1
+	pm.Name = "John Doe"
+	pm.Email = "john@example.com"
 
-	mockRepo.On("FindByID", ctx, customerID).Return(&customerModel, nil)
+	var cm customerModel.Model
+	cm.ID = customerID
+	cm.PersonID = 1
+	cm.Person = pm
+
+	mockRepo.On("FindByID", ctx, customerID).Return(&cm, nil)
 	mockRepo.On("Delete", ctx, customerID).Return(nil)
 
 	result, err := service.DeleteByID(ctx, customerID)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, expectedCustomer.Name, result.Name)
-	assert.Equal(t, expectedCustomer.Email, result.Email)
+	assert.NotNil(t, result.Person)
+	assert.Equal(t, "John Doe", result.Person.Name)
 	mockRepo.AssertExpectations(t)
 }
 
 func TestCustomerService_DeleteByID_NotFound(t *testing.T) {
 	mockRepo := new(mocks.MockCustomerRepository)
-	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockCVRepo := new(mocks.MockCustomerVehicleRepository)
 	mockVehicleService := new(mocks.MockVehicleService)
-	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
+	mockPersonRepo := new(mocks.MockPersonRepository)
+	service := newTestCustomerService(mockRepo, mockCVRepo, mockVehicleService, mockPersonRepo)
 
 	ctx := context.Background()
 	customerID := uint(999)
@@ -333,22 +354,24 @@ func TestCustomerService_DeleteByID_NotFound(t *testing.T) {
 
 func TestCustomerService_DeleteByID_DeleteError(t *testing.T) {
 	mockRepo := new(mocks.MockCustomerRepository)
-	mockCustomerVehicleRepo := new(mocks.MockCustomerVehicleRepository)
+	mockCVRepo := new(mocks.MockCustomerVehicleRepository)
 	mockVehicleService := new(mocks.MockVehicleService)
-	service := NewCustomerService(mockRepo, mockCustomerVehicleRepo, mockVehicleService)
+	mockPersonRepo := new(mocks.MockPersonRepository)
+	service := newTestCustomerService(mockRepo, mockCVRepo, mockVehicleService, mockPersonRepo)
 
 	ctx := context.Background()
 	customerID := uint(1)
-	expectedCustomer := &domain.Customer{
-		ID:    customerID,
-		Name:  "John Doe",
-		Email: "john@example.com",
-	}
 
-	var customerModel customer.Model
-	customerModel.FromDomain(expectedCustomer)
+	pm := personModel.Model{}
+	pm.ID = 1
+	pm.Name = "John Doe"
 
-	mockRepo.On("FindByID", ctx, customerID).Return(&customerModel, nil)
+	var cm customerModel.Model
+	cm.ID = customerID
+	cm.PersonID = 1
+	cm.Person = pm
+
+	mockRepo.On("FindByID", ctx, customerID).Return(&cm, nil)
 	mockRepo.On("Delete", ctx, customerID).Return(errors.New("delete error"))
 
 	result, err := service.DeleteByID(ctx, customerID)

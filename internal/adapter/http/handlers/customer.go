@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain/filter"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 type CustomerHandler struct {
@@ -29,7 +27,7 @@ type CreateCustomerRequest struct {
 	Name          string `json:"name" binding:"required"`
 	Email         string `json:"email" binding:"required,email"`
 	Document      string `json:"document" binding:"required"`
-	Type          string `json:"type" binding:"required"`
+	Type          string `json:"type" binding:"required,oneof=pf pj"`
 	Contact       string `json:"contact" binding:"required"`
 	Address       string `json:"address" binding:"required"`
 	AddressNumber string `json:"address_number" binding:"required"`
@@ -40,51 +38,37 @@ type CreateCustomerRequest struct {
 }
 
 func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
-
 	var json CreateCustomerRequest
-
 	if err := ctx.ShouldBindJSON(&json); err != nil {
-
-		var validationErrors validator.ValidationErrors
-		if errors.As(err, &validationErrors) {
-			for _, fieldError := range validationErrors {
-				if fieldError.Field() == "Type" && fieldError.Tag() == "oneof" {
-					response.RespondError(ctx, http.StatusBadRequest, "type must be one of: pf, pj'")
-
-					return
-				}
-			}
-		}
-
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
-
 		return
 	}
 
 	doc, err := domain.NewDocument(json.Document)
-
 	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
 	}
 
 	c := domain.Customer{
-		Name:     json.Name,
-		Email:    json.Email,
-		Document: doc,
-		Type:     json.Type,
-		Contact:  json.Contact,
-		Address: &domain.Address{
-			Address:       json.Address,
-			AddressNumber: json.AddressNumber,
-			City:          json.City,
-			Neighborhood:  json.Neighborhood,
-			Country:       json.Country,
-			ZipCode:       json.ZipCode,
+		Type: json.Type,
+		Person: &domain.Person{
+			Name:     json.Name,
+			Email:    json.Email,
+			Contact:  json.Contact,
+			Document: doc,
+			Address: &domain.Address{
+				Address:       json.Address,
+				AddressNumber: json.AddressNumber,
+				City:          json.City,
+				Neighborhood:  json.Neighborhood,
+				Country:       json.Country,
+				ZipCode:       json.ZipCode,
+			},
 		},
 	}
 
 	customer, err := h.service.Create(ctx, c)
-
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -94,7 +78,6 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 }
 
 func (h *CustomerHandler) Search(ctx *gin.Context) {
-
 	customerFilter := &filter.CustomerFilter{}
 
 	if doc := ctx.Query("document"); doc != "" {
@@ -114,7 +97,6 @@ func (h *CustomerHandler) Search(ctx *gin.Context) {
 	}
 
 	customers, err := h.service.Search(ctx, customerFilter)
-
 	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -127,7 +109,6 @@ func (h *CustomerHandler) GetCustomerByID(ctx *gin.Context) {
 	customerIdStr := ctx.Param("id")
 
 	customerId, err := strconv.ParseUint(customerIdStr, 10, 64)
-
 	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, "Invalid customer ID")
 		return
@@ -151,14 +132,12 @@ func (h *CustomerHandler) DeleteCustomer(ctx *gin.Context) {
 	customerIdStr := ctx.Param("id")
 
 	customerId, err := strconv.ParseUint(customerIdStr, 10, 64)
-
 	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, "Invalid customer ID")
 		return
 	}
 
 	customer, err := h.service.DeleteByID(ctx, uint(customerId))
-
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -176,54 +155,39 @@ func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
 	customerIdStr := ctx.Param("id")
 
 	customerId, err := strconv.ParseUint(customerIdStr, 10, 64)
-
 	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, "Invalid customer ID")
 		return
 	}
 
 	var json CreateCustomerRequest
-
 	if err := ctx.ShouldBindJSON(&json); err != nil {
-
-		var validationErrors validator.ValidationErrors
-		if errors.As(err, &validationErrors) {
-			for _, fieldError := range validationErrors {
-				if fieldError.Field() == "Type" && fieldError.Tag() == "oneof" {
-					response.RespondError(ctx, http.StatusBadRequest, "type must be one of: pf, pj")
-
-					return
-				}
-			}
-		}
-
-		if err != nil {
-			response.RespondError(ctx, http.StatusInternalServerError, err.Error())
-			return
-		}
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
 	}
 
 	doc, err := domain.NewDocument(json.Document)
-
 	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	c := domain.Customer{
-		ID:       uint(customerId),
-		Name:     json.Name,
-		Email:    json.Email,
-		Document: doc,
-		Type:     json.Type,
-		Contact:  json.Contact,
-		Address: &domain.Address{
-			Address:       json.Address,
-			AddressNumber: json.AddressNumber,
-			City:          json.City,
-			Neighborhood:  json.Neighborhood,
-			Country:       json.Country,
-			ZipCode:       json.ZipCode,
+		ID:   uint(customerId),
+		Type: json.Type,
+		Person: &domain.Person{
+			Name:     json.Name,
+			Email:    json.Email,
+			Contact:  json.Contact,
+			Document: doc,
+			Address: &domain.Address{
+				Address:       json.Address,
+				AddressNumber: json.AddressNumber,
+				City:          json.City,
+				Neighborhood:  json.Neighborhood,
+				Country:       json.Country,
+				ZipCode:       json.ZipCode,
+			},
 		},
 	}
 

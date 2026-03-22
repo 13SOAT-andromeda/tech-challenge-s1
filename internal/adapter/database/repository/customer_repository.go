@@ -20,10 +20,22 @@ func NewCustomerRepository(db *gorm.DB) ports.CustomerRepository {
 	}
 }
 
+func (r *customerRepository) FindByID(ctx context.Context, id uint) (*customer.Model, error) {
+	var entity customer.Model
+	err := r.BaseRepository.db.WithContext(ctx).Joins("Person").First(&entity, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &entity, nil
+}
+
 func (r *customerRepository) FindByEmail(ctx context.Context, email string) (*customer.Model, error) {
 	var data customer.Model
 
-	err := r.BaseRepository.db.WithContext(ctx).Where("email = ?", email).First(&data).Error
+	err := r.BaseRepository.db.WithContext(ctx).
+		Joins("Person").
+		Where(`"Person"."email" = ?`, email).
+		First(&data).Error
 	if err != nil {
 		return nil, err
 	}
@@ -33,13 +45,15 @@ func (r *customerRepository) FindByEmail(ctx context.Context, email string) (*cu
 func (r *customerRepository) FindByDocument(ctx context.Context, document string) (*customer.Model, error) {
 	var data customer.Model
 
-	err := r.BaseRepository.db.WithContext(ctx).Unscoped().Where("document = ?", document).First(&data).Error
+	err := r.BaseRepository.db.WithContext(ctx).Unscoped().
+		Joins("Person").
+		Where(`"Person"."document" = ?`, document).
+		First(&data).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
-
 		return nil, err
 	}
 
@@ -49,26 +63,25 @@ func (r *customerRepository) FindByDocument(ctx context.Context, document string
 func (r *customerRepository) Search(ctx context.Context, filters filter.CustomerFilter) ([]customer.Model, error) {
 	var model []customer.Model
 
-	db := r.db.WithContext(ctx)
+	db := r.db.WithContext(ctx).Joins("Person")
 
 	if !filters.Status {
 		db = db.Unscoped()
 	}
 
 	if filters.Document != nil {
-		db = db.Where("document = ?", *filters.Document)
+		db = db.Where(`"Person"."document" = ?`, *filters.Document)
 	}
 
 	if filters.Name != nil {
-		db = db.Where("name LIKE ?", "%"+*filters.Name+"%")
+		db = db.Where(`"Person"."name" LIKE ?`, "%"+*filters.Name+"%")
 	}
 
 	if filters.Email != nil {
-		db = db.Where("email LIKE ?", "%"+*filters.Email+"%")
+		db = db.Where(`"Person"."email" LIKE ?`, "%"+*filters.Email+"%")
 	}
 
 	err := db.Find(&model).Error
 
 	return model, err
-
 }
