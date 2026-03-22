@@ -20,7 +20,7 @@ func createTestOrderModel(id uint) *order.Model {
 		DateIn:            d,
 		Status:            string(domain.OrderStatuses.RECEIVED),
 		VehicleKilometers: 100,
-		UserID:            1,
+		EmployeeID:        1,
 		CustomerVehicleID: 1,
 		CompanyID:         1,
 	}
@@ -37,7 +37,7 @@ func TestOrderService_Create_Success(t *testing.T) {
 		DateIn:            time.Now(),
 		Status:            domain.OrderStatuses.RECEIVED,
 		VehicleKilometers: 100,
-		UserID:            1,
+		EmployeeID:        1,
 		CustomerVehicleID: 1,
 		CompanyID:         1,
 	}
