@@ -153,11 +153,11 @@ func TestLogin_Success(t *testing.T) {
 
 	// Mock user
 	user := &domain.User{
-		ID:        1,
-		Name:      "Test User",
-		Email:     "test@example.com",
-		Contact:   "123456789",
-		Role:      "user",
+		ID:   1,
+		Role: "user",
+		Person: &domain.Person{
+			Email: "test@example.com",
+		},
 		DeletedAt: nil,
 	}
 	user.Password, _ = domain.NewPassword("Password123!", mockHasher)
@@ -172,12 +172,12 @@ func TestLogin_Success(t *testing.T) {
 	}
 
 	// Setup mocks
-	userService.On("GetByEmail", mock.Anything, user.Email).Return(user, nil)
+	userService.On("GetByEmail", mock.Anything, "test@example.com").Return(user, nil)
 	sessionService.On("Create", mock.Anything, uint(1), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).Return(session, nil)
 
 	// Execute
 	input := ports.LoginInput{
-		Email:    user.Email,
+		Email:    "test@example.com",
 		Password: "Password123!",
 	}
 
@@ -190,7 +190,7 @@ func TestLogin_Success(t *testing.T) {
 	assert.NotEmpty(t, output.RefreshToken)
 	assert.Equal(t, int64(900), output.ExpiresIn) // 15 minutes in seconds
 	assert.Equal(t, user.ID, output.User.ID)
-	assert.Equal(t, user.Email, output.User.Email)
+	assert.Equal(t, "test@example.com", output.User.Email)
 
 	userService.AssertExpectations(t)
 	sessionService.AssertExpectations(t)
@@ -210,11 +210,10 @@ func TestLogin_UserNotFound(t *testing.T) {
 	useCase := NewSessionUseCase(userService, sessionService, jwtService, config)
 
 	// Setup mocks
-	userService.On("GetByEmail", mock.Anything, "test@example.com").Return(nil, nil)
+	userService.On("GetByEmail", mock.Anything, mock.Anything).Return(nil, nil)
 
 	// Execute
 	input := ports.LoginInput{
-		Email:    "test@example.com",
 		Password: "password123",
 	}
 
@@ -245,9 +244,6 @@ func TestLogin_InvalidPassword(t *testing.T) {
 	// Mock user
 	user := &domain.User{
 		ID:        1,
-		Name:      "Test User",
-		Email:     "test@example.com",
-		Contact:   "123456789",
 		Role:      "user",
 		DeletedAt: nil,
 	}
@@ -257,11 +253,10 @@ func TestLogin_InvalidPassword(t *testing.T) {
 	user.Password, _ = domain.NewPassword("Correctpassword123>", hasher)
 
 	// Setup mocks
-	userService.On("GetByEmail", mock.Anything, user.Email).Return(user, nil)
+	userService.On("GetByEmail", mock.Anything, mock.Anything).Return(user, nil)
 
 	// Execute
 	input := ports.LoginInput{
-		Email:    "test@example.com",
 		Password: "wrongpassword",
 	}
 
@@ -293,9 +288,6 @@ func TestLogin_InactiveUser(t *testing.T) {
 	deletedAt := time.Now()
 	user := &domain.User{
 		ID:        1,
-		Name:      "Test User",
-		Email:     "test@example.com",
-		Contact:   "123456789",
 		Role:      "user",
 		DeletedAt: &deletedAt,
 	}
@@ -305,11 +297,10 @@ func TestLogin_InactiveUser(t *testing.T) {
 	user.Password.Hash()
 
 	// Setup mocks
-	userService.On("GetByEmail", mock.Anything, user.Email).Return(user, nil)
+	userService.On("GetByEmail", mock.Anything, mock.Anything).Return(user, nil)
 
 	// Execute
 	input := ports.LoginInput{
-		Email:    "test@example.com",
 		Password: "Password123!",
 	}
 
@@ -342,9 +333,6 @@ func TestLogin_SessionCreationError(t *testing.T) {
 	// Mock user
 	user := &domain.User{
 		ID:        1,
-		Name:      "Test User",
-		Email:     "test@example.com",
-		Contact:   "123456789",
 		Role:      "user",
 		DeletedAt: nil,
 	}
@@ -352,12 +340,11 @@ func TestLogin_SessionCreationError(t *testing.T) {
 	user.Password.Hash()
 
 	// Setup mocks
-	userService.On("GetByEmail", mock.Anything, user.Email).Return(user, nil)
+	userService.On("GetByEmail", mock.Anything, mock.Anything).Return(user, nil)
 	sessionService.On("Create", mock.Anything, uint(1), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).Return((*domain.Session)(nil), assert.AnError)
 
 	// Execute
 	input := ports.LoginInput{
-		Email:    "test@example.com",
 		Password: "Password123!",
 	}
 
@@ -507,11 +494,11 @@ func TestRefresh_Success(t *testing.T) {
 
 	// Mock user
 	user := &domain.User{
-		ID:        1,
-		Name:      "Test User",
-		Email:     "test@example.com",
-		Contact:   "123456789",
-		Role:      "user",
+		ID:   1,
+		Role: "user",
+		Person: &domain.Person{
+			Email: "test@example.com",
+		},
 		DeletedAt: nil,
 	}
 
@@ -720,11 +707,11 @@ func TestValidate_ValidToken(t *testing.T) {
 
 	// Mock user
 	user := &domain.User{
-		ID:        userID,
-		Name:      "Test User",
-		Email:     email,
-		Contact:   "123456789",
-		Role:      role,
+		ID:   userID,
+		Role: role,
+		Person: &domain.Person{
+			Email: email,
+		},
 		DeletedAt: nil,
 	}
 
@@ -752,7 +739,7 @@ func TestValidate_ValidToken(t *testing.T) {
 	assert.True(t, output.Valid)
 	assert.NotNil(t, output.User)
 	assert.Equal(t, user.ID, output.User.ID)
-	assert.Equal(t, user.Email, output.User.Email)
+	assert.Equal(t, "test@example.com", output.User.Email)
 
 	userService.AssertExpectations(t)
 	sessionService.AssertExpectations(t)

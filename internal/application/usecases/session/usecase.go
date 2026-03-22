@@ -50,18 +50,25 @@ func (u *UseCase) Login(ctx context.Context, input ports.LoginInput) (*ports.Log
 		return nil, err
 	}
 
-	accessToken, err := u.jwtService.GenerateAccessToken(user.ID, user.Email, user.Role, session.ID)
+	accessToken, err := u.jwtService.GenerateAccessToken(user.ID, user.Person.Email, user.Role, session.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	accessExpiry, _ := time.ParseDuration(u.config.JWT.AccessTokenExpiry)
 
+	personName := ""
+	personContact := ""
+	if user.Person != nil {
+		personName = user.Person.Name
+		personContact = user.Person.Contact
+	}
+
 	userOutput := ports.UserOutput{
 		ID:      user.ID,
-		Name:    user.Name,
-		Email:   user.Email,
-		Contact: user.Contact,
+		Name:    personName,
+		Email:   user.Person.Email,
+		Contact: personContact,
 		Role:    user.Role,
 	}
 
@@ -93,7 +100,7 @@ func (u *UseCase) Refresh(ctx context.Context, input ports.RefreshInput) (*ports
 		return nil, errors.New("user not found")
 	}
 
-	accessToken, err := u.jwtService.GenerateAccessToken(user.ID, user.Email, user.Role, session.ID)
+	accessToken, err := u.jwtService.GenerateAccessToken(user.ID, user.Person.Email, user.Role, session.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -129,11 +136,18 @@ func (u *UseCase) Validate(ctx context.Context, input ports.ValidateInput) (*por
 		return nil, err
 	}
 
+	personName := ""
+	personContact := ""
+	if user.Person != nil {
+		personName = user.Person.Name
+		personContact = user.Person.Contact
+	}
+
 	userOutput := &ports.UserOutput{
 		ID:      user.ID,
-		Name:    user.Name,
-		Email:   user.Email,
-		Contact: user.Contact,
+		Name:    personName,
+		Email:   user.Person.Email,
+		Contact: personContact,
 		Role:    user.Role,
 	}
 
