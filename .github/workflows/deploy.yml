@@ -62,6 +62,13 @@ jobs:
             --filters "Name=tag:Name,Values=eks-tech-challenge-vpc" \
             --query "Vpcs[0].VpcId" --output text)
 
+          kubectl create secret generic aws-alb-credentials \
+            --from-literal=AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            --from-literal=AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            --from-literal=AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }} \
+            -n kube-system \
+            --dry-run=client -o yaml | kubectl apply -f -
+
           helm repo add eks https://aws.github.io/eks-charts
           helm repo update eks
           helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
@@ -69,12 +76,7 @@ jobs:
             --set clusterName=eks-tech-challenge \
             --set serviceAccount.create=true \
             --set vpcId=$VPC_ID \
-            --set "env[0].name=AWS_ACCESS_KEY_ID" \
-            --set "env[0].value=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            --set "env[1].name=AWS_SECRET_ACCESS_KEY" \
-            --set "env[1].value=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-            --set "env[2].name=AWS_SESSION_TOKEN" \
-            --set "env[2].value=${{ secrets.AWS_SESSION_TOKEN }}" \
+            --set "envFrom[0].secretRef.name=aws-alb-credentials" \
             --force \
             --wait
 
