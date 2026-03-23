@@ -24,6 +24,7 @@ type CreateUserRequest struct {
 	Name          string `json:"name" binding:"required"`
 	Email         string `json:"email" binding:"required,email"`
 	Password      string `json:"password" binding:"required"`
+	Document      string `json:"document"`
 	Contact       string `json:"contact" binding:"required"`
 	Role          string `json:"role" binding:"required"`
 	Address       string `json:"address" binding:"required"`
@@ -53,7 +54,12 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 	}
 
 	p, err := domain.NewPassword(json.Password, encryption.NewBcryptHasher())
+	if err != nil {
+		response.RespondError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
 
+	doc, err := domain.NewDocument(json.Document)
 	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -62,7 +68,8 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 	u := domain.User{
 		Name:     json.Name,
 		Email:    json.Email,
-		Password: p,
+		Password: *p,
+		Document: doc.Number,
 		Role:     json.Role,
 		Contact:  json.Contact,
 		Address: &domain.Address{
