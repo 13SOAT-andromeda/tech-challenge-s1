@@ -168,7 +168,7 @@ func main() {
 	router := http.NewRouter(*cfg, logger, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *vehicleHandler, *orderHandler, cfg.JWT.Secret)
 	sugar.Info("Starting HTTP server on port %s", cfg.Http.Port)
 
-	if err = userService.CreateAdminUser(ctx, cfg.AdminUser.Email, cfg.AdminUser.Password); err != nil {
+	if err = userService.CreateAdminUser(ctx, cfg.AdminUser.Email, cfg.AdminUser.Password, cfg.AdminUser.Document); err != nil {
 		sugar.Fatalf("failed on create admin user: %v", err)
 	}
 
