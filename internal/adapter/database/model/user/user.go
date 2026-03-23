@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/address"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/document"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
@@ -15,6 +16,8 @@ type Model struct {
 	Name     string         `gorm:"not null"`
 	Email    string         `gorm:"not null"`
 	Contact  string         `gorm:"not null"`
+	Document document.Model `gorm:"embedded"`
+	IsActive bool           `gorm:"not null;default:true"`
 	Address  *address.Model `gorm:"embedded"`
 	Password string         `gorm:"not null"`
 	Role     string         `gorm:"not null"`
@@ -30,8 +33,6 @@ func (m *Model) ToDomain() *domain.User {
 	var addressDomain *domain.Address
 	if m.Address != nil {
 		addressDomain = m.Address.ToDomain()
-	} else {
-		addressDomain = nil
 	}
 
 	var deletedAt *time.Time
@@ -44,8 +45,10 @@ func (m *Model) ToDomain() *domain.User {
 		Name:      m.Name,
 		Email:     m.Email,
 		Contact:   m.Contact,
+		Document:  m.Document.Document,
+		IsActive:  m.IsActive,
 		Role:      m.Role,
-		Password:  pass,
+		Password:  *pass,
 		Address:   addressDomain,
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
@@ -62,6 +65,8 @@ func (m *Model) FromDomain(d *domain.User) {
 	m.Name = d.Name
 	m.Email = d.Email
 	m.Contact = d.Contact
+	m.Document.Document = d.Document
+	m.IsActive = d.IsActive
 	m.Role = d.Role
 	m.Password = d.Password.GetHashed()
 	m.CreatedAt = d.CreatedAt
