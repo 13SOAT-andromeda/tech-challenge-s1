@@ -34,7 +34,7 @@ func TestUserService_Create_Success(t *testing.T) {
 		Email:    "joao@test.com",
 		Contact:  "11999999999",
 		Role:     "administrator",
-		Password: password,
+		Password: *password,
 		Address: &domain.Address{
 			Address:       "Rua Teste",
 			AddressNumber: "123",
@@ -82,7 +82,7 @@ func TestUserService_Create_EmailAlreadyExists(t *testing.T) {
 		Email:     "joao@test.com",
 		Contact:   "11999999999",
 		Role:      "administrator",
-		Password:  password,
+		Password:  *password,
 		DeletedAt: nil,
 	}
 
@@ -121,7 +121,7 @@ func TestUserService_Create_RepositoryError(t *testing.T) {
 		Email:     "joao@test.com",
 		Contact:   "11999999999",
 		Role:      "administrator",
-		Password:  password,
+		Password:  *password,
 		DeletedAt: nil,
 	}
 
@@ -151,7 +151,7 @@ func TestUserService_CreateAdminUser_EmailAlreadyExists(t *testing.T) {
 	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(&user.Model{Email: "admin@admin.com"}, nil)
 
 	// Act
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!", "12345678909")
 
 	// Assert
 	assert.NoError(t, err)
@@ -167,7 +167,7 @@ func TestUserService_CreateAdminUser_EmailError(t *testing.T) {
 	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(nil, errors.New("error on consult email"))
 
 	// Act
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!", "12345678909")
 
 	// Assert
 	assert.Error(t, err)
@@ -183,7 +183,7 @@ func TestUserService_CreateAdminUser_PasswordWeak(t *testing.T) {
 	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(nil, nil)
 
 	// Act
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "weakpass")
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "weakpass", "12345678909")
 
 	// Assert
 	assert.Error(t, err)
@@ -203,7 +203,7 @@ func TestUserService_CreateAdminUser_Success(t *testing.T) {
 	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(nil, nil)
 
 	// Act
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!", "12345678909")
 
 	// Assert
 	assert.NoError(t, err)
@@ -220,7 +220,7 @@ func TestUserService_CreateAdminUser_CreateError(t *testing.T) {
 	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(nil, nil)
 
 	// Act
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!", "12345678909")
 
 	// Assert
 	assert.Error(t, err)
@@ -484,7 +484,7 @@ func TestUserService_Update_PasswordUpdateNotAllowed(t *testing.T) {
 		ID:       userID,
 		Name:     "João Silva Santos",
 		Email:    "joao@test.com",
-		Password: password,
+		Password: *password,
 		Role:     "administrator",
 	}
 
@@ -560,7 +560,7 @@ func TestUserService_Create_WithNilAddress(t *testing.T) {
 		Email:     "joao@test.com",
 		Contact:   "11999999999",
 		Role:      "administrator",
-		Password:  password,
+		Password:  *password,
 		Address:   nil,
 		DeletedAt: nil,
 	}

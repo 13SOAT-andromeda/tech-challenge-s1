@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/DataDog/datadog-go/v5/statsd"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
@@ -14,7 +13,6 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
@@ -34,8 +32,6 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
 	customerUseCase "github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/customer"
 	orderUsecase "github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/order"
-	sessionUseCase "github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/session"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/jwt"
 )
 
 func main() {
@@ -98,7 +94,6 @@ func main() {
 		&maintenance.Model{},
 		&product.Model{},
 		&user.Model{},
-		&model.SessionModel{},
 		&vehicle.Model{},
 		&customer_vehicle.Model{},
 		&order.Model{},
@@ -112,8 +107,9 @@ func main() {
 
 	dbase := db.GetDB()
 
-	accessExpiry, _ := time.ParseDuration(cfg.JWT.AccessTokenExpiry)
-	refreshExpiry, _ := time.ParseDuration(cfg.JWT.RefreshTokenExpiry)
+	if err = database.Seed(dbase); err != nil {
+		sugar.Fatalf("failed to seed database: %v", err)
+	}
 	apiUrl := cfg.Http.ApiUrl
 
 	var orderMetrics ports.OrderMetrics = appmetrics.NoopOrderMetrics{}
@@ -140,7 +136,6 @@ func main() {
 	maintenanceRepository := repository.NewMaintenanceRepository(dbase)
 	productRepository := repository.NewProductRepository(dbase)
 	userRepository := repository.NewUserRepository(dbase)
-	sessionRepository := repository.NewSessionRepository(dbase)
 	vehicleRepository := repository.NewVehicleRepository(dbase)
 	orderRepository := repository.NewOrderRepository(dbase)
 	customerVehicleRepository := repository.NewCustomerVehicleRepository(dbase)
@@ -154,14 +149,11 @@ func main() {
 	maintenanceService := services.NewMaintenanceService(maintenanceRepository, orderMaintenanceRepository)
 	productService := services.NewProductService(productRepository)
 	userService := services.NewUserService(userRepository)
-	sessionService := services.NewSessionService(sessionRepository)
 	orderService := services.NewOrderService(orderRepository)
-	jwtService := jwt.NewService(cfg.JWT.Secret, accessExpiry, refreshExpiry)
 	emailService := email.NewSendtrap(cfg.MailTrap.ApiKey, cfg.MailTrap.ApiUrl)
 
 	// UseCases
 	createCustomerUseCase := customerUseCase.NewCustomerUseCase(customerRepository, customerVehicleRepository, vehicleService)
-	sessionUseCase := sessionUseCase.NewSessionUseCase(userService, sessionService, jwtService, cfg)
 	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, customerService, emailService, orderRepository, orderProductRepository, orderMaintenanceRepository, apiUrl, orderMetrics)
 
 	// Handlers
@@ -172,11 +164,8 @@ func main() {
 	userHandler := handlers.NewUserHandler(userService)
 	vehicleHandler := handlers.NewVehicleHandler(vehicleService)
 	orderHandler := handlers.NewOrderHandler(orderService, createOrderUseCase)
-	sessionHandler := handlers.NewSessionHandler(
-		sessionUseCase,
-	)
 
-	router := http.NewRouter(*cfg, logger, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *vehicleHandler, *orderHandler, *sessionHandler, sessionService)
+	router := http.NewRouter(*cfg, logger, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *vehicleHandler, *orderHandler, cfg.JWT.Secret)
 	sugar.Info("Starting HTTP server on port %s", cfg.Http.Port)
 
 	if err = userService.CreateAdminUser(ctx, cfg.AdminUser.Email, cfg.AdminUser.Password); err != nil {

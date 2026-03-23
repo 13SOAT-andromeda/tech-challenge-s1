@@ -11,18 +11,22 @@ import (
 type Config struct {
 	Database  *DataBaseConfig
 	Http      *HttpConfig
-	JWT       *JWTConfig
 	Env       string
 	Version   string
 	Service   string
 	AdminUser *AdminUserConfig
 	MailTrap  *MailTrapConfig
 	DogStatsD *DogStatsDConfig
+	JWT       *JWTConfig
 }
 
 type DogStatsDConfig struct {
 	Addr     string
 	Disabled bool
+}
+
+type JWTConfig struct {
+	Secret string
 }
 
 type HttpConfig struct {
@@ -42,12 +46,6 @@ type DataBaseConfig struct {
 	TimeZone string
 }
 
-type JWTConfig struct {
-	Secret             string
-	AccessTokenExpiry  string
-	RefreshTokenExpiry string
-}
-
 type MailTrapConfig struct {
 	ApiKey string
 	ApiUrl string
@@ -56,6 +54,7 @@ type MailTrapConfig struct {
 type AdminUserConfig struct {
 	Email    string
 	Password string
+	Document string
 }
 
 func getEnv(key, defaultValue string) string {
@@ -93,15 +92,10 @@ func Init() (*Config, error) {
 		ApiUrl:         getEnv("API_URL", "http://localhost"),
 	}
 
-	jwt := &JWTConfig{
-		Secret:             getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-in-production"),
-		AccessTokenExpiry:  getEnv("JWT_ACCESS_TOKEN_EXPIRY", "15m"),
-		RefreshTokenExpiry: getEnv("JWT_REFRESH_TOKEN_EXPIRY", "168h"),
-	}
-
 	adminUser := &AdminUserConfig{
 		Email:    getEnv("ADMIN_EMAIL", ""),
 		Password: getEnv("ADMIN_PASSWORD", ""),
+		Document: getEnv("ADMIN_DOCUMENT", ""),
 	}
 
 	mailTrap := &MailTrapConfig{
@@ -121,10 +115,13 @@ func Init() (*Config, error) {
 	serviceName := getEnv("DD_SERVICE", "tech-challenge-api")
 	version := getEnv("API_VERSION", "1.0.0")
 
+	jwt := &JWTConfig{
+		Secret: getEnv("JWT_SECRET", ""),
+	}
+
 	return &Config{
 		Database:  database,
 		Http:      http,
-		JWT:       jwt,
 		Env:       getEnv("ENV", "development"),
 		Version:   version,
 		Service:   serviceName,
@@ -134,5 +131,6 @@ func Init() (*Config, error) {
 			Addr:     dogstatsdAddr,
 			Disabled: dogstatsdDisabled,
 		},
+		JWT: jwt,
 	}, nil
 }
