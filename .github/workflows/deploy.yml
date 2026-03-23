@@ -75,6 +75,7 @@ jobs:
             --set "env[1].value=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             --set "env[2].name=AWS_SESSION_TOKEN" \
             --set "env[2].value=${{ secrets.AWS_SESSION_TOKEN }}" \
+            --force \
             --wait
 
       - name: Install Datadog Operator
