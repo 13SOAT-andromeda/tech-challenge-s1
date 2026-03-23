@@ -7,7 +7,6 @@ resources:
   - ../../base
   - config.yaml
   - ingress.yaml
-  - alb-controller.yaml
 
 images:
   - name: tech-challenge-api
@@ -33,6 +32,13 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: Always
+      - op: add
+        path: /spec/template/spec/containers/0/env
+        value:
+          - name: DD_AGENT_HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
 
 generatorOptions:
    disableNameSuffixHash: true

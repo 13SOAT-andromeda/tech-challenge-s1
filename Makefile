@@ -1,4 +1,5 @@
 include .env
+export
 
 CLUSTER_NAME=tech-challenge-api-local
 IMAGE_NAME=tech-challenge-api:latest
@@ -29,6 +30,10 @@ deps:
 	  --for=condition=ready pod \
 	  --selector=k8s-app=metrics-server \
 	  --timeout=5s || true
+	@echo "Installing Datadog Operator..."
+	helm repo add datadog https://helm.datadoghq.com
+	helm install datadog-operator datadog/datadog-operator
+	@envsubst < k8s/base/secrets.yaml | kubectl apply -f -
 
 build:
 	docker build -t $(IMAGE_NAME) .

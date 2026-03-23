@@ -1,6 +1,7 @@
 package config
 
 import (
+	"net"
 	"os"
 	"strings"
 
@@ -11,9 +12,17 @@ type Config struct {
 	Database  *DataBaseConfig
 	Http      *HttpConfig
 	Env       string
+	Version   string
+	Service   string
 	AdminUser *AdminUserConfig
 	MailTrap  *MailTrapConfig
+	DogStatsD *DogStatsDConfig
 	JWT       *JWTConfig
+}
+
+type DogStatsDConfig struct {
+	Addr     string
+	Disabled bool
 }
 
 type JWTConfig struct {
@@ -94,6 +103,18 @@ func Init() (*Config, error) {
 		ApiUrl: getEnv("MAILTRAP_URL", ""),
 	}
 
+	// DogStatsD na porta 8125 do mesmo host que o Agent (DD_AGENT_HOST). Sem host, métricas desligadas.
+	agentHost := getEnv("DD_AGENT_HOST", "")
+	dogstatsdAddr := ""
+	dogstatsdDisabled := true
+	if agentHost != "" {
+		dogstatsdAddr = net.JoinHostPort(agentHost, "8125")
+		dogstatsdDisabled = false
+	}
+
+	serviceName := getEnv("DD_SERVICE", "tech-challenge-api")
+	version := getEnv("API_VERSION", "1.0.0")
+
 	jwt := &JWTConfig{
 		Secret: getEnv("JWT_SECRET", ""),
 	}
@@ -102,8 +123,14 @@ func Init() (*Config, error) {
 		Database:  database,
 		Http:      http,
 		Env:       getEnv("ENV", "development"),
+		Version:   version,
+		Service:   serviceName,
 		AdminUser: adminUser,
 		MailTrap:  mailTrap,
-		JWT:       jwt,
+		DogStatsD: &DogStatsDConfig{
+			Addr:     dogstatsdAddr,
+			Disabled: dogstatsdDisabled,
+		},
+		JWT: jwt,
 	}, nil
 }

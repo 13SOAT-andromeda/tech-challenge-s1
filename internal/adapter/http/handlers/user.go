@@ -87,7 +87,7 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 		return
 	}
 
-	user, err := h.service.Create(ctx, u)
+	user, err := h.service.Create(ctx.Request.Context(), u)
 
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
@@ -105,7 +105,7 @@ func (h *UserHandler) GetByID(ctx *gin.Context) {
 		return
 	}
 
-	user, err := h.service.GetByID(ctx, uint(id))
+	user, err := h.service.GetByID(ctx.Request.Context(), uint(id))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -122,7 +122,7 @@ func (h *UserHandler) Search(ctx *gin.Context) {
 	u := ctx.Request.URL.Query()
 	params := converters.ParamsToMap(u)
 
-	users, err := h.service.Search(ctx, params)
+	users, err := h.service.Search(ctx.Request.Context(), params)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -158,7 +158,7 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 		},
 	}
 
-	if _, err := h.service.Update(ctx, u); err != nil {
+	if _, err := h.service.Update(ctx.Request.Context(), u); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -174,7 +174,7 @@ func (h *UserHandler) Delete(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.service.Delete(ctx, uint(id)); err != nil {
+	if err := h.service.Delete(ctx.Request.Context(), uint(id)); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

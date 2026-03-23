@@ -26,10 +26,7 @@ go.work.sum
 
 # env file
 .env
-
-# Local development files
-main
-api
+.env.*
 
 # Editor/IDE
 .idea/
@@ -80,3 +77,5 @@ terraform.rc
 # Optional: ignore plan files saved before destroying Terraform configuration
 # Uncomment the line below if you want to ignore planout files.
 # planout
+.tool-versions
+.terraform.lock.hcl

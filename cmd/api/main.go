@@ -2,7 +2,14 @@ package main
 
 import (
 	"context"
-	"log"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/DataDog/datadog-go/v5/statsd"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/profiler"
+	"go.uber.org/zap"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database"
@@ -20,23 +27,66 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/email"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
+	appmetrics "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/metrics"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/services"
-
 	customerUseCase "github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/customer"
 	orderUsecase "github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/usecases/order"
 )
 
 func main() {
+
+	logger, err := zap.NewProduction()
+
+	defer func() {
+		tracer.Stop()
+		profiler.Stop()
+		logger.Sync()
+	}()
+
+	sugar := logger.Sugar()
+
+	if err != nil {
+		sugar.Fatalf("Error on start logger zap: %s", err)
+	}
+
 	cfg, err := config.Init()
 	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
+		sugar.Fatalf("failed to load config: %v", err)
 	}
+
+	err = profiler.Start(
+		profiler.WithEnv(cfg.Env),
+		profiler.WithService(cfg.Service),
+		profiler.WithVersion(cfg.Version),
+		profiler.WithTags("layer:api"),
+		profiler.WithProfileTypes(
+			profiler.CPUProfile,
+			profiler.HeapProfile,
+		),
+	)
+
+	if err != nil {
+		sugar.Fatalf("Error on start datadog profiler: %s", err)
+	}
+
+	err = tracer.Start(
+		tracer.WithEnv(cfg.Env),
+		tracer.WithService(cfg.Service),
+		tracer.WithServiceVersion(cfg.Version),
+	)
+
+	if err != nil {
+		sugar.Fatalf("Error on start datadog tracer: %s", err)
+	}
+
 	ctx := context.Background()
 	db, err := database.Init(ctx, *cfg.Database)
 	if err != nil {
-		log.Fatalf("failed to connect database: %v", err)
+		sugar.Fatalf("failed to connect database: %v", err)
 	}
-	log.Printf("Connecting to database")
+
+	sugar.Infof("Connecting to database")
 
 	err = db.AutoMigrate(
 		&customer.Model{},
@@ -52,15 +102,33 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatalf("Error to executing migration: %s", err)
+		sugar.Fatalf("Error to executing migration: %s", err)
 	}
 
 	dbase := db.GetDB()
 
 	if err = database.Seed(dbase); err != nil {
-		log.Fatalf("failed to seed database: %v", err)
+		sugar.Fatalf("failed to seed database: %v", err)
 	}
 	apiUrl := cfg.Http.ApiUrl
+
+	var orderMetrics ports.OrderMetrics = appmetrics.NoopOrderMetrics{}
+	if !cfg.DogStatsD.Disabled && cfg.DogStatsD.Addr != "" {
+		statsdClient, errStatsd := statsd.New(cfg.DogStatsD.Addr,
+			statsd.WithNamespace("tech_challenge."),
+			statsd.WithTags([]string{
+				"env:" + cfg.Env,
+				"service:" + cfg.Service,
+				"version:" + cfg.Version,
+			}),
+		)
+		if errStatsd != nil {
+			sugar.Warnw("dogstatsd indisponível, métricas de ordem desativadas", "error", errStatsd)
+		} else {
+			defer statsdClient.Close()
+			orderMetrics = appmetrics.NewOrderStatsd(statsdClient)
+		}
+	}
 
 	// Repositories
 	customerRepository := repository.NewCustomerRepository(dbase)
@@ -86,7 +154,7 @@ func main() {
 
 	// UseCases
 	createCustomerUseCase := customerUseCase.NewCustomerUseCase(customerRepository, customerVehicleRepository, vehicleService)
-	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, customerService, emailService, orderRepository, orderProductRepository, orderMaintenanceRepository, apiUrl)
+	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, customerService, emailService, orderRepository, orderProductRepository, orderMaintenanceRepository, apiUrl, orderMetrics)
 
 	// Handlers
 	customerHandler := handlers.NewCustomerHandler(customerService, createCustomerUseCase)
@@ -97,14 +165,21 @@ func main() {
 	vehicleHandler := handlers.NewVehicleHandler(vehicleService)
 	orderHandler := handlers.NewOrderHandler(orderService, createOrderUseCase)
 
-	router := http.NewRouter(*cfg, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *vehicleHandler, *orderHandler, cfg.JWT.Secret)
-	log.Printf("Starting HTTP server on port %s", cfg.Http.Port)
+	router := http.NewRouter(*cfg, logger, *customerHandler, *companyHandler, *maintenanceHandler, *productHandler, *userHandler, *vehicleHandler, *orderHandler, cfg.JWT.Secret)
+	sugar.Info("Starting HTTP server on port %s", cfg.Http.Port)
 
 	if err = userService.CreateAdminUser(ctx, cfg.AdminUser.Email, cfg.AdminUser.Password, cfg.AdminUser.Document); err != nil {
-		log.Fatalf("failed on create admin user: %v", err)
+		sugar.Fatalf("failed on create admin user: %v", err)
 	}
 
 	if err = router.Server(":" + cfg.Http.Port); err != nil {
-		log.Fatalf("failed to start server: %v", err)
+		sugar.Fatalf("failed to start server: %v", err)
 	}
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGTERM)
+	go func() {
+		<-sigChan
+		tracer.Stop()
+	}()
 }

@@ -2,9 +2,12 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
+	gormtrace "github.com/DataDog/dd-trace-go/contrib/gorm.io/gorm.v1/v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -44,6 +47,14 @@ func Init(ctx context.Context, config config.DataBaseConfig) (Database, error) {
 			SingularTable: true,
 		},
 	})
+
+	errCheck := gormtrace.WithErrorCheck(func(err error) bool {
+		return !errors.Is(err, gorm.ErrRecordNotFound)
+	})
+	if err := db.Use(gormtrace.NewTracePlugin(errCheck)); err != nil {
+		log.Fatal(err)
+	}
+
 	if err != nil {
 		return nil, err
 	}
