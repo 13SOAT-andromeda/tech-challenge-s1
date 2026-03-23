@@ -31,7 +31,7 @@ func ExtractClaims(c *gin.Context) (*UserClaims, error) {
 }
 
 // RoleRequired returns a middleware that grants access if the request carries
-// the required role (or the "administrator" role, which bypasses all restrictions).
+// one of the required roles.
 // Returns 401 if claims are missing from context, 403 if the role is insufficient.
 func RoleRequired(roles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -46,7 +46,7 @@ func RoleRequired(roles ...string) gin.HandlerFunc {
 		hasRole := false
 
 		for _, role := range roles {
-			if claims.Role == role || claims.Role == "administrator" {
+			if claims.Role == role {
 				hasRole = true
 				break
 			}
