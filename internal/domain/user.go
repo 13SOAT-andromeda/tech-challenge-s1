@@ -11,8 +11,10 @@ type User struct {
 	Name      string     `json:"name"`
 	Email     string     `json:"email"`
 	Contact   string     `json:"contact"`
+	Document  string     `json:"document"`
+	IsActive  bool       `json:"is_active"`
 	Address   *Address   `json:"address"`
-	Password  *Password  `json:"-"`
+	Password  Password   `json:"-"`
 	Role      string     `json:"role"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
