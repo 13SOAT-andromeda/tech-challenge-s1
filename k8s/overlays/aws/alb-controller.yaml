@@ -18,7 +18,7 @@ spec:
         - name: aws-load-balancer-controller
           image: public.ecr.aws/eks/aws-load-balancer-controller:v2.7.2
           args:
-            - --cluster-name=eks-tech-challenge-cluster
+            - --cluster-name=eks-tech-challenge
             - --aws-region=us-east-1
           ports:
             - name: webhook-server
