@@ -76,7 +76,8 @@ func (h *CustomerHandler) CreateCustomer(ctx *gin.Context) {
 		},
 	}
 
-	customer, err := h.service.Create(ctx, c, password)
+	customer, err := h.service.Create(ctx.Request.Context(), c, password)
+
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -104,7 +105,8 @@ func (h *CustomerHandler) Search(ctx *gin.Context) {
 		customerFilter.Email = &email
 	}
 
-	customers, err := h.service.Search(ctx, customerFilter)
+	customers, err := h.service.Search(ctx.Request.Context(), customerFilter)
+
 	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -122,7 +124,7 @@ func (h *CustomerHandler) GetCustomerByID(ctx *gin.Context) {
 		return
 	}
 
-	customer, err := h.service.GetByID(ctx, uint(customerId))
+	customer, err := h.service.GetByID(ctx.Request.Context(), uint(customerId))
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -145,7 +147,8 @@ func (h *CustomerHandler) DeleteCustomer(ctx *gin.Context) {
 		return
 	}
 
-	customer, err := h.service.DeleteByID(ctx, uint(customerId))
+	customer, err := h.service.DeleteByID(ctx.Request.Context(), uint(customerId))
+
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -199,7 +202,7 @@ func (h *CustomerHandler) UpdateCustomer(ctx *gin.Context) {
 		},
 	}
 
-	if err := h.service.UpdateByID(ctx, uint(customerId), c); err != nil {
+	if err := h.service.UpdateByID(ctx.Request.Context(), uint(customerId), c); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -223,7 +226,7 @@ func (h *CustomerHandler) AddVehicleToCustomer(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.useCase.AddVehicleToCustomer(ctx, uint(customerID), uint(vehicleID)); err != nil {
+	if err := h.useCase.AddVehicleToCustomer(ctx.Request.Context(), uint(customerID), uint(vehicleID)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -247,7 +250,7 @@ func (h *CustomerHandler) RemoveVehicleFromCustomer(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.useCase.RemoveVehicleFromCustomer(ctx, uint(customerID), uint(vehicleID)); err != nil {
+	if err := h.useCase.RemoveVehicleFromCustomer(ctx.Request.Context(), uint(customerID), uint(vehicleID)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -264,7 +267,7 @@ func (h *CustomerHandler) GetCustomerVehicles(ctx *gin.Context) {
 		return
 	}
 
-	vehicles, err := h.useCase.GetCustomerVehicles(ctx, uint(customerID))
+	vehicles, err := h.useCase.GetCustomerVehicles(ctx.Request.Context(), uint(customerID))
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return

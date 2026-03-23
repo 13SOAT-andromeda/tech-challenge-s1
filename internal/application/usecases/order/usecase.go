@@ -7,6 +7,7 @@ import (
 
 	orderMaintenanceModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_maintenance"
 	orderProductModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_product"
+	appmetrics "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/metrics"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 )
@@ -23,6 +24,7 @@ type UseCase struct {
 	orderProductRepository     ports.OrderProductRepository
 	orderMaintenanceRepository ports.OrderMaintenanceRepository
 	apiUrl                     string
+	metrics                    ports.OrderMetrics
 }
 
 func NewOrderUseCase(
@@ -37,7 +39,11 @@ func NewOrderUseCase(
 	orderProductRepository ports.OrderProductRepository,
 	orderMaintenanceRepository ports.OrderMaintenanceRepository,
 	apiUrl string,
+	metrics ports.OrderMetrics,
 ) *UseCase {
+	if metrics == nil {
+		metrics = appmetrics.NoopOrderMetrics{}
+	}
 	return &UseCase{
 		orderService:               orderService,
 		productService:             productsService,
@@ -50,6 +56,7 @@ func NewOrderUseCase(
 		orderProductRepository:     orderProductRepository,
 		orderMaintenanceRepository: orderMaintenanceRepository,
 		apiUrl:                     apiUrl,
+		metrics:                    metrics,
 	}
 }
 
@@ -65,6 +72,13 @@ func (uc *UseCase) resolveEmployeeID(ctx context.Context, userID uint) (uint, er
 	}
 
 	return employee.ID, nil
+}
+
+func referenceTimeForTransition(last *time.Time, dateIn time.Time) time.Time {
+	if last != nil && !last.IsZero() {
+		return *last
+	}
+	return dateIn
 }
 
 func (uc *UseCase) CreateOrder(ctx context.Context, userID uint, input ports.CreateOrderInput) (*domain.Order, error) {
@@ -90,6 +104,8 @@ func (uc *UseCase) CreateOrder(ctx context.Context, userID uint, input ports.Cre
 		return nil, err
 	}
 
+	uc.metrics.OrderCreated(ctx)
+
 	return created, nil
 }
 
@@ -108,11 +124,23 @@ func (uc *UseCase) AssignOrder(ctx context.Context, orderID uint, userID uint) e
 		return err
 	}
 
+	from := order.Status
+	ref := referenceTimeForTransition(order.LastStatusAt, order.DateIn)
+	now := time.Now()
+	durationMin := now.Sub(ref).Minutes()
+
 	order.EmployeeID = employeeID
 	order.Status = domain.OrderStatuses.IN_ANALYSIS
+	order.LastStatusAt = &now
 
 	err = uc.orderService.Update(ctx, *order)
-	return err
+
+	if err != nil {
+		return err
+	}
+
+	uc.metrics.OrderStatusTransition(ctx, from, domain.OrderStatuses.IN_ANALYSIS, durationMin)
+	return nil
 }
 
 func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID uint, input ports.CreateCompleteOrderAnalysisInput) error {
@@ -191,15 +219,22 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 		return err
 	}
 
+	from := order.Status
+	ref := referenceTimeForTransition(order.LastStatusAt, order.DateIn)
+	now := time.Now()
+	durationMin := now.Sub(ref).Minutes()
+
 	order.DiagnosticNote = input.DiagnosticNote
 	order.Status = domain.OrderStatuses.ANALYSIS_FINISHED
 	order.Price = &totalPrice
 	order.EmployeeID = employeeID
+	order.LastStatusAt = &now
 
 	if err := uc.orderService.Update(ctx, *order); err != nil {
 		return fmt.Errorf("failed to complete order analysis: %w", err)
 	}
 
+	uc.metrics.OrderStatusTransition(ctx, from, domain.OrderStatuses.ANALYSIS_FINISHED, durationMin)
 	return nil
 }
 
@@ -214,15 +249,21 @@ func (uc *UseCase) ApproveOrder(ctx context.Context, id uint) error {
 		return fmt.Errorf("order cannot be approved. Current status: %s", existentOrder.Status)
 	}
 
+	from := domain.OrderStatus(existentOrder.Status)
+	ref := referenceTimeForTransition(existentOrder.LastStatusAt, existentOrder.DateIn)
 	now := time.Now()
+	durationMin := now.Sub(ref).Minutes()
 
 	existentOrder.Status = string(domain.OrderStatuses.APPROVED)
 	existentOrder.DateApproved = &now
+	existentOrder.LastStatusAt = &now
 
 	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
 		return fmt.Errorf("failed to approve order: %w", err)
 	}
 
+	uc.metrics.OrderStatusTransition(ctx, from, domain.OrderStatuses.APPROVED, durationMin)
+	uc.metrics.OrderApproved(ctx)
 	return nil
 }
 
@@ -237,15 +278,21 @@ func (uc *UseCase) RejectOrder(ctx context.Context, id uint) error {
 		return fmt.Errorf("order cannot be reject. Current status: %s", existentOrder.Status)
 	}
 
+	from := domain.OrderStatus(existentOrder.Status)
+	ref := referenceTimeForTransition(existentOrder.LastStatusAt, existentOrder.DateIn)
 	now := time.Now()
+	durationMin := now.Sub(ref).Minutes()
 
 	existentOrder.Status = string(domain.OrderStatuses.FINISHED)
 	existentOrder.DateRejected = &now
+	existentOrder.LastStatusAt = &now
 
 	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
 		return fmt.Errorf("failed to reject order: %w", err)
 	}
 
+	uc.metrics.OrderStatusTransition(ctx, from, domain.OrderStatuses.FINISHED, durationMin)
+	uc.metrics.OrderRejected(ctx)
 	return nil
 }
 
@@ -260,14 +307,20 @@ func (uc *UseCase) ArchiveOrder(ctx context.Context, id uint) error {
 		return fmt.Errorf("order cannot be archived. Current status: %s", existentOrder.Status)
 	}
 
+	from := domain.OrderStatus(existentOrder.Status)
+	ref := referenceTimeForTransition(existentOrder.LastStatusAt, existentOrder.DateIn)
 	now := time.Now()
+	durationMin := now.Sub(ref).Minutes()
+
 	existentOrder.Status = string(domain.OrderStatuses.DELIVERED)
 	existentOrder.DateOut = &now
+	existentOrder.LastStatusAt = &now
 
 	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
 		return fmt.Errorf("failed to archive order: %w", err)
 	}
 
+	uc.metrics.OrderStatusTransition(ctx, from, domain.OrderStatuses.DELIVERED, durationMin)
 	return nil
 }
 
@@ -307,12 +360,19 @@ func (uc *UseCase) RequestApproval(ctx context.Context, id uint) error {
 		return fmt.Errorf("failed to send approval notification: %w", err)
 	}
 
+	from := domain.OrderStatus(existentOrder.Status)
+	ref := referenceTimeForTransition(existentOrder.LastStatusAt, existentOrder.DateIn)
+	now := time.Now()
+	durationMin := now.Sub(ref).Minutes()
+
 	existentOrder.Status = string(domain.OrderStatuses.AWAITING_APPROVAL)
+	existentOrder.LastStatusAt = &now
 
 	if err := uc.orderRepository.Update(ctx, existentOrder); err != nil {
 		return fmt.Errorf("failed to update order status: %w", err)
 	}
 
+	uc.metrics.OrderStatusTransition(ctx, from, domain.OrderStatuses.AWAITING_APPROVAL, durationMin)
 	return nil
 }
 
@@ -352,12 +412,19 @@ func (uc *UseCase) StartWorkOrder(ctx context.Context, id uint) error {
 		return fmt.Errorf("failed to decrement stock: %w", err)
 	}
 
+	from := order.Status
+	ref := referenceTimeForTransition(order.LastStatusAt, order.DateIn)
+	now := time.Now()
+	durationMin := now.Sub(ref).Minutes()
+
 	order.Status = domain.OrderStatuses.IN_PROGRESS
+	order.LastStatusAt = &now
 
 	if err = uc.orderService.Update(ctx, *order); err != nil {
 		return fmt.Errorf("failed to update order status: %w", err)
 	}
 
+	uc.metrics.OrderStatusTransition(ctx, from, domain.OrderStatuses.IN_PROGRESS, durationMin)
 	return nil
 }
 
@@ -371,10 +438,18 @@ func (uc *UseCase) CompleteWorkOrder(ctx context.Context, id uint) error {
 		return fmt.Errorf("order cannot complete work. current status: %s", order.Status)
 	}
 
+	from := order.Status
+	ref := referenceTimeForTransition(order.LastStatusAt, order.DateIn)
+	now := time.Now()
+	durationMin := now.Sub(ref).Minutes()
+
 	order.Status = domain.OrderStatuses.FINISHED
+	order.LastStatusAt = &now
+
 	if err = uc.orderService.Update(ctx, *order); err != nil {
 		return fmt.Errorf("failed to update order status: %w", err)
 	}
 
+	uc.metrics.OrderStatusTransition(ctx, from, domain.OrderStatuses.FINISHED, durationMin)
 	return nil
 }

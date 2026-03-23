@@ -53,7 +53,7 @@ func (h *MaintenanceHandler) CreateMaintenance(ctx *gin.Context) {
 }
 
 func (h *MaintenanceHandler) GetMaintenances(ctx *gin.Context) {
-	maintenances, err := h.service.GetAll(ctx)
+	maintenances, err := h.service.GetAll(ctx.Request.Context())
 
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())

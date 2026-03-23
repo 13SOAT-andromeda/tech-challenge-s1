@@ -62,7 +62,7 @@ func (h *ProductHandler) CreateProduct(ctx *gin.Context) {
 }
 
 func (h *ProductHandler) GetProducts(ctx *gin.Context) {
-	products, err := h.service.GetAll(ctx)
+	products, err := h.service.GetAll(ctx.Request.Context())
 
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
@@ -100,7 +100,7 @@ func (h *ProductHandler) DeleteProduct(ctx *gin.Context) {
 		return
 	}
 
-	product, err := h.service.Delete(ctx, uint(productId))
+	product, err := h.service.Delete(ctx.Request.Context(), uint(productId))
 
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
@@ -139,7 +139,7 @@ func (h *ProductHandler) UpdateProduct(ctx *gin.Context) {
 		Price: json.Price,
 	}
 
-	if _, err := h.service.Update(ctx, p); err != nil {
+	if _, err := h.service.Update(ctx.Request.Context(), p); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}

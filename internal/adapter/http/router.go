@@ -2,15 +2,20 @@ package http
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/config"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/middlewares"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
+	gintrace "github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	ginzap "github.com/gin-contrib/zap"
 	swaggerFiles "github.com/swaggo/files"
 	swagger "github.com/swaggo/gin-swagger"
 )
@@ -21,6 +26,7 @@ type Router struct {
 
 func NewRouter(
 	config config.Config,
+	logger *zap.Logger,
 	customerHandler handlers.CustomerHandler,
 	companyHandler handlers.CompanyHandler,
 	maintenanceHandler handlers.MaintenanceHandler,
@@ -28,8 +34,7 @@ func NewRouter(
 	userHandler handlers.UserHandler,
 	vehicleHandler handlers.VehicleHandler,
 	orderHandler handlers.OrderHandler,
-	sessionHandler handlers.SessionHandler,
-	sessionService ports.SessionService,
+	jwtSecret string,
 ) *Router {
 	if config.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -41,25 +46,40 @@ func NewRouter(
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 
 	router := gin.New()
-	router.Use(gin.Logger(), gin.Recovery(), cors.New(corsConfig))
+	router.Use(gintrace.Middleware("tech-challenge-api",
+		gintrace.WithUseGinErrors(),
+		gintrace.WithAnalytics(true),
+		gintrace.WithIgnoreRequest(func(c *gin.Context) bool {
+			return c.Request.URL.Path == "/health"
+		}),
+		gintrace.WithStatusCheck(func(statusCode int) bool {
+			return statusCode >= 400
+		}),
+	))
+	router.Use(ginzap.GinzapWithConfig(logger, &ginzap.Config{
+		UTC:        true,
+		TimeFormat: time.RFC3339,
+		Context: ginzap.Fn(func(c *gin.Context) []zapcore.Field {
+			fields := []zapcore.Field{}
+			span, ok := tracer.SpanFromContext(c.Request.Context())
 
-	// Initialize auth middleware
-	authMiddleware := middlewares.NewAuthMiddleware(&config, sessionService)
+			if ok {
+				fields = append(fields, zap.String("trace_id", span.Context().TraceID()))
+				fields = append(fields, zap.String("span_id", span.String()))
+			}
+			return fields
+		}),
+	}))
+	router.Use(ginzap.RecoveryWithZap(logger, true))
+	router.Use(
+		cors.New(corsConfig),
+	)
 
-	// Public routes (no authentication required)
-	sessionGroup := router.Group("/sessions")
-	{
-		sessionGroup.POST("", sessionHandler.Login)            // POST /sessions (login)
-		sessionGroup.GET("/validate", sessionHandler.Validate) // GET /sessions/validate
-		sessionGroup.POST("/refresh", sessionHandler.Refresh)  // POST /sessions/refresh
-		sessionGroup.DELETE("/logout", sessionHandler.Logout)  // DELETE /sessions/logout
-	}
-
-	// Protected routes (authentication required)
 	protected := router.Group("/")
-	protected.Use(authMiddleware.AuthRequired())
+	protected.Use(middlewares.AuthRequired(jwtSecret))
 	{
 		customerGroup := protected.Group("/customers")
+		customerGroup.Use(middlewares.RoleRequired("administrator"))
 		{
 			customerGroup.GET("", customerHandler.Search)
 			customerGroup.POST("", customerHandler.CreateCustomer)
@@ -80,6 +100,7 @@ func NewRouter(
 		}
 
 		maintenances := protected.Group("/maintenances")
+		maintenances.Use(middlewares.RoleRequired("administrator"))
 		{
 			maintenances.POST("", maintenanceHandler.CreateMaintenance)
 			maintenances.GET("/:id", maintenanceHandler.GetMaintenanceByID)
@@ -89,6 +110,7 @@ func NewRouter(
 		}
 
 		productGroup := protected.Group("/products")
+		productGroup.Use(middlewares.RoleRequired("administrator"))
 		{
 			productGroup.POST("", productHandler.CreateProduct)
 			productGroup.GET("", productHandler.GetProducts)
@@ -99,6 +121,7 @@ func NewRouter(
 		}
 
 		userGroup := protected.Group("/users")
+		userGroup.Use(middlewares.RoleRequired("administrator"))
 		{
 			userGroup.GET("", userHandler.Search)
 			userGroup.POST("", userHandler.Create)
@@ -108,6 +131,7 @@ func NewRouter(
 		}
 
 		vehicleGroup := protected.Group("/vehicles")
+		vehicleGroup.Use(middlewares.RoleRequired("administrator"))
 		{
 			vehicleGroup.GET("", vehicleHandler.GetAll)
 			vehicleGroup.POST("", vehicleHandler.Create)
@@ -117,6 +141,7 @@ func NewRouter(
 		}
 
 		orderGroup := protected.Group("/orders")
+		orderGroup.Use(middlewares.RoleRequired("administrator"))
 		{
 			orderGroup.GET("", orderHandler.GetAll)
 			orderGroup.GET("/:id", orderHandler.GetByID)
@@ -132,12 +157,13 @@ func NewRouter(
 			orderGroup.POST("/:id/archive", orderHandler.ArchiveOrder)
 			orderGroup.DELETE("/:id", orderHandler.Delete)
 		}
+	}
 
-		unauthenticatedOrderGroup := router.Group("/orders")
-		{
-			unauthenticatedOrderGroup.GET("/:id/approve", orderHandler.ApproveOrder)
-			unauthenticatedOrderGroup.GET("/:id/reject", orderHandler.RejectOrder)
-		}
+	// Public routes — no authorization middleware applied.
+	publicOrders := router.Group("/orders")
+	{
+		publicOrders.GET("/:id/approve", orderHandler.ApproveOrder)
+		publicOrders.GET("/:id/reject", orderHandler.RejectOrder)
 	}
 
 	router.GET("/health", func(c *gin.Context) {
@@ -148,7 +174,6 @@ func NewRouter(
 	router.Static("/swagger", "./swagger")
 
 	// Serve the swagger UI under /docs and point it to the static spec at /swagger/swagger.yaml
-	// Use a different prefix than /swagger to avoid wildcard conflicts with the static route.
 	router.GET("/docs/*any", swagger.WrapHandler(swaggerFiles.Handler, swagger.URL("/swagger/swagger.yaml")))
 
 	router.StaticFile("/redoc", "./swagger/redoc.html")

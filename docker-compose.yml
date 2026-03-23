@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
@@ -23,6 +23,11 @@ services:
       - db
     env_file:
       - .env
+    environment:
+      DD_AGENT_HOST: datadog-agent
+      DD_ENV: ${ENV:-local}
+      DD_SERVICE: ${DD_SERVICE:-tech-challenge-api}
+      DD_VERSION: ${API_VERSION:-1.0.0}
     ports:
       - "8080:8080"
     restart: on-failure
@@ -32,6 +37,37 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:latest
+    env_file:
+      - .env
+    environment:
+      DD_API_KEY: ${DD_API_KEY}
+      DD_SITE: ${DD_SITE}
+
+      DD_APM_ENABLED: "true"
+      DD_APM_NON_LOCAL_TRAFFIC: "true"
+
+      DD_LOGS_ENABLED: "true"
+      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
+      DD_CONTAINER_EXCLUDE: "name:datadog-agent"
+
+      DD_APPSEC_ENABLED: "true"
+      DD_REMOTE_CONFIGURATION_ENABLED: "true"
+      DD_UNIVERSAL_SERVICE_MONITORING_ENABLED: "true"
+
+      DD_PROCESS_CONFIG_PROCESS_COLLECTION_ENABLED: "true"
+
+      DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true"
+    ports:
+      - "8125:8125/udp"
+      - "8126:8126"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - ./datadog/conf.d/http_check.yaml:/etc/datadog-agent/conf.d/http_check.yaml:ro
 
 volumes:
   db_data:

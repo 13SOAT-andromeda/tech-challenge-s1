@@ -71,11 +71,17 @@ func (s *userService) Create(ctx context.Context, u domain.User) (*domain.User, 
 	return um.ToDomain(), nil
 }
 
-func (s *userService) CreateAdminUser(ctx context.Context, email, password string) error {
-	if existing, err := s.GetByEmail(ctx, email); err != nil {
+func (s *userService) CreateAdminUser(ctx context.Context, email, password, document string) error {
+
+	if user, err := s.GetByEmail(ctx, email); err != nil {
 		return err
-	} else if existing != nil {
+	} else if user != nil {
 		return nil
+	}
+
+	doc, err := domain.NewDocument(document)
+	if err != nil {
+		return err
 	}
 
 	p, err := domain.NewPassword(password, encryption.NewBcryptHasher())
@@ -90,7 +96,7 @@ func (s *userService) CreateAdminUser(ctx context.Context, email, password strin
 	person := domain.Person{
 		Name:     "Administrador",
 		Email:    email,
-		Document: &domain.Document{Number: "66936911021"},
+		Document: doc,
 		Contact:  "+5511954945277",
 	}
 
@@ -171,7 +177,7 @@ func (s *userService) Update(ctx context.Context, u domain.User) (*domain.User, 
 		}
 	}
 
-	if u.Password != nil {
+	if u.Password != nil && u.Password.GetValue() != "" {
 		return nil, errors.New("senha de usuário não pode ser atualizada")
 	}
 

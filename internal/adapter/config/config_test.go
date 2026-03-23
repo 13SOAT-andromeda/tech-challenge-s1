@@ -58,3 +58,57 @@ func TestConfig_Initi_GetEnvReturnsValueOrDefault(t *testing.T) {
 		t.Errorf("Expected 'default', got '%s'", val)
 	}
 }
+
+func TestConfig_Init_DogStatsD(t *testing.T) {
+	tests := []struct {
+		name         string
+		agentHost    string
+		wantAddr     string
+		wantDisabled bool
+	}{
+		{
+			name:         "sem DD_AGENT_HOST",
+			agentHost:    "",
+			wantAddr:     "",
+			wantDisabled: true,
+		},
+		{
+			name:         "com hostname do agent",
+			agentHost:    "datadog-agent",
+			wantAddr:     "datadog-agent:8125",
+			wantDisabled: false,
+		},
+		{
+			name:         "com IPv4",
+			agentHost:    "127.0.0.1",
+			wantAddr:     "127.0.0.1:8125",
+			wantDisabled: false,
+		},
+		{
+			name:         "com IPv6",
+			agentHost:    "::1",
+			wantAddr:     "[::1]:8125",
+			wantDisabled: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("DD_AGENT_HOST", tt.agentHost)
+
+			cfg, err := Init()
+			if err != nil {
+				t.Fatalf("Init() erro: %v", err)
+			}
+			if cfg.DogStatsD == nil {
+				t.Fatal("cfg.DogStatsD é nil")
+			}
+			if cfg.DogStatsD.Addr != tt.wantAddr {
+				t.Errorf("DogStatsD.Addr = %q, want %q", cfg.DogStatsD.Addr, tt.wantAddr)
+			}
+			if cfg.DogStatsD.Disabled != tt.wantDisabled {
+				t.Errorf("DogStatsD.Disabled = %v, want %v", cfg.DogStatsD.Disabled, tt.wantDisabled)
+			}
+		})
+	}
+}

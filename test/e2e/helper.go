@@ -64,7 +64,9 @@ func NewUnauthenticatedReq(method, url string, body io.Reader) (*http.Response, 
 	return client.Do(request)
 }
 
-func NewAuthenticatedReq(method, url string, body io.Reader, token string) (*http.Response, error) {
+// NewIdentifiedReq creates a request with Lambda Authorizer identity headers.
+// userID, email and role are the values the Lambda would inject after JWT validation.
+func NewIdentifiedReq(method, url string, body io.Reader, userID, email, role string) (*http.Response, error) {
 	client := &http.Client{}
 
 	if body == nil {
@@ -78,7 +80,9 @@ func NewAuthenticatedReq(method, url string, body io.Reader, token string) (*htt
 	}
 
 	request.Header.Add("Content-Type", "application/json")
-	request.Header.Add("Authorization", "Bearer "+token)
+	request.Header.Add("X-User-ID", userID)
+	request.Header.Add("X-User-Email", email)
+	request.Header.Add("X-User-Role", role)
 
 	return client.Do(request)
 }

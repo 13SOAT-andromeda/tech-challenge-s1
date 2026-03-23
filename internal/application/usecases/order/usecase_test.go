@@ -8,10 +8,11 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/employee"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
 	orderMaintenanceModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_maintenance"
 	orderProductModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_product"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/employee"
+	appmetrics "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/metrics"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/mocks"
@@ -40,7 +41,7 @@ func TestCreateOrder_Success(t *testing.T) {
 	mockEmail := new(mocks.MockEmail)
 	mockUserService := new(mocks.MockUserService)
 	mockEmployeeService := new(mocks.MockEmployeeService)
-	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "")
+	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 
 	userId := uint(2)
 	testPersonID := uint(5)
@@ -102,7 +103,7 @@ func TestCreateOrder_ProductServiceError(t *testing.T) {
 	mockEmail := new(mocks.MockEmail)
 	mockUserService := new(mocks.MockUserService)
 	mockEmployeeService := new(mocks.MockEmployeeService)
-	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "")
+	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 
 	products := []domain.Product{p(1, 100), p(2, 150)}
 	maints := []domain.Maintenance{ma(3, 250)}
@@ -132,7 +133,7 @@ func TestCreateOrder_MaintenanceServiceError(t *testing.T) {
 	mockEmail := new(mocks.MockEmail)
 	mockUserService := new(mocks.MockUserService)
 	mockEmployeeService := new(mocks.MockEmployeeService)
-	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "")
+	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 
 	input := ports.CreateCompleteOrderAnalysisInput{}
 
@@ -198,6 +199,7 @@ func TestUseCase_AssignOrder(t *testing.T) {
 			orderService:    mockOrderService,
 			userService:     mockUserService,
 			employeeService: mockEmployeeService,
+			metrics:         appmetrics.NoopOrderMetrics{},
 		}
 
 		orderID := uint(1)
@@ -227,7 +229,7 @@ func TestUseCase_AssignOrder(t *testing.T) {
 
 	t.Run("should return error when order not found", func(t *testing.T) {
 		mockOrderService := new(mocks.MockOrderService)
-		useCase := &UseCase{orderService: mockOrderService}
+		useCase := &UseCase{orderService: mockOrderService, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(999)
 		userID := uint(2)
@@ -249,6 +251,7 @@ func TestUseCase_AssignOrder(t *testing.T) {
 			orderService:    mockOrderService,
 			userService:     mockUserService,
 			employeeService: mockEmployeeService,
+			metrics:         appmetrics.NoopOrderMetrics{},
 		}
 
 		orderID := uint(1)
@@ -277,7 +280,7 @@ func TestUseCase_ApproveOrder(t *testing.T) {
 
 	t.Run("should approve order successfully", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(1)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.AWAITING_APPROVAL))
@@ -296,7 +299,7 @@ func TestUseCase_ApproveOrder(t *testing.T) {
 
 	t.Run("should return error when order not found", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(999)
 
@@ -311,7 +314,7 @@ func TestUseCase_ApproveOrder(t *testing.T) {
 
 	t.Run("should return error when order status is not AWAITING_APPROVAL", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(1)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.APPROVED))
@@ -327,7 +330,7 @@ func TestUseCase_ApproveOrder(t *testing.T) {
 
 	t.Run("should return error when update fails", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(1)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.AWAITING_APPROVAL))
@@ -348,7 +351,7 @@ func TestUseCase_RejectOrder(t *testing.T) {
 
 	t.Run("should reject order successfully", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(1)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.AWAITING_APPROVAL))
@@ -367,7 +370,7 @@ func TestUseCase_RejectOrder(t *testing.T) {
 
 	t.Run("should return error when order not found", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(999)
 
@@ -382,7 +385,7 @@ func TestUseCase_RejectOrder(t *testing.T) {
 
 	t.Run("should return error when order status is not AWAITING_APPROVAL", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(1)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.FINISHED))
@@ -398,7 +401,7 @@ func TestUseCase_RejectOrder(t *testing.T) {
 
 	t.Run("should return error when update fails", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(1)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.AWAITING_APPROVAL))
@@ -430,6 +433,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 			customerService: mockCustomerService,
 			emailService:    mockEmail,
 			apiUrl:          "http://localhost:8080",
+			metrics:         appmetrics.NoopOrderMetrics{},
 		}
 
 		orderID := uint(1)
@@ -465,7 +469,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 
 	t.Run("should return error when order not found", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(999)
 
@@ -480,7 +484,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 
 	t.Run("should return error when order status is not ANALYSIS_FINISHED", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(1)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.RECEIVED))
@@ -507,6 +511,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 			customerService: mockCustomerService,
 			emailService:    mockEmail,
 			apiUrl:          "http://localhost:8080",
+			metrics:         appmetrics.NoopOrderMetrics{},
 		}
 
 		orderID := uint(1)
@@ -546,6 +551,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 			customerService: mockCustomerService,
 			emailService:    mockEmail,
 			apiUrl:          "http://localhost:8080",
+			metrics:         appmetrics.NoopOrderMetrics{},
 		}
 
 		orderID := uint(1)
@@ -573,6 +579,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 			orderService:    mockOrderService,
 			customerService: mockCustomerService,
 			apiUrl:          "http://localhost:8080",
+			metrics:         appmetrics.NoopOrderMetrics{},
 		}
 
 		orderID := uint(1)
@@ -612,6 +619,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 			customerService: mockCustomerService,
 			emailService:    mockEmail,
 			apiUrl:          "http://localhost:8080",
+			metrics:         appmetrics.NoopOrderMetrics{},
 		}
 
 		orderID := uint(1)
@@ -648,7 +656,7 @@ func TestUseCase_ArchiveOrder(t *testing.T) {
 
 	t.Run("should archive order successfully", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(1)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.FINISHED))
@@ -667,7 +675,7 @@ func TestUseCase_ArchiveOrder(t *testing.T) {
 
 	t.Run("should return error when order not found", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(999)
 
@@ -682,7 +690,7 @@ func TestUseCase_ArchiveOrder(t *testing.T) {
 
 	t.Run("should return error when order status is not FINISHED", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(1)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.AWAITING_APPROVAL))
@@ -698,7 +706,7 @@ func TestUseCase_ArchiveOrder(t *testing.T) {
 
 	t.Run("should return error when order status is APPROVED", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(1)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.APPROVED))
@@ -714,7 +722,7 @@ func TestUseCase_ArchiveOrder(t *testing.T) {
 
 	t.Run("should return error when order status is DELIVERED", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(1)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.DELIVERED))
@@ -730,7 +738,7 @@ func TestUseCase_ArchiveOrder(t *testing.T) {
 
 	t.Run("should return error when update fails", func(t *testing.T) {
 		mockRepo := new(mocks.MockOrderRepository)
-		useCase := &UseCase{orderRepository: mockRepo}
+		useCase := &UseCase{orderRepository: mockRepo, metrics: appmetrics.NoopOrderMetrics{}}
 
 		orderID := uint(1)
 		existingOrder := createMockOrder(orderID, string(domain.OrderStatuses.FINISHED))
@@ -760,7 +768,7 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockEmail := new(mocks.MockEmail)
 		mockUserService := new(mocks.MockUserService)
 		mockEmployeeService := new(mocks.MockEmployeeService)
-		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "")
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 
 		orderID := uint(1)
 		userID := uint(2)
@@ -834,7 +842,7 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockEmail := new(mocks.MockEmail)
 		mockUserService := new(mocks.MockUserService)
 		mockEmployeeService := new(mocks.MockEmployeeService)
-		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "")
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 		orderID := uint(1)
 		userID := uint(2)
 		input := ports.CreateCompleteOrderAnalysisInput{}
@@ -859,7 +867,7 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockEmail := new(mocks.MockEmail)
 		mockUserService := new(mocks.MockUserService)
 		mockEmployeeService := new(mocks.MockEmployeeService)
-		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "")
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 		orderID := uint(1)
 		userID := uint(2)
 		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.RECEIVED}
@@ -885,7 +893,7 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockEmail := new(mocks.MockEmail)
 		mockUserService := new(mocks.MockUserService)
 		mockEmployeeService := new(mocks.MockEmployeeService)
-		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "")
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 		orderID := uint(1)
 		userID := uint(2)
 		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
@@ -915,7 +923,7 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockEmail := new(mocks.MockEmail)
 		mockUserService := new(mocks.MockUserService)
 		mockEmployeeService := new(mocks.MockEmployeeService)
-		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "")
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 		orderID := uint(1)
 		userID := uint(2)
 		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
@@ -946,7 +954,7 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockEmail := new(mocks.MockEmail)
 		mockUserService := new(mocks.MockUserService)
 		mockEmployeeService := new(mocks.MockEmployeeService)
-		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "")
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 		orderID := uint(1)
 		userID := uint(2)
 		testPersonID := uint(5)
@@ -1001,6 +1009,7 @@ func TestUseCase_StartWorkOrder(t *testing.T) {
 		uc := &UseCase{
 			orderService:   mockOrderService,
 			productService: mockProductService,
+			metrics:        appmetrics.NoopOrderMetrics{},
 		}
 		existingOrder := &domain.Order{
 			ID:       orderID,
@@ -1025,7 +1034,7 @@ func TestUseCase_StartWorkOrder(t *testing.T) {
 
 	t.Run("should return error when order not found", func(t *testing.T) {
 		mockOrderService := new(mocks.MockOrderService)
-		uc := &UseCase{orderService: mockOrderService}
+		uc := &UseCase{orderService: mockOrderService, metrics: appmetrics.NoopOrderMetrics{}}
 		mockOrderService.On("GetByID", ctx, orderID).Return(nil, errors.New("not found")).Once()
 
 		err := uc.StartWorkOrder(ctx, orderID)
@@ -1037,7 +1046,7 @@ func TestUseCase_StartWorkOrder(t *testing.T) {
 
 	t.Run("should return error for wrong order status", func(t *testing.T) {
 		mockOrderService := new(mocks.MockOrderService)
-		uc := &UseCase{orderService: mockOrderService}
+		uc := &UseCase{orderService: mockOrderService, metrics: appmetrics.NoopOrderMetrics{}}
 		existingOrder := &domain.Order{
 			ID:     orderID,
 			Status: domain.OrderStatuses.IN_ANALYSIS,
@@ -1058,6 +1067,7 @@ func TestUseCase_StartWorkOrder(t *testing.T) {
 		uc := &UseCase{
 			orderService:   mockOrderService,
 			productService: mockProductService,
+			metrics:        appmetrics.NoopOrderMetrics{},
 		}
 		existingOrder := &domain.Order{
 			ID:       orderID,
@@ -1082,6 +1092,7 @@ func TestUseCase_StartWorkOrder(t *testing.T) {
 		uc := &UseCase{
 			orderService:   mockOrderService,
 			productService: mockProductService,
+			metrics:        appmetrics.NoopOrderMetrics{},
 		}
 		existingOrder := &domain.Order{
 			ID:       orderID,
@@ -1106,6 +1117,7 @@ func TestUseCase_StartWorkOrder(t *testing.T) {
 		uc := &UseCase{
 			orderService:   mockOrderService,
 			productService: mockProductService,
+			metrics:        appmetrics.NoopOrderMetrics{},
 		}
 		existingOrder := &domain.Order{
 			ID:       orderID,
@@ -1132,6 +1144,7 @@ func TestUseCase_StartWorkOrder(t *testing.T) {
 		uc := &UseCase{
 			orderService:   mockOrderService,
 			productService: mockProductService,
+			metrics:        appmetrics.NoopOrderMetrics{},
 		}
 		existingOrder := &domain.Order{
 			ID:       orderID,
@@ -1160,7 +1173,7 @@ func TestUseCase_CompleteWorkOrder(t *testing.T) {
 
 	t.Run("should complete work order successfully", func(t *testing.T) {
 		mockOrderService := new(mocks.MockOrderService)
-		uc := &UseCase{orderService: mockOrderService}
+		uc := &UseCase{orderService: mockOrderService, metrics: appmetrics.NoopOrderMetrics{}}
 
 		existingOrder := &domain.Order{
 			ID:     orderID,
@@ -1180,7 +1193,7 @@ func TestUseCase_CompleteWorkOrder(t *testing.T) {
 
 	t.Run("should return error when order not found", func(t *testing.T) {
 		mockOrderService := new(mocks.MockOrderService)
-		uc := &UseCase{orderService: mockOrderService}
+		uc := &UseCase{orderService: mockOrderService, metrics: appmetrics.NoopOrderMetrics{}}
 
 		mockOrderService.On("GetByID", ctx, orderID).Return(nil, errors.New("not found")).Once()
 
@@ -1193,7 +1206,7 @@ func TestUseCase_CompleteWorkOrder(t *testing.T) {
 
 	t.Run("should return error for wrong order status", func(t *testing.T) {
 		mockOrderService := new(mocks.MockOrderService)
-		uc := &UseCase{orderService: mockOrderService}
+		uc := &UseCase{orderService: mockOrderService, metrics: appmetrics.NoopOrderMetrics{}}
 		existingOrder := &domain.Order{
 			ID:     orderID,
 			Status: domain.OrderStatuses.APPROVED,
@@ -1210,7 +1223,7 @@ func TestUseCase_CompleteWorkOrder(t *testing.T) {
 
 	t.Run("should return error on order update failure", func(t *testing.T) {
 		mockOrderService := new(mocks.MockOrderService)
-		uc := &UseCase{orderService: mockOrderService}
+		uc := &UseCase{orderService: mockOrderService, metrics: appmetrics.NoopOrderMetrics{}}
 		existingOrder := &domain.Order{
 			ID:     orderID,
 			Status: domain.OrderStatuses.IN_PROGRESS,

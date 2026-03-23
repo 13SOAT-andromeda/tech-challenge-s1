@@ -53,7 +53,7 @@ func (h *OrderHandler) Create(ctx *gin.Context) {
 		CompanyID:         request.CompanyID,
 	}
 
-	created, err := h.usecase.CreateOrder(ctx, userId.(uint), input)
+	created, err := h.usecase.CreateOrder(ctx.Request.Context(), userId.(uint), input)
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -75,7 +75,7 @@ func (h *OrderHandler) Assign(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.usecase.AssignOrder(ctx, uint(orderID), userId.(uint)); err != nil {
+	if err := h.usecase.AssignOrder(ctx.Request.Context(), uint(orderID), userId.(uint)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -108,7 +108,7 @@ func (h *OrderHandler) CompleteAnalysis(ctx *gin.Context) {
 		Maintenances:   request.Maintenances,
 	}
 
-	if err := h.usecase.CompleteOrderAnalysis(ctx, uint(orderID), userId.(uint), input); err != nil {
+	if err := h.usecase.CompleteOrderAnalysis(ctx.Request.Context(), uint(orderID), userId.(uint), input); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -120,7 +120,7 @@ func (h *OrderHandler) GetAll(ctx *gin.Context) {
 	u := ctx.Request.URL.Query()
 	params := converters.ParamsToMap(u)
 
-	orders, err := h.service.GetAll(ctx, params)
+	orders, err := h.service.GetAll(ctx.Request.Context(), params)
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -135,7 +135,7 @@ func (h *OrderHandler) GetByID(ctx *gin.Context) {
 		return
 	}
 
-	order, err := h.service.GetByID(ctx, uint(id))
+	order, err := h.service.GetByID(ctx.Request.Context(), uint(id))
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -155,7 +155,7 @@ func (h *OrderHandler) Delete(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.service.Delete(ctx, uint(id)); err != nil {
+	if err := h.service.Delete(ctx.Request.Context(), uint(id)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -171,7 +171,7 @@ func (h *OrderHandler) ApproveOrder(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.usecase.ApproveOrder(ctx, uint(id)); err != nil {
+	if err := h.usecase.ApproveOrder(ctx.Request.Context(), uint(id)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -187,7 +187,7 @@ func (h *OrderHandler) RejectOrder(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.usecase.RejectOrder(ctx, uint(id)); err != nil {
+	if err := h.usecase.RejectOrder(ctx.Request.Context(), uint(id)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -203,7 +203,7 @@ func (h *OrderHandler) RequestApproval(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.usecase.RequestApproval(ctx, uint(id)); err != nil {
+	if err := h.usecase.RequestApproval(ctx.Request.Context(), uint(id)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -219,7 +219,7 @@ func (h *OrderHandler) ArchiveOrder(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.usecase.ArchiveOrder(ctx, uint(id)); err != nil {
+	if err := h.usecase.ArchiveOrder(ctx.Request.Context(), uint(id)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -234,7 +234,7 @@ func (h *OrderHandler) StartWork(ctx *gin.Context) {
 		return
 	}
 
-	if err = h.usecase.StartWorkOrder(ctx, uint(id)); err != nil {
+	if err = h.usecase.StartWorkOrder(ctx.Request.Context(), uint(id)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -251,7 +251,7 @@ func (h *OrderHandler) GetInProgress(ctx *gin.Context) {
 
 	params := converters.ParamsToMap(u)
 
-	orders, err := h.service.GetAll(ctx, params)
+	orders, err := h.service.GetAll(ctx.Request.Context(), params)
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -266,7 +266,7 @@ func (h *OrderHandler) CompleteWork(ctx *gin.Context) {
 		return
 	}
 
-	if err = h.usecase.CompleteWorkOrder(ctx, uint(id)); err != nil {
+	if err = h.usecase.CompleteWorkOrder(ctx.Request.Context(), uint(id)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}

@@ -14,6 +14,13 @@ data:
   HTTP_ALLOWED_ORIGINS: "*"
   MAILTRAP_URL: "https://send.api.mailtrap.io/api"
   API_URL: "http://localhost"
+  API_VERSION: "1.0.0"
+  DD_ENV: "development"
+  DD_AGENT_HOST: "datadog-agent"
+  DD_SERVICE: "tech-challenge-api"
+  DD_VERSION: "1.0.0"
+  DD_SITE: "us5.datadoghq.com"
+
 ---
 apiVersion: v1
 kind: Secret

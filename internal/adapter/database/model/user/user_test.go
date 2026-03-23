@@ -45,9 +45,10 @@ func TestNewUserModelFromDomain(t *testing.T) {
 		Password: password,
 		PersonID: 5,
 		Person: &domain.Person{
-			Name:    "João Silva",
-			Email:   "joao@test.com",
-			Contact: "11999999999",
+			Name:     "João Silva",
+			Email:    "joao@test.com",
+			Contact:  "11999999999",
+			Document: &domain.Document{Number: "59597559048"},
 		},
 		DeletedAt: nil,
 	}
@@ -72,7 +73,7 @@ func TestUserModel_ToDomain(t *testing.T) {
 		Password: "hashed_password",
 		Role:     "admin",
 		PersonID: 5,
-		Person: personModel.Model{},
+		Person:   personModel.Model{},
 	}
 	userModel.Person.ID = 5
 	userModel.Person.Name = "João Silva"
@@ -103,7 +104,6 @@ func TestNewUserModelFromDomain_WithNilPerson(t *testing.T) {
 		ID:        1,
 		Role:      "admin",
 		Password:  password,
-		Person:    nil,
 		DeletedAt: nil,
 	}
 

@@ -8,15 +8,12 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestOrder(t *testing.T) {
-	var loginData handlers.LoginRequest
-	var loginResponse response.BaseResponse[ports.LoginOutput]
 	cfg, err := SetupTest()
 
 	if err != nil {
@@ -32,19 +29,10 @@ func TestOrder(t *testing.T) {
 	}
 	healthResp.Body.Close()
 
-	loginData.Email = cfg.AdminUser.Email
-	loginData.Password = cfg.AdminUser.Password
-
-	loginResp := LoginRequest(t, loginData, apiUrl, &loginResponse)
-
-	defer loginResp.Body.Close()
-
-	require.NoError(t, err, "Failed to parse response body")
-
-	assert.Equal(t, loginResp.StatusCode, http.StatusOK)
-	assert.True(t, loginResponse.Success)
-
-	token := loginResponse.Data.AccessToken
+	// Identity headers injected by the Lambda Authorizer for the admin user.
+	adminEmail := cfg.AdminUser.Email
+	adminRole := "administrator"
+	adminID := "1"
 
 	t.Run("should create order successfully", func(t *testing.T) {
 		var customerID, vehicleID, companyID, customerVehicleID uint
@@ -67,7 +55,7 @@ func TestOrder(t *testing.T) {
 		payload, err := BuildBody(createCustomerReq)
 		require.NoError(t, err, "failed to build customer request")
 
-		resp, err := NewAuthenticatedReq("POST", apiUrl+"/customers", payload, token)
+		resp, err := NewIdentifiedReq("POST", apiUrl+"/customers", payload, adminID, adminEmail, adminRole)
 		require.NoError(t, err, "failed to create customer")
 		defer resp.Body.Close()
 
@@ -91,7 +79,7 @@ func TestOrder(t *testing.T) {
 		payload, err = BuildBody(createVehicleReq)
 		require.NoError(t, err, "failed to build vehicle request")
 
-		resp, err = NewAuthenticatedReq("POST", apiUrl+"/vehicles", payload, token)
+		resp, err = NewIdentifiedReq("POST", apiUrl+"/vehicles", payload, adminID, adminEmail, adminRole)
 		require.NoError(t, err, "failed to create vehicle")
 		defer resp.Body.Close()
 
@@ -103,14 +91,14 @@ func TestOrder(t *testing.T) {
 		vehicleID = vehicleResponse.Data.ID
 
 		// Associate Vehicle to Customer (creates CustomerVehicle)
-		resp, err = NewAuthenticatedReq("POST", apiUrl+"/customers/"+strconv.Itoa(int(customerID))+"/vehicles/"+strconv.Itoa(int(vehicleID)), nil, token)
+		resp, err = NewIdentifiedReq("POST", apiUrl+"/customers/"+strconv.Itoa(int(customerID))+"/vehicles/"+strconv.Itoa(int(vehicleID)), nil, adminID, adminEmail, adminRole)
 		require.NoError(t, err, "failed to associate vehicle to customer")
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
 		// Get CustomerVehicles to get CustomerVehicle ID
-		resp, err = NewAuthenticatedReq("GET", apiUrl+"/customers/"+strconv.Itoa(int(customerID))+"/vehicles", nil, token)
+		resp, err = NewIdentifiedReq("GET", apiUrl+"/customers/"+strconv.Itoa(int(customerID))+"/vehicles", nil, adminID, adminEmail, adminRole)
 		require.NoError(t, err, "failed to get customer vehicles")
 		defer resp.Body.Close()
 
@@ -152,7 +140,7 @@ func TestOrder(t *testing.T) {
 		payload, err = BuildBody(createCompanyReq)
 		require.NoError(t, err, "failed to build company request")
 
-		resp, err = NewAuthenticatedReq("POST", apiUrl+"/companies", payload, token)
+		resp, err = NewIdentifiedReq("POST", apiUrl+"/companies", payload, adminID, adminEmail, adminRole)
 		require.NoError(t, err, "failed to create company")
 		defer resp.Body.Close()
 
@@ -174,7 +162,7 @@ func TestOrder(t *testing.T) {
 		payload, err = BuildBody(createProductReq)
 		require.NoError(t, err, "failed to build product request")
 
-		resp, err = NewAuthenticatedReq("POST", apiUrl+"/products", payload, token)
+		resp, err = NewIdentifiedReq("POST", apiUrl+"/products", payload, adminID, adminEmail, adminRole)
 		require.NoError(t, err, "failed to create product")
 		defer resp.Body.Close()
 
@@ -190,7 +178,7 @@ func TestOrder(t *testing.T) {
 		payload, err = BuildBody(createMaintenanceReq)
 		require.NoError(t, err, "failed to build maintenance request")
 
-		resp, err = NewAuthenticatedReq("POST", apiUrl+"/maintenances", payload, token)
+		resp, err = NewIdentifiedReq("POST", apiUrl+"/maintenances", payload, adminID, adminEmail, adminRole)
 		require.NoError(t, err, "failed to create maintenance")
 		defer resp.Body.Close()
 
@@ -208,7 +196,7 @@ func TestOrder(t *testing.T) {
 		payload, err = BuildBody(createOrderReq)
 		require.NoError(t, err, "failed to build order request")
 
-		resp, err = NewAuthenticatedReq("POST", apiUrl+"/orders", payload, token)
+		resp, err = NewIdentifiedReq("POST", apiUrl+"/orders", payload, adminID, adminEmail, adminRole)
 		require.NoError(t, err, "failed to create order")
 		defer resp.Body.Close()
 

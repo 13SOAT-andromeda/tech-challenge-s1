@@ -49,6 +49,7 @@ type Order struct {
 	DateOut           *time.Time     `json:"date_out"`
 	DateApproved      *time.Time     `json:"date_approved"`
 	DateRejected      *time.Time     `json:"date_rejected"`
+	LastStatusAt      *time.Time     `json:"last_status_at,omitempty"`
 	Status            OrderStatus    `json:"status"`
 	VehicleKilometers int            `json:"vehicle_kilometers"`
 	Note              *string        `json:"note"`

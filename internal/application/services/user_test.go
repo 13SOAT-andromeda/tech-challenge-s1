@@ -161,7 +161,8 @@ func TestUserService_CreateAdminUser_EmailAlreadyExists(t *testing.T) {
 	existingUM.ID = 1
 	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(&existingUM, nil)
 
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+	// Act
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!", "12345678909")
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -177,7 +178,8 @@ func TestUserService_CreateAdminUser_EmailError(t *testing.T) {
 
 	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(nil, errors.New("error on consult email"))
 
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+	// Act
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!", "12345678909")
 
 	assert.Error(t, err)
 	mockRepo.AssertExpectations(t)
@@ -193,7 +195,8 @@ func TestUserService_CreateAdminUser_PasswordWeak(t *testing.T) {
 
 	mockRepo.On("GetByEmail", ctx, "admin@admin.com").Return(nil, nil)
 
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "weakpass")
+	// Act
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "weakpass", "12345678909")
 
 	assert.Error(t, err)
 	assert.EqualError(t, err, "senha deve conter pelo menos uma letra maiúscula, uma minúscula, um número e um caractere especial")
@@ -219,7 +222,8 @@ func TestUserService_CreateAdminUser_Success(t *testing.T) {
 	createdEM := employeeModel.Model{}
 	mockEmployeeRepo.On("Create", ctx, mock.AnythingOfType("*employee.Model")).Return(&createdEM, nil)
 
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+	// Act
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!", "12345678909")
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -241,7 +245,8 @@ func TestUserService_CreateAdminUser_CreateError(t *testing.T) {
 	mockPersonRepo.On("Create", ctx, mock.AnythingOfType("*person.Model")).Return(&createdPerson, nil)
 	mockRepo.On("Create", ctx, mock.AnythingOfType("*user.Model")).Return(nil, errors.New("error on create admin user"))
 
-	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!")
+	// Act
+	err := service.CreateAdminUser(ctx, "admin@admin.com", "ValidPass123!", "12345678909")
 
 	assert.Error(t, err)
 	mockRepo.AssertExpectations(t)
