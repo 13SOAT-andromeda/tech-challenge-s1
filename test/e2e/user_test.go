@@ -8,16 +8,12 @@ import (
 	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/handlers"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestUser(t *testing.T) {
-	var loginData handlers.LoginRequest
-	var loginResponse response.BaseResponse[ports.LoginOutput]
 	cfg, err := SetupTest()
 
 	if err != nil {
@@ -33,23 +29,16 @@ func TestUser(t *testing.T) {
 	}
 	healthResp.Body.Close()
 
-	loginData.Email = cfg.AdminUser.Email
-	loginData.Password = cfg.AdminUser.Password
-
-	loginResp := LoginRequest(t, loginData, apiUrl, &loginResponse)
-
-	defer loginResp.Body.Close()
-
-	require.NoError(t, err, "Failed to parse response body")
-
-	assert.Equal(t, loginResp.StatusCode, http.StatusOK)
-	assert.True(t, loginResponse.Success)
+	// Identity headers injected by the Lambda Authorizer for the admin user.
+	adminEmail := cfg.AdminUser.Email
+	adminRole := "administrator"
+	adminID := "1"
 
 	var createdUserID uint
 
 	t.Run("should create a valid user", func(t *testing.T) {
 		var userInput handlers.CreateUserRequest
-		var userResponse response.BaseResponse[domain.User]
+		var userResponse domain.User
 
 		userInput.Name = "João Marcos"
 		userInput.Email = "marcosjoao" + strconv.FormatInt(time.Now().Unix(), 10) + "@gmail.com"
@@ -67,7 +56,7 @@ func TestUser(t *testing.T) {
 
 		require.NoError(t, err, "failed on build payload request")
 
-		resp, err := NewAuthenticatedReq("POST", apiUrl+"/users", payload, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("POST", apiUrl+"/users", payload, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make a create user request")
 
@@ -78,19 +67,18 @@ func TestUser(t *testing.T) {
 		require.NoError(t, err, "Failed to parse create user response body")
 
 		assert.Equal(t, http.StatusCreated, resp.StatusCode)
-		assert.True(t, userResponse.Success)
-		assert.Equal(t, userInput.Name, userResponse.Data.Name)
-		assert.Equal(t, userInput.Email, userResponse.Data.Email)
-		assert.Equal(t, userInput.Role, userResponse.Data.Role)
-		assert.Equal(t, userInput.Contact, userResponse.Data.Contact)
-		assert.NotZero(t, userResponse.Data.ID)
+		assert.Equal(t, userInput.Name, userResponse.Name)
+		assert.Equal(t, userInput.Email, userResponse.Email)
+		assert.Equal(t, userInput.Role, userResponse.Role)
+		assert.Equal(t, userInput.Contact, userResponse.Contact)
+		assert.NotZero(t, userResponse.ID)
 
-		createdUserID = userResponse.Data.ID
+		createdUserID = userResponse.ID
 	})
 
 	t.Run("should fail to create user with invalid request", func(t *testing.T) {
 		var userInput handlers.CreateUserRequest
-		var errorResponse response.BaseResponse[any]
+		var errorResponse map[string]interface{}
 
 		userInput.Name = ""
 		userInput.Email = "invalid-email"
@@ -100,7 +88,7 @@ func TestUser(t *testing.T) {
 
 		require.NoError(t, err, "failed on build payload request")
 
-		resp, err := NewAuthenticatedReq("POST", apiUrl+"/users", payload, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("POST", apiUrl+"/users", payload, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make a create user request")
 
@@ -111,12 +99,11 @@ func TestUser(t *testing.T) {
 		require.NoError(t, err, "Failed to parse error response body")
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		assert.False(t, errorResponse.Success)
 	})
 
 	t.Run("should fail to create user with duplicate email", func(t *testing.T) {
 		var userInput handlers.CreateUserRequest
-		var errorResponse response.BaseResponse[any]
+		var errorResponse map[string]interface{}
 
 		userInput.Name = "João Duplicado"
 		userInput.Email = cfg.AdminUser.Email
@@ -134,7 +121,7 @@ func TestUser(t *testing.T) {
 
 		require.NoError(t, err, "failed on build payload request")
 
-		resp, err := NewAuthenticatedReq("POST", apiUrl+"/users", payload, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("POST", apiUrl+"/users", payload, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make a create user request")
 
@@ -145,7 +132,6 @@ func TestUser(t *testing.T) {
 		require.NoError(t, err, "Failed to parse error response body")
 
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-		assert.False(t, errorResponse.Success)
 	})
 
 	t.Run("should get user by ID successfully", func(t *testing.T) {
@@ -153,7 +139,7 @@ func TestUser(t *testing.T) {
 
 		userId := strconv.Itoa(int(createdUserID))
 
-		resp, err := NewAuthenticatedReq("GET", apiUrl+"/users/"+userId, nil, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("GET", apiUrl+"/users/"+userId, nil, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make a get user request")
 
@@ -172,7 +158,7 @@ func TestUser(t *testing.T) {
 	t.Run("should fail to get user with invalid ID", func(t *testing.T) {
 		var errorResponse map[string]interface{}
 
-		resp, err := NewAuthenticatedReq("GET", apiUrl+"/users/invalid", nil, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("GET", apiUrl+"/users/invalid", nil, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make a get user request")
 
@@ -188,7 +174,7 @@ func TestUser(t *testing.T) {
 	t.Run("should fail to get non-existent user", func(t *testing.T) {
 		var errorResponse map[string]interface{}
 
-		resp, err := NewAuthenticatedReq("GET", apiUrl+"/users/999999", nil, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("GET", apiUrl+"/users/999999", nil, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make a get user request")
 
@@ -208,7 +194,7 @@ func TestUser(t *testing.T) {
 		params.Add("name", "João")
 		searchUrl := apiUrl + "/users?" + params.Encode()
 
-		resp, err := NewAuthenticatedReq("GET", searchUrl, nil, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("GET", searchUrl, nil, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make a search users request")
 
@@ -226,7 +212,7 @@ func TestUser(t *testing.T) {
 	t.Run("should search users without parameters", func(t *testing.T) {
 		var usersResponse []domain.User
 
-		resp, err := NewAuthenticatedReq("GET", apiUrl+"/users", nil, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("GET", apiUrl+"/users", nil, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make a search users request")
 
@@ -259,7 +245,7 @@ func TestUser(t *testing.T) {
 
 		userId := strconv.Itoa(int(createdUserID))
 
-		resp, err := NewAuthenticatedReq("PUT", apiUrl+"/users/"+userId, payload, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("PUT", apiUrl+"/users/"+userId, payload, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make an update user request")
 
@@ -274,7 +260,7 @@ func TestUser(t *testing.T) {
 
 		// Verify the update
 		var userResponse domain.User
-		resp, err = NewAuthenticatedReq("GET", apiUrl+"/users/"+userId, nil, loginResponse.Data.AccessToken)
+		resp, err = NewIdentifiedReq("GET", apiUrl+"/users/"+userId, nil, adminID, adminEmail, adminRole)
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
@@ -295,7 +281,7 @@ func TestUser(t *testing.T) {
 
 		require.NoError(t, err, "failed on build payload request")
 
-		resp, err := NewAuthenticatedReq("PUT", apiUrl+"/users/invalid", payload, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("PUT", apiUrl+"/users/invalid", payload, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make an update user request")
 
@@ -318,7 +304,7 @@ func TestUser(t *testing.T) {
 
 		require.NoError(t, err, "failed on build payload request")
 
-		resp, err := NewAuthenticatedReq("PUT", apiUrl+"/users/999999", payload, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("PUT", apiUrl+"/users/999999", payload, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make an update user request")
 
@@ -336,7 +322,7 @@ func TestUser(t *testing.T) {
 
 		userId := strconv.Itoa(int(createdUserID))
 
-		resp, err := NewAuthenticatedReq("DELETE", apiUrl+"/users/"+userId, nil, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("DELETE", apiUrl+"/users/"+userId, nil, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make a delete user request")
 
@@ -353,7 +339,7 @@ func TestUser(t *testing.T) {
 	t.Run("should fail to delete user with invalid ID", func(t *testing.T) {
 		var errorResponse map[string]interface{}
 
-		resp, err := NewAuthenticatedReq("DELETE", apiUrl+"/users/invalid", nil, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("DELETE", apiUrl+"/users/invalid", nil, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make a delete user request")
 
@@ -369,7 +355,7 @@ func TestUser(t *testing.T) {
 	t.Run("should delete non-existent user without error", func(t *testing.T) {
 		var deleteResponse map[string]interface{}
 
-		resp, err := NewAuthenticatedReq("DELETE", apiUrl+"/users/999999", nil, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("DELETE", apiUrl+"/users/999999", nil, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make a delete user request")
 
@@ -388,7 +374,7 @@ func TestUser(t *testing.T) {
 
 		userId := strconv.Itoa(int(createdUserID))
 
-		resp, err := NewAuthenticatedReq("GET", apiUrl+"/users/"+userId, nil, loginResponse.Data.AccessToken)
+		resp, err := NewIdentifiedReq("GET", apiUrl+"/users/"+userId, nil, adminID, adminEmail, adminRole)
 
 		require.NoError(t, err, "Failed on make a get user request")
 

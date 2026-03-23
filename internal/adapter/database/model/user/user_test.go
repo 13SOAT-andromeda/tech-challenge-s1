@@ -55,7 +55,7 @@ func TestNewUserModelFromDomain(t *testing.T) {
 		Email:     "joao@test.com",
 		Contact:   "11999999999",
 		Role:      "admin",
-		Password:  password,
+		Password:  *password,
 		Address:   address,
 		DeletedAt: nil,
 	}
@@ -132,7 +132,7 @@ func TestNewUserModelFromDomain_WithNilAddress(t *testing.T) {
 		Email:     "joao@test.com",
 		Contact:   "11999999999",
 		Role:      "admin",
-		Password:  password,
+		Password:  *password,
 		Address:   nil,
 		DeletedAt: nil,
 	}
@@ -203,7 +203,7 @@ func TestNewUserModelFromDomain_WithPasswordHashError(t *testing.T) {
 		Email:     "joao@test.com",
 		Contact:   "11999999999",
 		Role:      "admin",
-		Password:  password,
+		Password:  *password,
 		Address:   nil,
 		DeletedAt: nil,
 	}

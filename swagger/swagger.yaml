@@ -25,84 +25,6 @@ paths:
               status:
                 type: string
                 example: ok
-  /sessions:
-    post:
-      summary: "Login"
-      tags:
-        - Session
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: body
-          required: true
-          schema:
-            $ref: "#/definitions/LoginRequest"
-      responses:
-        200:
-          description: "Login successful"
-          schema:
-            $ref: "#/definitions/LoginResponse"
-        400:
-          description: "Bad request"
-        401:
-          description: "Unauthorized"
-  /sessions/validate:
-    get:
-      summary: "Validate token"
-      tags:
-        - Session
-      security:
-        - Bearer: []
-      responses:
-        200:
-          description: "Token is valid"
-        401:
-          description: "Unauthorized"
-  /sessions/refresh:
-    post:
-      summary: "Refresh token"
-      tags:
-        - Session
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: body
-          required: true
-          schema:
-            $ref: "#/definitions/RefreshRequest"
-      responses:
-        200:
-          description: "Token refreshed successfully"
-          schema:
-            $ref: "#/definitions/LoginResponse"
-        400:
-          description: "Bad request"
-        401:
-          description: "Unauthorized"
-  /sessions/logout:
-    delete:
-      summary: "Logout"
-      tags:
-        - Session
-      consumes:
-        - application/json
-      parameters:
-        - in: body
-          name: body
-          required: true
-          schema:
-            $ref: "#/definitions/RefreshRequest"
-      responses:
-        200:
-          description: "Logged out successfully"
-        400:
-          description: "Bad request"
   /customers:
     get:
       summary: "Search customers"
@@ -893,25 +815,6 @@ paths:
         200:
           description: "Order archived successfully"
 definitions:
-  LoginRequest:
-    type: object
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-  LoginResponse:
-    type: object
-    properties:
-      access_token:
-        type: string
-      refresh_token:
-        type: string
-  RefreshRequest:
-    type: object
-    properties:
-      refresh_token:
-        type: string
   CreateCustomerRequest:
     type: object
     properties:

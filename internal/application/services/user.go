@@ -50,9 +50,7 @@ func (s *userService) Create(ctx context.Context, u domain.User) (*domain.User, 
 	return created, nil
 }
 
-func (s *userService) CreateAdminUser(ctx context.Context, email, password string) error {
-
-	var err error
+func (s *userService) CreateAdminUser(ctx context.Context, email, password, document string) error {
 
 	if user, err := s.GetByEmail(ctx, email); err != nil {
 		return err
@@ -60,8 +58,12 @@ func (s *userService) CreateAdminUser(ctx context.Context, email, password strin
 		return nil
 	}
 
-	p, err := domain.NewPassword(password, encryption.NewBcryptHasher())
+	doc, err := domain.NewDocument(document)
+	if err != nil {
+		return err
+	}
 
+	p, err := domain.NewPassword(password, encryption.NewBcryptHasher())
 	if err != nil {
 		return err
 	}
@@ -71,26 +73,22 @@ func (s *userService) CreateAdminUser(ctx context.Context, email, password strin
 	}
 
 	u := domain.User{
-		Name:      "Admin",
-		Email:     email,
-		Password:  p,
-		Contact:   "",
-		Role:      "administrator",
-		DeletedAt: nil,
+		Name:     "Admin",
+		Email:    email,
+		Password: *p,
+		Document: doc.GetDocumentNumber(),
+		Contact:  "",
+		Role:     "administrator",
+		IsActive: true,
+		Address:  &domain.Address{},
 	}
-
-	u.Address = &domain.Address{}
 
 	userModel := &user.Model{}
 	userModel.FromDomain(&u)
 
 	_, err = s.repo.Create(ctx, userModel)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (s *userService) GetByID(ctx context.Context, id uint) (*domain.User, error) {
@@ -148,13 +146,13 @@ func (s *userService) Update(ctx context.Context, u domain.User) (*domain.User, 
 		}
 	}
 
-	if u.Password != nil {
+	if u.Password.GetValue() != "" {
 		return nil, errors.New("senha de usuário não pode ser atualizada")
 	}
 
 	mergedUser := converters.MergeStructs(existingDomain, u).(domain.User)
 
-	mergedUser.Password = domain.NewPasswordFromHash(existingUser.Password, encryption.NewBcryptHasher())
+	mergedUser.Password = *domain.NewPasswordFromHash(existingUser.Password, encryption.NewBcryptHasher())
 
 	userModel := &user.Model{}
 	userModel.FromDomain(&mergedUser)
