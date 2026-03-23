@@ -42,7 +42,7 @@ func RoleRequired(role string) gin.HandlerFunc {
 			return
 		}
 
-		if claims.Role != role && claims.Role != "administrator" {
+		if claims.Role != role {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: insufficient role"})
 			c.Abort()
 			return

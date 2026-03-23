@@ -54,7 +54,7 @@ func TestRoleRequired_MatchingRole(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestRoleRequired_AdministratorBypassesRole(t *testing.T) {
+func TestRoleRequired_AdministratorWithoutMatchingRoleIsForbidden(t *testing.T) {
 	r := setupRoleRouter("mechanic")
 	tokenStr := makeRoleToken(t, "administrator")
 
@@ -63,7 +63,7 @@ func TestRoleRequired_AdministratorBypassesRole(t *testing.T) {
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, http.StatusForbidden, w.Code)
 }
 
 func TestRoleRequired_InsufficientRole(t *testing.T) {
