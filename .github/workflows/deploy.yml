@@ -2,7 +2,7 @@ name: Deploy Application to AWS
 
 on:
   push:
-    branches: [feature/PFH-119-implementar-observabilidade]
+    branches: [main]
     # paths:
     #   - 'cmd/**'
     #   - 'internal/**'
