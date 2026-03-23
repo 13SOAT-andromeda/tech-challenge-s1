@@ -75,6 +75,7 @@ jobs:
             -n kube-system \
             --set clusterName=eks-tech-challenge \
             --set serviceAccount.create=true \
+            --set region=${{ secrets.AWS_REGION }} \
             --set vpcId=$VPC_ID \
             --set "envFrom[0].secretRef.name=aws-alb-credentials" \
             --force \
