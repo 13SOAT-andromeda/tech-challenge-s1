@@ -26,3 +26,4 @@ metadata:
 type: Opaque
 stringData:
   ADMIN_EMAIL: "admin@admin.com"
+  ADMIN_DOCUMENT: "42692605802"
