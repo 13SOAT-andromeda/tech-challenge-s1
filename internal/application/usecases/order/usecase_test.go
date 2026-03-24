@@ -8,10 +8,10 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/employee"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
 	orderMaintenanceModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_maintenance"
 	orderProductModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_product"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	appmetrics "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/metrics"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
@@ -39,15 +39,23 @@ func TestCreateOrder_Success(t *testing.T) {
 	mockOrderProd := new(mocks.MockOrderProductRepository)
 	mockOrderMaint := new(mocks.MockOrderMaintenanceRepository)
 	mockEmail := new(mocks.MockEmail)
-	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
+	mockUserService := new(mocks.MockUserService)
+	mockEmployeeService := new(mocks.MockEmployeeService)
+	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
+
+	userId := uint(2)
+	testPersonID := uint(5)
+	testEmployeeID := uint(10)
 
 	input := ports.CreateOrderInput{
 		VehicleKilometers: 123,
 		Note:              ptrString("note"),
-		UserID:            10,
 		CustomerVehicleID: 20,
 		CompanyID:         30,
 	}
+
+	mockUserService.On("GetByID", ctx, userId).Return(&domain.User{ID: userId, PersonID: testPersonID}, nil)
+	mockEmployeeService.On("GetByPersonID", ctx, testPersonID).Return(&domain.Employee{ID: testEmployeeID}, nil)
 
 	mockOrder.On("Create", mock.Anything, mock.MatchedBy(func(o domain.Order) bool {
 		if o.VehicleKilometers != input.VehicleKilometers {
@@ -59,13 +67,15 @@ func TestCreateOrder_Success(t *testing.T) {
 		if o.CompanyID != input.CompanyID {
 			return false
 		}
+		if o.EmployeeID != testEmployeeID {
+			return false
+		}
 		if o.Note == nil || *o.Note != *input.Note {
 			return false
 		}
 		return true
 	})).Return(&domain.Order{ID: 1}, nil)
 
-	userId := uint(1)
 	created, err := uc.CreateOrder(ctx, userId, input)
 
 	assert.NoError(t, err)
@@ -91,7 +101,9 @@ func TestCreateOrder_ProductServiceError(t *testing.T) {
 	userID := uint(1)
 	orderID := uint(1)
 	mockEmail := new(mocks.MockEmail)
-	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
+	mockUserService := new(mocks.MockUserService)
+	mockEmployeeService := new(mocks.MockEmployeeService)
+	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 
 	products := []domain.Product{p(1, 100), p(2, 150)}
 	maints := []domain.Maintenance{ma(3, 250)}
@@ -119,7 +131,9 @@ func TestCreateOrder_MaintenanceServiceError(t *testing.T) {
 	mockOrderProd := new(mocks.MockOrderProductRepository)
 	mockOrderMaint := new(mocks.MockOrderMaintenanceRepository)
 	mockEmail := new(mocks.MockEmail)
-	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
+	mockUserService := new(mocks.MockUserService)
+	mockEmployeeService := new(mocks.MockEmployeeService)
+	uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 
 	input := ports.CreateCompleteOrderAnalysisInput{}
 
@@ -151,15 +165,13 @@ func createMockOrder(id uint, status string) *order.Model {
 	m.DateIn = now
 	m.Status = status
 	m.VehicleKilometers = 50000
-	m.UserID = 1
+	m.EmployeeID = 1
 	m.CustomerVehicleID = 1
 	m.CompanyID = 1
 
-	// User
-	m.User = user.Model{}
-	m.User.ID = 1
-	m.User.Name = "Test User"
-	m.User.Email = "test@example.com"
+	// Employee
+	m.Employee = employee.Model{}
+	m.Employee.ID = 1
 
 	// CustomerVehicle
 	m.CustomerVehicle = customer_vehicle.Model{}
@@ -176,9 +188,19 @@ func createMockOrder(id uint, status string) *order.Model {
 
 func TestUseCase_AssignOrder(t *testing.T) {
 	ctx := context.Background()
+	testPersonID := uint(5)
+	testEmployeeID := uint(10)
+
 	t.Run("should assign order successfully", func(t *testing.T) {
 		mockOrderService := new(mocks.MockOrderService)
-		useCase := &UseCase{orderService: mockOrderService, metrics: appmetrics.NoopOrderMetrics{}}
+		mockUserService := new(mocks.MockUserService)
+		mockEmployeeService := new(mocks.MockEmployeeService)
+		useCase := &UseCase{
+			orderService:    mockOrderService,
+			userService:     mockUserService,
+			employeeService: mockEmployeeService,
+			metrics:         appmetrics.NoopOrderMetrics{},
+		}
 
 		orderID := uint(1)
 		userID := uint(2)
@@ -187,17 +209,22 @@ func TestUseCase_AssignOrder(t *testing.T) {
 			Status: domain.OrderStatuses.RECEIVED,
 		}
 
+		mockUserService.On("GetByID", ctx, userID).Return(&domain.User{ID: userID, PersonID: testPersonID}, nil)
+		mockEmployeeService.On("GetByPersonID", ctx, testPersonID).Return(&domain.Employee{ID: testEmployeeID}, nil)
+
 		mockOrderService.On("GetByID", ctx, orderID).Return(existingOrder, nil)
 		mockOrderService.On("Update", ctx, mock.MatchedBy(func(o domain.Order) bool {
-			return o.ID == orderID && o.UserID == userID && o.Status == domain.OrderStatuses.IN_ANALYSIS
+			return o.ID == orderID && o.EmployeeID == testEmployeeID && o.Status == domain.OrderStatuses.IN_ANALYSIS
 		})).Return(nil)
 
 		err := useCase.AssignOrder(ctx, orderID, userID)
 
 		assert.NoError(t, err)
-		assert.Equal(t, userID, existingOrder.UserID)
+		assert.Equal(t, testEmployeeID, existingOrder.EmployeeID)
 		assert.Equal(t, domain.OrderStatuses.IN_ANALYSIS, existingOrder.Status)
 		mockOrderService.AssertExpectations(t)
+		mockUserService.AssertExpectations(t)
+		mockEmployeeService.AssertExpectations(t)
 	})
 
 	t.Run("should return error when order not found", func(t *testing.T) {
@@ -218,7 +245,14 @@ func TestUseCase_AssignOrder(t *testing.T) {
 
 	t.Run("should return error when update fails", func(t *testing.T) {
 		mockOrderService := new(mocks.MockOrderService)
-		useCase := &UseCase{orderService: mockOrderService, metrics: appmetrics.NoopOrderMetrics{}}
+		mockUserService := new(mocks.MockUserService)
+		mockEmployeeService := new(mocks.MockEmployeeService)
+		useCase := &UseCase{
+			orderService:    mockOrderService,
+			userService:     mockUserService,
+			employeeService: mockEmployeeService,
+			metrics:         appmetrics.NoopOrderMetrics{},
+		}
 
 		orderID := uint(1)
 		userID := uint(2)
@@ -226,6 +260,9 @@ func TestUseCase_AssignOrder(t *testing.T) {
 			ID:     orderID,
 			Status: domain.OrderStatuses.RECEIVED,
 		}
+
+		mockUserService.On("GetByID", ctx, userID).Return(&domain.User{ID: userID, PersonID: testPersonID}, nil)
+		mockEmployeeService.On("GetByPersonID", ctx, testPersonID).Return(&domain.Employee{ID: testEmployeeID}, nil)
 
 		mockOrderService.On("GetByID", ctx, orderID).Return(existingOrder, nil)
 		mockOrderService.On("Update", ctx, mock.Anything).Return(errors.New("update error"))
@@ -405,9 +442,11 @@ func TestUseCase_RequestApproval(t *testing.T) {
 		existingOrder.CustomerVehicle.CustomerID = customerID
 
 		customer := &domain.Customer{
-			ID:    customerID,
-			Name:  "Test Customer",
-			Email: "customer@test.com",
+			ID: customerID,
+			Person: &domain.Person{
+				Name:  "Test Customer",
+				Email: "customer@test.com",
+			},
 		}
 
 		mockRepo.On("FindOrderByID", ctx, orderID).Return(existingOrder, nil)
@@ -416,7 +455,7 @@ func TestUseCase_RequestApproval(t *testing.T) {
 		})).Return(nil)
 		mockCustomerService.On("GetByID", ctx, customerID).Return(customer, nil)
 		mockOrderService.On("GetApprovalTemplate", mock.Anything, mock.Anything, "http://localhost:8080").Return("<h1>template</h1>", nil)
-		mockEmail.On("Send", customer.Name, customer.Email, "Aprovação de Ordem de Serviço", "<h1>template</h1>").Return(nil)
+		mockEmail.On("Send", customer.Person.Name, customer.Person.Email, "Aprovação de Ordem de Serviço", "<h1>template</h1>").Return(nil)
 
 		err := useCase.RequestApproval(ctx, orderID)
 
@@ -480,15 +519,17 @@ func TestUseCase_RequestApproval(t *testing.T) {
 
 		customerID := uint(1)
 		customer := &domain.Customer{
-			ID:    customerID,
-			Name:  "Test Customer",
-			Email: "customer@test.com",
+			ID: customerID,
+			Person: &domain.Person{
+				Name:  "Test Customer",
+				Email: "customer@test.com",
+			},
 		}
 
 		mockRepo.On("FindOrderByID", ctx, orderID).Return(existingOrder, nil)
 		mockCustomerService.On("GetByID", ctx, customerID).Return(customer, nil)
 		mockOrderService.On("GetApprovalTemplate", mock.Anything, mock.Anything, "http://localhost:8080").Return("<h1>template</h1>", nil)
-		mockEmail.On("Send", customer.Name, customer.Email, "Aprovação de Ordem de Serviço", "<h1>template</h1>").Return(nil)
+		mockEmail.On("Send", customer.Person.Name, customer.Person.Email, "Aprovação de Ordem de Serviço", "<h1>template</h1>").Return(nil)
 		mockRepo.On("Update", ctx, mock.Anything).Return(errors.New("database error"))
 
 		err := useCase.RequestApproval(ctx, orderID)
@@ -547,9 +588,11 @@ func TestUseCase_RequestApproval(t *testing.T) {
 		existingOrder.CustomerVehicle.CustomerID = customerID
 
 		customer := &domain.Customer{
-			ID:    customerID,
-			Name:  "Test Customer",
-			Email: "customer@test.com",
+			ID: customerID,
+			Person: &domain.Person{
+				Name:  "Test Customer",
+				Email: "customer@test.com",
+			},
 		}
 
 		mockRepo.On("FindOrderByID", ctx, orderID).Return(existingOrder, nil)
@@ -585,15 +628,17 @@ func TestUseCase_RequestApproval(t *testing.T) {
 		existingOrder.CustomerVehicle.CustomerID = customerID
 
 		customer := &domain.Customer{
-			ID:    customerID,
-			Name:  "Test Customer",
-			Email: "customer@test.com",
+			ID: customerID,
+			Person: &domain.Person{
+				Name:  "Test Customer",
+				Email: "customer@test.com",
+			},
 		}
 
 		mockRepo.On("FindOrderByID", ctx, orderID).Return(existingOrder, nil)
 		mockCustomerService.On("GetByID", ctx, customerID).Return(customer, nil)
 		mockOrderService.On("GetApprovalTemplate", mock.Anything, mock.Anything, "http://localhost:8080").Return("<h1>template</h1>", nil)
-		mockEmail.On("Send", customer.Name, customer.Email, "Aprovação de Ordem de Serviço", "<h1>template</h1>").Return(errors.New("email error"))
+		mockEmail.On("Send", customer.Person.Name, customer.Person.Email, "Aprovação de Ordem de Serviço", "<h1>template</h1>").Return(errors.New("email error"))
 
 		err := useCase.RequestApproval(ctx, orderID)
 
@@ -721,7 +766,9 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockOrderProd := new(mocks.MockOrderProductRepository)
 		mockOrderMaint := new(mocks.MockOrderMaintenanceRepository)
 		mockEmail := new(mocks.MockEmail)
-		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
+		mockUserService := new(mocks.MockUserService)
+		mockEmployeeService := new(mocks.MockEmployeeService)
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 
 		orderID := uint(1)
 		userID := uint(2)
@@ -739,15 +786,19 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 			Maintenances: []uint{3},
 		}
 
+		testPersonID := uint(5)
+		testEmployeeID := uint(10)
+
 		productsIds := []uint{1, 2}
 		maintenanceIds := []uint{3}
+		mockUserService.On("GetByID", ctx, userID).Return(&domain.User{ID: userID, PersonID: testPersonID}, nil)
+		mockEmployeeService.On("GetByPersonID", ctx, testPersonID).Return(&domain.Employee{ID: testEmployeeID}, nil)
 		mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
 		mockProd.On("GetByIds", ctx, productsIds).Return(products, nil)
 		mockMaint.On("GetByIDs", ctx, maintenanceIds).Return(maints, nil)
 		mockOrderProd.On("Create", ctx, mock.Anything).Return(&orderProductModel.Model{}, nil).Times(2)
 		mockOrderMaint.On("Create", ctx, mock.Anything).Return(&orderMaintenanceModel.Model{}, nil).Times(1)
 		mockOrder.On("Update", ctx, mock.MatchedBy(func(o domain.Order) bool {
-			// Price should be set and status updated to AWAITING_APPROVAL and diagnostic note set
 			if o.ID != orderID {
 				return false
 			}
@@ -757,13 +808,13 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 			if o.DiagnosticNote == nil || *o.DiagnosticNote != *input.DiagnosticNote {
 				return false
 			}
-			if o.UserID != userID {
+			if o.EmployeeID != testEmployeeID {
 				return false
 			}
 			if o.Price == nil {
 				return false
 			}
-			// total price = 100 + 150 + 250 = 500
+			// total price = (100*2) + (150*1) + 250 = 600
 			if *o.Price != 600 {
 				return false
 			}
@@ -776,6 +827,8 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockOrder.AssertExpectations(t)
 		mockProd.AssertExpectations(t)
 		mockMaint.AssertExpectations(t)
+		mockUserService.AssertExpectations(t)
+		mockEmployeeService.AssertExpectations(t)
 	})
 
 	t.Run("should return error when GetByID fails", func(t *testing.T) {
@@ -787,7 +840,9 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockOrderProd := new(mocks.MockOrderProductRepository)
 		mockOrderMaint := new(mocks.MockOrderMaintenanceRepository)
 		mockEmail := new(mocks.MockEmail)
-		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
+		mockUserService := new(mocks.MockUserService)
+		mockEmployeeService := new(mocks.MockEmployeeService)
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 		orderID := uint(1)
 		userID := uint(2)
 		input := ports.CreateCompleteOrderAnalysisInput{}
@@ -810,7 +865,9 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockOrderProd := new(mocks.MockOrderProductRepository)
 		mockOrderMaint := new(mocks.MockOrderMaintenanceRepository)
 		mockEmail := new(mocks.MockEmail)
-		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
+		mockUserService := new(mocks.MockUserService)
+		mockEmployeeService := new(mocks.MockEmployeeService)
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 		orderID := uint(1)
 		userID := uint(2)
 		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.RECEIVED}
@@ -834,7 +891,9 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockOrderProd := new(mocks.MockOrderProductRepository)
 		mockOrderMaint := new(mocks.MockOrderMaintenanceRepository)
 		mockEmail := new(mocks.MockEmail)
-		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
+		mockUserService := new(mocks.MockUserService)
+		mockEmployeeService := new(mocks.MockEmployeeService)
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 		orderID := uint(1)
 		userID := uint(2)
 		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
@@ -862,7 +921,9 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockOrderProd := new(mocks.MockOrderProductRepository)
 		mockOrderMaint := new(mocks.MockOrderMaintenanceRepository)
 		mockEmail := new(mocks.MockEmail)
-		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
+		mockUserService := new(mocks.MockUserService)
+		mockEmployeeService := new(mocks.MockEmployeeService)
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 		orderID := uint(1)
 		userID := uint(2)
 		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
@@ -891,9 +952,13 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockOrderProd := new(mocks.MockOrderProductRepository)
 		mockOrderMaint := new(mocks.MockOrderMaintenanceRepository)
 		mockEmail := new(mocks.MockEmail)
-		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
+		mockUserService := new(mocks.MockUserService)
+		mockEmployeeService := new(mocks.MockEmployeeService)
+		uc := NewOrderUseCase(mockOrder, mockProd, mockMaint, mockCust, mockUserService, mockEmployeeService, mockEmail, mockOrderRepo, mockOrderProd, mockOrderMaint, "", nil)
 		orderID := uint(1)
 		userID := uint(2)
+		testPersonID := uint(5)
+		testEmployeeID := uint(10)
 		existingOrder := &domain.Order{ID: orderID, Status: domain.OrderStatuses.IN_ANALYSIS}
 
 		products := []domain.Product{p(1, 100)}
@@ -908,6 +973,8 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		productIds := []uint{1}
 		maintenanceIds := []uint{2}
 
+		mockUserService.On("GetByID", ctx, userID).Return(&domain.User{ID: userID, PersonID: testPersonID}, nil)
+		mockEmployeeService.On("GetByPersonID", ctx, testPersonID).Return(&domain.Employee{ID: testEmployeeID}, nil)
 		mockOrder.On("GetByID", ctx, orderID).Return(existingOrder, nil)
 		mockProd.On("GetByIds", ctx, productIds).Return(products, nil)
 		mockMaint.On("GetByIDs", ctx, maintenanceIds).Return(maints, nil)

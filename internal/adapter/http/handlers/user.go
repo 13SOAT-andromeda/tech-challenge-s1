@@ -23,8 +23,8 @@ func NewUserHandler(service ports.UserService) *UserHandler {
 type CreateUserRequest struct {
 	Name          string `json:"name" binding:"required"`
 	Email         string `json:"email" binding:"required,email"`
+	Document      string `json:"document" binding:"required"`
 	Password      string `json:"password" binding:"required"`
-	Document      string `json:"document"`
 	Contact       string `json:"contact" binding:"required"`
 	Role          string `json:"role" binding:"required"`
 	Address       string `json:"address" binding:"required"`
@@ -33,6 +33,7 @@ type CreateUserRequest struct {
 	Neighborhood  string `json:"neighborhood" binding:"required"`
 	Country       string `json:"country" binding:"required"`
 	ZipCode       string `json:"zip_code" binding:"required"`
+	Position      string `json:"position" binding:"required"`
 }
 
 type UpdateUserRequest struct {
@@ -44,6 +45,7 @@ type UpdateUserRequest struct {
 	Neighborhood  string `json:"neighborhood"`
 	Country       string `json:"country"`
 	ZipCode       string `json:"zip_code"`
+	Position      string `json:"position"`
 }
 
 func (h *UserHandler) Create(ctx *gin.Context) {
@@ -60,25 +62,36 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 	}
 
 	doc, err := domain.NewDocument(json.Document)
+
 	if err != nil {
 		response.RespondError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
+	if !doc.ValidateCpf() {
+		response.RespondError(ctx, http.StatusInternalServerError, "invalid document")
+		return
+	}
+
 	u := domain.User{
-		Name:     json.Name,
-		Email:    json.Email,
-		Password: *p,
-		Document: doc.Number,
+		Password: p,
 		Role:     json.Role,
-		Contact:  json.Contact,
-		Address: &domain.Address{
-			Address:       json.Address,
-			AddressNumber: json.AddressNumber,
-			City:          json.City,
-			Neighborhood:  json.Neighborhood,
-			Country:       json.Country,
-			ZipCode:       json.ZipCode,
+		Person: &domain.Person{
+			Name:     json.Name,
+			Email:    json.Email,
+			Document: doc,
+			Contact:  json.Contact,
+			Address: &domain.Address{
+				Address:       json.Address,
+				AddressNumber: json.AddressNumber,
+				City:          json.City,
+				Neighborhood:  json.Neighborhood,
+				Country:       json.Country,
+				ZipCode:       json.ZipCode,
+			},
+		},
+		Employee: &domain.Employee{
+			Position: json.Position,
 		},
 	}
 
@@ -97,9 +110,7 @@ func (h *UserHandler) Create(ctx *gin.Context) {
 }
 
 func (h *UserHandler) GetByID(ctx *gin.Context) {
-
 	id, err := strconv.Atoi(ctx.Param("id"))
-
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -112,7 +123,7 @@ func (h *UserHandler) GetByID(ctx *gin.Context) {
 	}
 
 	if user == nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
 	}
 	ctx.JSON(http.StatusOK, user)
@@ -133,7 +144,6 @@ func (h *UserHandler) Search(ctx *gin.Context) {
 func (h *UserHandler) Update(ctx *gin.Context) {
 	var json UpdateUserRequest
 	id, err := strconv.Atoi(ctx.Param("id"))
-
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -145,16 +155,18 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 	}
 
 	u := domain.User{
-		ID:      uint(id),
-		Name:    json.Name,
-		Contact: json.Contact,
-		Address: &domain.Address{
-			Address:       json.Address,
-			AddressNumber: json.AddressNumber,
-			City:          json.City,
-			Neighborhood:  json.Neighborhood,
-			Country:       json.Country,
-			ZipCode:       json.ZipCode,
+		ID: uint(id),
+		Person: &domain.Person{
+			Name:    json.Name,
+			Contact: json.Contact,
+			Address: &domain.Address{
+				Address:       json.Address,
+				AddressNumber: json.AddressNumber,
+				City:          json.City,
+				Neighborhood:  json.Neighborhood,
+				Country:       json.Country,
+				ZipCode:       json.ZipCode,
+			},
 		},
 	}
 
@@ -168,7 +180,6 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 
 func (h *UserHandler) Delete(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
-
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

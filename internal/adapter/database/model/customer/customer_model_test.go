@@ -6,6 +6,7 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/address"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/document"
+	personModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/person"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
@@ -99,59 +100,49 @@ func TestDocumentModel_FromDomain_Nil(t *testing.T) {
 	assert.Equal(t, "12345678900", model.Document)
 }
 
+func makePersonModel(name, email, doc, contact string) personModel.Model {
+	pm := personModel.Model{}
+	pm.ID = 1
+	pm.Name = name
+	pm.Email = email
+	pm.Document = document.Model{Document: doc}
+	pm.Contact = contact
+	return pm
+}
+
 func TestCustomerModelInitialization(t *testing.T) {
 	model := Model{
-		Name:  "Gedan",
-		Email: "gedan@example.com",
-		Document: document.Model{
-			Document: "12345678900",
-		},
-		Type:    "administrator",
-		Contact: "11999999999",
-		Address: &address.Model{
-			Address:       "Rua Teste",
-			City:          "New York",
-			AddressNumber: "317",
-			ZipCode:       "1234",
-			Neighborhood:  "New York",
-			Country:       "Brasil",
-		},
+		Type:     "administrator",
+		PersonID: 1,
+		Person:   makePersonModel("Gedan", "gedan@example.com", "12345678900", "11999999999"),
 	}
 
 	assert.NotNil(t, model)
-	assert.Equal(t, "Gedan", model.Name)
-	assert.Equal(t, "gedan@example.com", model.Email)
-	assert.Equal(t, "12345678900", model.Document.Document) // ← CORRIGIDO
 	assert.Equal(t, "administrator", model.Type)
-	assert.Equal(t, "11999999999", model.Contact)
-	assert.NotNil(t, model.Address)
-	assert.Equal(t, "Rua Teste", model.Address.Address)
-	assert.Equal(t, "317", model.Address.AddressNumber)
-	assert.Equal(t, "New York", model.Address.Neighborhood)
-	assert.Equal(t, "New York", model.Address.City)
-	assert.Equal(t, "Brasil", model.Address.Country)
-	assert.Equal(t, "1234", model.Address.ZipCode)
+	assert.Equal(t, "Gedan", model.Person.Name)
+	assert.Equal(t, "gedan@example.com", model.Person.Email)
+	assert.Equal(t, "12345678900", model.Person.Document.Document)
+	assert.Equal(t, "11999999999", model.Person.Contact)
 }
 
 func TestCustomerModel_ToDomain(t *testing.T) {
 	now := time.Now()
 	deletedAt := now.Add(time.Hour * 1)
+
+	pm := makePersonModel("Gedan", "gedan@example.com", "12345678900", "11999999999")
+	pm.Address = &address.Model{
+		Address:       "Rua Teste",
+		AddressNumber: "317",
+		Neighborhood:  "Centro",
+		City:          "New York",
+		Country:       "Brasil",
+		ZipCode:       "1234",
+	}
+
 	model := Model{
-		Name:  "Gedan",
-		Email: "gedan@example.com",
-		Document: document.Model{
-			Document: "12345678900",
-		},
-		Type:    "administrator",
-		Contact: "11999999999",
-		Address: &address.Model{
-			Address:       "Rua Teste",
-			AddressNumber: "317",
-			Neighborhood:  "Centro",
-			City:          "New York",
-			Country:       "Brasil",
-			ZipCode:       "1234",
-		},
+		Type:     "administrator",
+		PersonID: 1,
+		Person:   pm,
 		Model: gorm.Model{
 			DeletedAt: gorm.DeletedAt{Time: deletedAt, Valid: true},
 		},
@@ -164,54 +155,51 @@ func TestCustomerModel_ToDomain(t *testing.T) {
 
 	assert.NotNil(t, result)
 	assert.Equal(t, uint(1), result.ID)
-	assert.Equal(t, "Gedan", result.Name)
-	assert.Equal(t, "gedan@example.com", result.Email)
-	assert.Equal(t, "12345678900", result.Document.Number)
 	assert.Equal(t, "administrator", result.Type)
-	assert.Equal(t, "11999999999", result.Contact)
-	assert.NotNil(t, result.Address)
-	assert.Equal(t, "Rua Teste", result.Address.Address)
-	assert.Equal(t, "317", result.Address.AddressNumber)
+	assert.NotNil(t, result.Person)
+	assert.Equal(t, "Gedan", result.Person.Name)
+	assert.Equal(t, "gedan@example.com", result.Person.Email)
+	assert.Equal(t, "12345678900", result.Person.Document.GetDocumentNumber())
+	assert.Equal(t, "11999999999", result.Person.Contact)
+	assert.NotNil(t, result.Person.Address)
+	assert.Equal(t, "Rua Teste", result.Person.Address.Address)
+	assert.Equal(t, "317", result.Person.Address.AddressNumber)
 	assert.Equal(t, now, result.CreatedAt)
 	assert.Equal(t, now, result.UpdatedAt)
 	assert.Equal(t, deletedAt, *result.DeletedAt)
 }
 
-func TestCustomerModel_ToDomain_WithNilAddress(t *testing.T) {
+func TestCustomerModel_ToDomain_WithNilPerson(t *testing.T) {
 	model := Model{
-		Name:  "Gedan",
-		Email: "gedan@example.com",
-		Document: document.Model{
-			Document: "12345678900",
-		},
-		Type:    "administrator",
-		Contact: "11999999999",
-		Address: nil,
+		Type:     "administrator",
+		PersonID: 0,
 	}
 
 	result := model.ToDomain()
 
 	assert.NotNil(t, result)
-	assert.Nil(t, result.Address)
+	assert.Nil(t, result.Person)
 }
 
 func TestCustomerModel_FromDomain(t *testing.T) {
 	domainCustomer := &domain.Customer{
-		ID:    1,
-		Name:  "Gedan",
-		Email: "gedan@example.com",
-		Document: &domain.Document{
-			Number: "98765432100",
-		},
-		Type:    "mechanic",
-		Contact: "11988887777",
-		Address: &domain.Address{
-			Address:       "Rua Nova",
-			AddressNumber: "999",
-			Neighborhood:  "Bairro",
-			City:          "Cidade",
-			Country:       "Brasil",
-			ZipCode:       "12345-678",
+		ID:   1,
+		Type: "mechanic",
+		Person: &domain.Person{
+			Name:    "Gedan",
+			Email:   "gedan@example.com",
+			Contact: "11988887777",
+			Document: &domain.Document{
+				Number: "98765432100",
+			},
+			Address: &domain.Address{
+				Address:       "Rua Nova",
+				AddressNumber: "999",
+				Neighborhood:  "Bairro",
+				City:          "Cidade",
+				Country:       "Brasil",
+				ZipCode:       "12345-678",
+			},
 		},
 	}
 
@@ -219,63 +207,32 @@ func TestCustomerModel_FromDomain(t *testing.T) {
 	model.FromDomain(domainCustomer)
 
 	assert.Equal(t, uint(1), model.ID)
-	assert.Equal(t, "Gedan", model.Name)
-	assert.Equal(t, "gedan@example.com", model.Email)
-	assert.Equal(t, "98765432100", model.Document.Document)
 	assert.Equal(t, "mechanic", model.Type)
-	assert.Equal(t, "11988887777", model.Contact)
-	assert.NotNil(t, model.Address)
-	assert.Equal(t, "Rua Nova", model.Address.Address)
-	assert.Equal(t, "999", model.Address.AddressNumber)
+	assert.Equal(t, "Gedan", model.Person.Name)
+	assert.Equal(t, "gedan@example.com", model.Person.Email)
+	assert.Equal(t, "98765432100", model.Person.Document.Document)
+	assert.Equal(t, "11988887777", model.Person.Contact)
+	assert.NotNil(t, model.Person.Address)
+	assert.Equal(t, "Rua Nova", model.Person.Address.Address)
+	assert.Equal(t, "999", model.Person.Address.AddressNumber)
 }
 
 func TestCustomerModel_FromDomain_Nil(t *testing.T) {
 	model := Model{
-		Name: "Existing",
+		Type: "Existing",
 	}
 
 	model.FromDomain(nil)
 
-	assert.Equal(t, "Existing", model.Name)
-}
-
-func TestCustomerModel_FromDomain_WithNilAddress(t *testing.T) {
-	domainCustomer := &domain.Customer{
-		ID:    1,
-		Name:  "Gedan",
-		Email: "gedan@example.com",
-		Document: &domain.Document{
-			Number: "98765432100",
-		},
-		Type:    "pf",
-		Contact: "11988887777",
-		Address: nil,
-	}
-
-	model := Model{}
-	model.FromDomain(domainCustomer)
-
-	assert.Equal(t, uint(1), model.ID)
-	assert.Equal(t, "Gedan", model.Name)
-	assert.NotNil(t, model.Address)
+	assert.Equal(t, "Existing", model.Type)
 }
 
 func TestCustomerModel_RoundTrip(t *testing.T) {
+	pm := makePersonModel("Gedan", "gedan@example.com", "12345678900", "11999999999")
 	original := Model{
-		Name:  "Gedan",
-		Email: "gedan@example.com",
-		Document: document.Model{
-			Document: "12345678900",
-		},
-		Type:    "administrator",
-		Contact: "11999999999",
-		Address: &address.Model{
-			Address:       "Rua Teste",
-			AddressNumber: "317",
-			City:          "Cidade",
-			Country:       "Brasil",
-			ZipCode:       "12345",
-		},
+		Type:     "administrator",
+		PersonID: 1,
+		Person:   pm,
 	}
 	original.ID = 1
 
@@ -285,9 +242,7 @@ func TestCustomerModel_RoundTrip(t *testing.T) {
 	converted.FromDomain(domainCustomer)
 
 	assert.Equal(t, original.ID, converted.ID)
-	assert.Equal(t, original.Name, converted.Name)
-	assert.Equal(t, original.Email, converted.Email)
-	assert.Equal(t, original.Document.Document, converted.Document.Document)
 	assert.Equal(t, original.Type, converted.Type)
-	assert.Equal(t, original.Contact, converted.Contact)
+	assert.Equal(t, original.Person.Name, converted.Person.Name)
+	assert.Equal(t, original.Person.Email, converted.Person.Email)
 }

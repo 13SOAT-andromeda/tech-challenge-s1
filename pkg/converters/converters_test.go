@@ -55,19 +55,14 @@ func TestMergeStructs(t *testing.T) {
 func TestMergeStructsWithDomainUser(t *testing.T) {
 	existing := domain.User{
 		ID:        1,
-		Name:      "João",
-		Email:     "joao@email.com",
-		Contact:   "123456789",
 		Role:      "user",
+		PersonID:  1,
 		DeletedAt: nil,
 	}
 
 	deletedAt := time.Now()
 	update := domain.User{
 		ID:        1,
-		Name:      "João Silva",
-		Email:     "",
-		Contact:   "",
 		Role:      "admin",
 		DeletedAt: &deletedAt,
 	}
@@ -76,24 +71,16 @@ func TestMergeStructsWithDomainUser(t *testing.T) {
 
 	expected := domain.User{
 		ID:        1,
-		Name:      "João Silva",
-		Email:     "joao@email.com",
-		Contact:   "123456789",
 		Role:      "admin",
+		PersonID:  1,
 		DeletedAt: &deletedAt,
 	}
 
-	if result.Name != expected.Name {
-		t.Errorf("Name: expected %s, got %s", expected.Name, result.Name)
-	}
-	if result.Email != expected.Email {
-		t.Errorf("Email: expected %s, got %s", expected.Email, result.Email)
-	}
-	if result.Contact != expected.Contact {
-		t.Errorf("Contact: expected %s, got %s", expected.Contact, result.Contact)
-	}
 	if result.Role != expected.Role {
 		t.Errorf("Role: expected %s, got %s", expected.Role, result.Role)
+	}
+	if result.PersonID != expected.PersonID {
+		t.Errorf("PersonID: expected %d, got %d", expected.PersonID, result.PersonID)
 	}
 	if (result.DeletedAt == nil) != (expected.DeletedAt == nil) {
 		t.Errorf("DeletedAt: expected %v, got %v", expected.DeletedAt, result.DeletedAt)

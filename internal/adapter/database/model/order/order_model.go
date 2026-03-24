@@ -5,9 +5,9 @@ import (
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	customerVehicle "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/employee"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_product"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
 	"gorm.io/gorm"
 )
@@ -24,10 +24,10 @@ type Model struct {
 	Note              *string
 	DiagnosticNote    *string
 	Price             *float64
-	UserID            uint
+	EmployeeID        uint
 	CustomerVehicleID uint
 	CompanyID         uint
-	User              user.Model                `gorm:"foreignKey:UserID;references:ID"`
+	Employee          employee.Model            `gorm:"foreignKey:EmployeeID;references:ID"`
 	Company           company.Model             `gorm:"foreignKey:CompanyID;references:ID"`
 	CustomerVehicle   customerVehicle.Model     `gorm:"foreignKey:CustomerVehicleID;references:ID"`
 	OrderProducts     []order_product.Model     `gorm:"foreignKey:OrderId;references:ID"`
@@ -99,7 +99,7 @@ func (m *Model) ToDomain() *domain.Order {
 		DiagnosticNote:    m.DiagnosticNote,
 		Price:             m.Price,
 		CustomerVehicleID: m.CustomerVehicleID,
-		UserID:            m.UserID,
+		EmployeeID:        m.EmployeeID,
 		CompanyID:         m.CompanyID,
 		Vehicle:           vehicle,
 		Products:          productsPtr,
@@ -108,7 +108,6 @@ func (m *Model) ToDomain() *domain.Order {
 }
 
 func (m *Model) FromDomain(d *domain.Order) {
-
 	m.ID = d.ID
 	m.DateIn = d.DateIn
 	m.DateOut = d.DateOut
@@ -125,7 +124,7 @@ func (m *Model) FromDomain(d *domain.Order) {
 	m.Note = d.Note
 	m.DiagnosticNote = d.DiagnosticNote
 	m.Price = d.Price
-	m.UserID = d.UserID
+	m.EmployeeID = d.EmployeeID
 	m.CustomerVehicleID = d.CustomerVehicleID
 	m.CompanyID = d.CompanyID
 }

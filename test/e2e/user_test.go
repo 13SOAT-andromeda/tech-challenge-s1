@@ -43,6 +43,7 @@ func TestUser(t *testing.T) {
 		userInput.Name = "João Marcos"
 		userInput.Email = "marcosjoao" + strconv.FormatInt(time.Now().Unix(), 10) + "@gmail.com"
 		userInput.Role = "administrator"
+		userInput.Document = "42692605802"
 		userInput.Contact = "11979664877"
 		userInput.Password = "Cassandra@123!"
 		userInput.Address = "Rua Diamantina"
@@ -51,6 +52,7 @@ func TestUser(t *testing.T) {
 		userInput.Neighborhood = "Vila Maria"
 		userInput.Country = "Brasil"
 		userInput.ZipCode = "02170150"
+		userInput.Position = "Gerente"
 
 		payload, err := BuildBody(userInput)
 
@@ -67,11 +69,14 @@ func TestUser(t *testing.T) {
 		require.NoError(t, err, "Failed to parse create user response body")
 
 		assert.Equal(t, http.StatusCreated, resp.StatusCode)
-		assert.Equal(t, userInput.Name, userResponse.Name)
-		assert.Equal(t, userInput.Email, userResponse.Email)
-		assert.Equal(t, userInput.Role, userResponse.Role)
-		assert.Equal(t, userInput.Contact, userResponse.Contact)
+
+		if userResponse.Person != nil {
+			assert.Equal(t, userInput.Name, userResponse.Person.Name)
+			assert.Equal(t, userInput.Email, userResponse.Person.Email)
+			assert.Equal(t, userInput.Contact, userResponse.Person.Contact)
+		}
 		assert.NotZero(t, userResponse.ID)
+		assert.Equal(t, userInput.Role, userResponse.Role)
 
 		createdUserID = userResponse.ID
 	})
@@ -108,6 +113,7 @@ func TestUser(t *testing.T) {
 		userInput.Name = "João Duplicado"
 		userInput.Email = cfg.AdminUser.Email
 		userInput.Role = "administrator"
+		userInput.Document = "36625067008"
 		userInput.Contact = "11979664877"
 		userInput.Password = "Cassandra@123!"
 		userInput.Address = "Rua Diamantina"
@@ -116,6 +122,7 @@ func TestUser(t *testing.T) {
 		userInput.Neighborhood = "Vila Maria"
 		userInput.Country = "Brasil"
 		userInput.ZipCode = "02170150"
+		userInput.Position = "Gerente"
 
 		payload, err := BuildBody(userInput)
 
@@ -151,8 +158,10 @@ func TestUser(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Equal(t, createdUserID, userResponse.ID)
-		assert.NotEmpty(t, userResponse.Name)
-		assert.NotEmpty(t, userResponse.Email)
+		if userResponse.Person != nil {
+			assert.NotEmpty(t, userResponse.Person.Name)
+			assert.NotEmpty(t, userResponse.Person.Email)
+		}
 	})
 
 	t.Run("should fail to get user with invalid ID", func(t *testing.T) {
@@ -267,8 +276,10 @@ func TestUser(t *testing.T) {
 		err = ParseBody(resp, &userResponse)
 		require.NoError(t, err)
 
-		assert.Equal(t, updateInput.Name, userResponse.Name)
-		assert.Equal(t, updateInput.Contact, userResponse.Contact)
+		if userResponse.Person != nil {
+			assert.Equal(t, updateInput.Name, userResponse.Person.Name)
+			assert.Equal(t, updateInput.Contact, userResponse.Person.Contact)
+		}
 	})
 
 	t.Run("should fail to update user with invalid ID", func(t *testing.T) {

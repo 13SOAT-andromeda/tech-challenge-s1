@@ -16,10 +16,12 @@ import (
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/company"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/customer_vehicle"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/employee"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_maintenance"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/order_product"
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/person"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/product"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/user"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/vehicle"
@@ -89,6 +91,8 @@ func main() {
 	sugar.Infof("Connecting to database")
 
 	err = db.AutoMigrate(
+		&person.Model{},
+		&employee.Model{},
 		&customer.Model{},
 		&company.Model{},
 		&maintenance.Model{},
@@ -131,6 +135,8 @@ func main() {
 	}
 
 	// Repositories
+	personRepository := repository.NewPersonRepository(dbase)
+	employeeRepository := repository.NewEmployeeRepository(dbase)
 	customerRepository := repository.NewCustomerRepository(dbase)
 	companyRepository := repository.NewCompanyRepository(dbase)
 	maintenanceRepository := repository.NewMaintenanceRepository(dbase)
@@ -144,17 +150,18 @@ func main() {
 
 	// Services
 	vehicleService := services.NewVehicleService(vehicleRepository)
-	customerService := services.NewCustomerService(customerRepository, customerVehicleRepository, vehicleService)
+	customerService := services.NewCustomerService(customerRepository, personRepository, userRepository)
 	companyService := services.NewCompanyService(companyRepository)
 	maintenanceService := services.NewMaintenanceService(maintenanceRepository, orderMaintenanceRepository)
 	productService := services.NewProductService(productRepository)
-	userService := services.NewUserService(userRepository)
+	userService := services.NewUserService(userRepository, personRepository, employeeRepository)
+	employeeService := services.NewEmployeeService(employeeRepository)
 	orderService := services.NewOrderService(orderRepository)
 	emailService := email.NewSendtrap(cfg.MailTrap.ApiKey, cfg.MailTrap.ApiUrl)
 
 	// UseCases
 	createCustomerUseCase := customerUseCase.NewCustomerUseCase(customerRepository, customerVehicleRepository, vehicleService)
-	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, customerService, emailService, orderRepository, orderProductRepository, orderMaintenanceRepository, apiUrl, orderMetrics)
+	createOrderUseCase := orderUsecase.NewOrderUseCase(orderService, productService, maintenanceService, customerService, userService, employeeService, emailService, orderRepository, orderProductRepository, orderMaintenanceRepository, apiUrl, orderMetrics)
 
 	// Handlers
 	customerHandler := handlers.NewCustomerHandler(customerService, createCustomerUseCase)

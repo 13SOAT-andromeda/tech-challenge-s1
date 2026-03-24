@@ -17,6 +17,8 @@ type UseCase struct {
 	productService             ports.ProductService
 	maintenanceService         ports.MaintenanceService
 	customerService            ports.CustomerService
+	userService                ports.UserService
+	employeeService            ports.EmployeeService
 	emailService               ports.Email
 	orderRepository            ports.OrderRepository
 	orderProductRepository     ports.OrderProductRepository
@@ -30,6 +32,8 @@ func NewOrderUseCase(
 	productsService ports.ProductService,
 	maintenanceService ports.MaintenanceService,
 	customerService ports.CustomerService,
+	userService ports.UserService,
+	employeeService ports.EmployeeService,
 	emailService ports.Email,
 	orderRepository ports.OrderRepository,
 	orderProductRepository ports.OrderProductRepository,
@@ -45,6 +49,8 @@ func NewOrderUseCase(
 		productService:             productsService,
 		maintenanceService:         maintenanceService,
 		customerService:            customerService,
+		userService:                userService,
+		employeeService:            employeeService,
 		emailService:               emailService,
 		orderRepository:            orderRepository,
 		orderProductRepository:     orderProductRepository,
@@ -52,6 +58,20 @@ func NewOrderUseCase(
 		apiUrl:                     apiUrl,
 		metrics:                    metrics,
 	}
+}
+
+func (uc *UseCase) resolveEmployeeID(ctx context.Context, userID uint) (uint, error) {
+	user, err := uc.userService.GetByID(ctx, userID)
+	if err != nil || user == nil {
+		return 0, fmt.Errorf("user %d not found", userID)
+	}
+
+	employee, err := uc.employeeService.GetByPersonID(ctx, user.PersonID)
+	if err != nil || employee == nil {
+		return 0, fmt.Errorf("employee not found for user %d", userID)
+	}
+
+	return employee.ID, nil
 }
 
 func referenceTimeForTransition(last *time.Time, dateIn time.Time) time.Time {
@@ -62,6 +82,11 @@ func referenceTimeForTransition(last *time.Time, dateIn time.Time) time.Time {
 }
 
 func (uc *UseCase) CreateOrder(ctx context.Context, userID uint, input ports.CreateOrderInput) (*domain.Order, error) {
+	employeeID, err := uc.resolveEmployeeID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
 	order := domain.Order{
 		DateIn:            time.Now(),
 		DateOut:           nil,
@@ -70,7 +95,7 @@ func (uc *UseCase) CreateOrder(ctx context.Context, userID uint, input ports.Cre
 		Note:              input.Note,
 		Price:             nil,
 		CustomerVehicleID: input.CustomerVehicleID,
-		UserID:            userID,
+		EmployeeID:        employeeID,
 		CompanyID:         input.CompanyID,
 	}
 
@@ -94,16 +119,22 @@ func (uc *UseCase) AssignOrder(ctx context.Context, orderID uint, userID uint) e
 		return domain.ErrOrderNotFound
 	}
 
+	employeeID, err := uc.resolveEmployeeID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
 	from := order.Status
 	ref := referenceTimeForTransition(order.LastStatusAt, order.DateIn)
 	now := time.Now()
 	durationMin := now.Sub(ref).Minutes()
 
-	order.UserID = userID
+	order.EmployeeID = employeeID
 	order.Status = domain.OrderStatuses.IN_ANALYSIS
 	order.LastStatusAt = &now
 
 	err = uc.orderService.Update(ctx, *order)
+
 	if err != nil {
 		return err
 	}
@@ -183,6 +214,11 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 		}
 	}
 
+	employeeID, err := uc.resolveEmployeeID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
 	from := order.Status
 	ref := referenceTimeForTransition(order.LastStatusAt, order.DateIn)
 	now := time.Now()
@@ -191,7 +227,7 @@ func (uc *UseCase) CompleteOrderAnalysis(ctx context.Context, id uint, userID ui
 	order.DiagnosticNote = input.DiagnosticNote
 	order.Status = domain.OrderStatuses.ANALYSIS_FINISHED
 	order.Price = &totalPrice
-	order.UserID = userID
+	order.EmployeeID = employeeID
 	order.LastStatusAt = &now
 
 	if err := uc.orderService.Update(ctx, *order); err != nil {
@@ -311,7 +347,14 @@ func (uc *UseCase) RequestApproval(ctx context.Context, id uint) error {
 		return fmt.Errorf("failed to parse mail template: %w", err)
 	}
 
-	err = uc.emailService.Send(c.Name, c.Email, "Aprovação de Ordem de Serviço", html)
+	customerName := ""
+	customerEmail := ""
+	if c.Person != nil {
+		customerName = c.Person.Name
+		customerEmail = c.Person.Email
+	}
+
+	err = uc.emailService.Send(customerName, customerEmail, "Aprovação de Ordem de Serviço", html)
 
 	if err != nil {
 		return fmt.Errorf("failed to send approval notification: %w", err)

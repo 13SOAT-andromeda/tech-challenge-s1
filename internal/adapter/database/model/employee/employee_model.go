@@ -1,29 +1,25 @@
-package user
+package employee
 
 import (
 	"time"
 
 	personModel "github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/database/model/person"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
-	"github.com/13SOAT-andromeda/tech-challenge-s1/pkg/encryption"
 	"gorm.io/gorm"
 )
 
 type Model struct {
 	gorm.Model
-	Password string            `gorm:"not null"`
-	Role     string            `gorm:"not null"`
-	PersonID uint              `gorm:"not null"`
+	Position string           `gorm:"not null"`
+	PersonID uint             `gorm:"not null"`
 	Person   personModel.Model `gorm:"foreignKey:PersonID;references:ID"`
 }
 
 func (*Model) TableName() string {
-	return "User"
+	return "Employee"
 }
 
-func (m *Model) ToDomain() *domain.User {
-	pass := domain.NewPasswordFromHash(m.Password, encryption.NewBcryptHasher())
-
+func (m *Model) ToDomain() *domain.Employee {
 	var deletedAt *time.Time
 	if m.DeletedAt.Valid {
 		deletedAt = &m.DeletedAt.Time
@@ -34,10 +30,9 @@ func (m *Model) ToDomain() *domain.User {
 		person = m.Person.ToDomain()
 	}
 
-	return &domain.User{
+	return &domain.Employee{
 		ID:        m.ID,
-		Password:  pass,
-		Role:      m.Role,
+		Position:  m.Position,
 		PersonID:  m.PersonID,
 		Person:    person,
 		CreatedAt: m.CreatedAt,
@@ -46,27 +41,14 @@ func (m *Model) ToDomain() *domain.User {
 	}
 }
 
-func (m *Model) FromDomain(d *domain.User) {
+func (m *Model) FromDomain(d *domain.Employee) {
 	if d == nil {
 		return
 	}
 
 	m.ID = d.ID
-	m.Role = d.Role
+	m.Position = d.Position
 	m.PersonID = d.PersonID
-
-	if d.Password != nil {
-		m.Password = d.Password.GetHashed()
-	}
-
-	m.CreatedAt = d.CreatedAt
-	m.UpdatedAt = d.UpdatedAt
-
-	if d.DeletedAt != nil {
-		m.DeletedAt = gorm.DeletedAt{Time: *d.DeletedAt, Valid: true}
-	} else {
-		m.DeletedAt = gorm.DeletedAt{Valid: false}
-	}
 
 	if d.Person != nil {
 		m.Person.FromDomain(d.Person)

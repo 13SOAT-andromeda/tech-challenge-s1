@@ -153,7 +153,11 @@ func (s *OrderService) GetApprovalTemplate(order domain.Order, customer domain.C
 		note = *order.Note
 	}
 
-	html = strings.ReplaceAll(html, "$Name", customer.Name)
+	customerName := ""
+	if customer.Person != nil {
+		customerName = customer.Person.Name
+	}
+	html = strings.ReplaceAll(html, "$Name", customerName)
 	html = strings.ReplaceAll(html, "$ID", id)
 	html = strings.ReplaceAll(html, "$DateIn", dateIn)
 	html = strings.ReplaceAll(html, "$DiagnosticNote", diagnosticNote)

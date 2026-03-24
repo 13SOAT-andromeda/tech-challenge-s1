@@ -42,7 +42,7 @@ func TestModel_ToDomain(t *testing.T) {
 		Note:              &note,
 		DiagnosticNote:    &diag,
 		Price:             &price,
-		UserID:            10,
+		EmployeeID:        10,
 		CustomerVehicleID: 20,
 		CompanyID:         30,
 	}
@@ -85,8 +85,8 @@ func TestModel_ToDomain(t *testing.T) {
 	if d.Order.Price == nil || *d.Order.Price != price {
 		t.Fatalf("order price: expected %v got %v", price, d.Order.Price)
 	}
-	if d.Order.UserID != 10 {
-		t.Fatalf("user id: expected 10 got %d", d.Order.UserID)
+	if d.Order.EmployeeID != 10 {
+		t.Fatalf("employee id: expected 10 got %d", d.Order.EmployeeID)
 	}
 	if d.Order.CustomerVehicleID != 20 {
 		t.Fatalf("customer vehicle id: expected 20 got %d", d.Order.CustomerVehicleID)
@@ -117,7 +117,7 @@ func TestModel_FromDomain(t *testing.T) {
 			Note:              nil,
 			DiagnosticNote:    nil,
 			Price:             &price,
-			UserID:            11,
+			EmployeeID:        11,
 			CustomerVehicleID: 21,
 			CompanyID:         31,
 		},
