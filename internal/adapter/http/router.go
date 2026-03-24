@@ -79,7 +79,7 @@ func NewRouter(
 	protected.Use(middlewares.AuthRequired(jwtSecret))
 	{
 		customerGroup := protected.Group("/customers")
-		customerGroup.Use(middlewares.RoleRequired("administrator"))
+		customerGroup.Use(middlewares.RoleRequired("administrator", "attendant"))
 		{
 			customerGroup.GET("", customerHandler.Search)
 			customerGroup.POST("", customerHandler.CreateCustomer)
@@ -92,6 +92,7 @@ func NewRouter(
 		}
 
 		companyGroup := protected.Group("/companies")
+		companyGroup.Use(middlewares.RoleRequired("administrator"))
 		{
 			companyGroup.POST("", companyHandler.CreateCompany)
 			companyGroup.GET("/:id", companyHandler.GetCompanyByID)
@@ -100,7 +101,7 @@ func NewRouter(
 		}
 
 		maintenances := protected.Group("/maintenances")
-		maintenances.Use(middlewares.RoleRequired("administrator"))
+		maintenances.Use(middlewares.RoleRequired("administrator", "mechanic", "attendant"))
 		{
 			maintenances.POST("", maintenanceHandler.CreateMaintenance)
 			maintenances.GET("/:id", maintenanceHandler.GetMaintenanceByID)
@@ -110,7 +111,7 @@ func NewRouter(
 		}
 
 		productGroup := protected.Group("/products")
-		productGroup.Use(middlewares.RoleRequired("administrator"))
+		productGroup.Use(middlewares.RoleRequired("administrator", "attendant", "mechanic"))
 		{
 			productGroup.POST("", productHandler.CreateProduct)
 			productGroup.GET("", productHandler.GetProducts)
@@ -121,7 +122,7 @@ func NewRouter(
 		}
 
 		userGroup := protected.Group("/users")
-		userGroup.Use(middlewares.RoleRequired("administrator"))
+		userGroup.Use(middlewares.RoleRequired("administrator", "attendant"))
 		{
 			userGroup.GET("", userHandler.Search)
 			userGroup.POST("", userHandler.Create)
@@ -131,7 +132,7 @@ func NewRouter(
 		}
 
 		vehicleGroup := protected.Group("/vehicles")
-		vehicleGroup.Use(middlewares.RoleRequired("administrator"))
+		vehicleGroup.Use(middlewares.RoleRequired("administrator", "attendant", "mechanic"))
 		{
 			vehicleGroup.GET("", vehicleHandler.GetAll)
 			vehicleGroup.POST("", vehicleHandler.Create)
@@ -141,7 +142,7 @@ func NewRouter(
 		}
 
 		orderGroup := protected.Group("/orders")
-		orderGroup.Use(middlewares.RoleRequired("administrator"))
+		orderGroup.Use(middlewares.RoleRequired("administrator", "attendant", "mechanic"))
 		{
 			orderGroup.GET("", orderHandler.GetAll)
 			orderGroup.GET("/:id", orderHandler.GetByID)
