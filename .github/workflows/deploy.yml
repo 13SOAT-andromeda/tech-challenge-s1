@@ -104,6 +104,7 @@ jobs:
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           ADMIN_PASSWORD=${{ secrets.USER_ADMIN_PASSWORD }}
           ADMIN_EMAIL=${{ secrets.USER_EMAIL_PASSWORD }}
+          ADMIN_DOCUMENT=${{ secrets.ADMIN_DOCUMENT }}
           MAILTRAP_TOKEN=${{ secrets.MAILTRAP_TOKEN }}
           EOF
 
