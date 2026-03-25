@@ -40,11 +40,11 @@ func (h *OrderHandler) Create(ctx *gin.Context) {
 		return
 	}
 
-	userId, exists := ctx.Get("user_id")
+	/*userId, exists := ctx.Get("user_id")
 	if !exists {
 		response.RespondError(ctx, http.StatusUnauthorized, "User ID not found in context")
 		return
-	}
+	}*/
 
 	input := ports.CreateOrderInput{
 		VehicleKilometers: request.VehicleKilometers,
@@ -53,7 +53,7 @@ func (h *OrderHandler) Create(ctx *gin.Context) {
 		CompanyID:         request.CompanyID,
 	}
 
-	created, err := h.usecase.CreateOrder(ctx.Request.Context(), userId.(uint), input)
+	created, err := h.usecase.CreateOrder(ctx.Request.Context(), 1, input)
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -69,13 +69,13 @@ func (h *OrderHandler) Assign(ctx *gin.Context) {
 		return
 	}
 
-	userId, exists := ctx.Get("user_id")
-	if !exists {
-		response.RespondError(ctx, http.StatusUnauthorized, "User ID not found in context")
-		return
-	}
+	// userId, exists := ctx.Get("user_id")
+	// if !exists {
+	// 	response.RespondError(ctx, http.StatusUnauthorized, "User ID not found in context")
+	// 	return
+	// }
 
-	if err := h.usecase.AssignOrder(ctx.Request.Context(), uint(orderID), userId.(uint)); err != nil {
+	if err := h.usecase.AssignOrder(ctx.Request.Context(), uint(orderID), 1); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -90,11 +90,11 @@ func (h *OrderHandler) CompleteAnalysis(ctx *gin.Context) {
 		return
 	}
 
-	userId, exists := ctx.Get("user_id")
-	if !exists {
-		response.RespondError(ctx, http.StatusUnauthorized, "User ID not found in context")
-		return
-	}
+	// userId, exists := ctx.Get("user_id")
+	// if !exists {
+	// 	response.RespondError(ctx, http.StatusUnauthorized, "User ID not found in context")
+	// 	return
+	// }
 
 	var request CompleteAnalysisRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
@@ -108,7 +108,7 @@ func (h *OrderHandler) CompleteAnalysis(ctx *gin.Context) {
 		Maintenances:   request.Maintenances,
 	}
 
-	if err := h.usecase.CompleteOrderAnalysis(ctx.Request.Context(), uint(orderID), userId.(uint), input); err != nil {
+	if err := h.usecase.CompleteOrderAnalysis(ctx.Request.Context(), uint(orderID), 1, input); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
