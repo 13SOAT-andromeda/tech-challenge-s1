@@ -10,7 +10,7 @@ To provide a robust, scalable, and easy-to-maintain backend for mechanical works
 - **Customer Management:** CRUD operations for customers and their vehicles.
 - **Service Order Management:** Creation and tracking of maintenance and service orders.
 - **Product & Inventory:** Management of products used in services.
-- **Authentication & Security:** Secure access using JWT and role-based permissions (admin setup).
+- **Authentication & Security:** Secure access delegated to API Gateway Authorizer with in-app role-based permissions.
 - **API Documentation:** Interactive documentation via Swagger and Redoc.
 
 ## Target Users

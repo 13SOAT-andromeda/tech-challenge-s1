@@ -7,7 +7,7 @@
 ## Frameworks & Libraries
 - **Gin-Gonic:** High-performance HTTP framework.
 - **GORM:** Object-Relational Mapper for PostgreSQL interaction.
-- **Golang-JWT:** Secure JSON Web Token handling.
+- **API Gateway Authorizer:** Delegated authentication with identity forwarding via headers (X-User-Id, X-User-Email, X-User-Role).
 - **Go-Playground/Validator:** Input validation for API requests.
 
 ## Database & Persistence
