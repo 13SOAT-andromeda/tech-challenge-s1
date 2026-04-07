@@ -3,13 +3,6 @@ name: Deploy Application to AWS
 on:
   push:
     branches: [main]
-    # paths:
-    #   - 'cmd/**'
-    #   - 'internal/**'
-    #   - 'pkg/**'
-    #   - 'k8s/**'
-    #   - 'Dockerfile'
-    #   - '.github/workflows/deploy.yml'
 
 jobs:
   build-and-deploy:
@@ -56,6 +49,14 @@ jobs:
           --selector=k8s-app=metrics-server \
           --timeout=5s || true
 
+      - name: Install cert-manager
+        run: |
+          kubectl apply --validate=false -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.5/cert-manager.yaml
+          kubectl wait --namespace cert-manager \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/instance=cert-manager \
+            --timeout=120s || true
+
       - name: Install AWS Load Balancer Controller
         run: |
           VPC_ID=$(aws ec2 describe-vpcs \
@@ -78,7 +79,6 @@ jobs:
             --set region=${{ secrets.AWS_REGION }} \
             --set vpcId=$VPC_ID \
             --set "envFrom[0].secretRef.name=aws-alb-credentials" \
-            --force \
             --wait
 
       - name: Install Datadog Operator
@@ -103,7 +103,7 @@ jobs:
           DB_PASSWORD=${{ secrets.AWS_RDS_DB_PASSWORD }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           ADMIN_PASSWORD=${{ secrets.USER_ADMIN_PASSWORD }}
-          ADMIN_EMAIL=${{ secrets.USER_EMAIL_PASSWORD }}
+          ADMIN_EMAIL=${{ secrets.USER_ADMIN_EMAIL }}
           ADMIN_DOCUMENT=${{ secrets.ADMIN_DOCUMENT }}
           MAILTRAP_TOKEN=${{ secrets.MAILTRAP_TOKEN }}
           EOF
