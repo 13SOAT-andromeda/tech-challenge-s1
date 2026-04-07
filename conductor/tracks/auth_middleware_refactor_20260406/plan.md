@@ -10,8 +10,8 @@
 - [x] Task: Implement the updated context reading logic in `role.go` to pass the tests. [f2655fa]
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Refactor role.go Middleware' (Protocol in workflow.md) [f2655fa]
 
-## Phase 3: Refactor Handlers
-- [ ] Task: Identify all handlers that currently extract user information from the context using the old authentication logic.
-- [ ] Task: Update the unit tests for the identified handlers to mock the new context string keys.
-- [ ] Task: Refactor the identified handlers to retrieve `user_id`, `user_email`, and `user_role` using the new string keys from the request context.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Refactor Handlers' (Protocol in workflow.md)
+## Phase 3: Refactor Handlers [checkpoint: 0c01269]
+- [x] Task: Identify all handlers that currently extract user information from the context using the old authentication logic. [1809ea7]
+- [x] Task: Update the unit tests for the identified handlers to mock the new context string keys. [0c01269]
+- [x] Task: Refactor the identified handlers to retrieve `user_id`, `user_email`, and `user_role` using the new string keys from the request context. [0c01269]
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Refactor Handlers' (Protocol in workflow.md) [0c01269]
