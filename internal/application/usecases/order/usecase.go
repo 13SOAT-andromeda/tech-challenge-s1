@@ -61,7 +61,12 @@ func NewOrderUseCase(
 }
 
 func (uc *UseCase) resolveEmployeeID(ctx context.Context, userID uint) (uint, error) {
-	employee, err := uc.employeeService.GetByPersonID(ctx, 1)
+	user, err := uc.userService.GetByID(ctx, userID)
+	if err != nil || user == nil {
+		return 0, fmt.Errorf("employee not found for user %d", userID)
+	}
+
+	employee, err := uc.employeeService.GetByPersonID(ctx, user.PersonID)
 	if err != nil || employee == nil {
 		return 0, fmt.Errorf("employee not found for user %d", userID)
 	}
