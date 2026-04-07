@@ -13,6 +13,8 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - tech-challenge
 
   app:
     build:
@@ -37,6 +39,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    networks:
+      - tech-challenge
 
   datadog-agent:
     image: gcr.io/datadoghq/agent:latest
@@ -68,6 +72,13 @@ services:
       - /proc/:/host/proc/:ro
       - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
       - ./datadog/conf.d/http_check.yaml:/etc/datadog-agent/conf.d/http_check.yaml:ro
+    networks:
+      - tech-challenge
 
 volumes:
   db_data:
+
+networks:
+  tech-challenge:
+    name: tech-challenge
+    driver: bridge
