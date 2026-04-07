@@ -5,10 +5,10 @@
 - [x] Task: Implement header extraction and validation in `auth.go` to pass the tests, completely replacing the old logic. [1809ea7]
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Refactor auth.go Middleware' (Protocol in workflow.md) [1809ea7]
 
-## Phase 2: Refactor `role.go` Middleware
-- [ ] Task: Write failing tests for `role.go` to cover reading the user role from the new Go request context string key (`user_role`).
-- [ ] Task: Implement the updated context reading logic in `role.go` to pass the tests.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Refactor role.go Middleware' (Protocol in workflow.md)
+## Phase 2: Refactor `role.go` Middleware [checkpoint: 314058c]
+- [x] Task: Write failing tests for `role.go` to cover reading the user role from the new Go request context string key (`user_role`). [03f2995]
+- [x] Task: Implement the updated context reading logic in `role.go` to pass the tests. [f2655fa]
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Refactor role.go Middleware' (Protocol in workflow.md) [f2655fa]
 
 ## Phase 3: Refactor Handlers
 - [ ] Task: Identify all handlers that currently extract user information from the context using the old authentication logic.
