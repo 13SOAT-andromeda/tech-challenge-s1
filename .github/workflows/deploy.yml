@@ -103,7 +103,7 @@ jobs:
           DB_PASSWORD=${{ secrets.AWS_RDS_DB_PASSWORD }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           ADMIN_PASSWORD=${{ secrets.USER_ADMIN_PASSWORD }}
-          ADMIN_EMAIL=${{ secrets.USER_EMAIL_PASSWORD }}
+          ADMIN_EMAIL=${{ secrets.USER_ADMIN_EMAIL }}
           ADMIN_DOCUMENT=${{ secrets.ADMIN_DOCUMENT }}
           MAILTRAP_TOKEN=${{ secrets.MAILTRAP_TOKEN }}
           EOF
