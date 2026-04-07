@@ -76,7 +76,7 @@ func NewRouter(
 	)
 
 	protected := router.Group("/")
-	protected.Use(middlewares.AuthRequired(jwtSecret))
+	protected.Use(middlewares.AuthRequired())
 	{
 		customerGroup := protected.Group("/customers")
 		customerGroup.Use(middlewares.RoleRequired("administrator", "attendant"))

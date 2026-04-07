@@ -2,45 +2,42 @@ package middlewares
 
 import (
 	"net/http"
-	"strings"
+	"strconv"
 
-	pkgjwt "github.com/13SOAT-andromeda/tech-challenge-s1/pkg/jwt"
 	"github.com/gin-gonic/gin"
 )
 
-const claimsKey = "userClaims"
+const (
+	claimsKey    = "userClaims"
+	UserIDKey    = "user_id"
+	UserEmailKey = "user_email"
+	UserRoleKey  = "user_role"
+)
 
-// AuthRequired returns a Gin middleware that validates the JWT in the
-// Authorization header and stores the parsed claims in the context.
-// Returns 401 if the header is missing, malformed, or the token is invalid.
-func AuthRequired(secret string) gin.HandlerFunc {
+// AuthRequired returns a Gin middleware that extracts user information
+// from X-User-Id, X-User-Email, and X-User-Role headers.
+// Returns 401 if any header is missing, empty, or if ID is not a number.
+func AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: missing Authorization header"})
+		userID := c.GetHeader("X-User-Id")
+		userEmail := c.GetHeader("X-User-Email")
+		userRole := c.GetHeader("X-User-Role")
+
+		if userID == "" || userEmail == "" || userRole == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: missing required user headers"})
 			c.Abort()
 			return
 		}
 
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") || parts[1] == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: malformed Authorization header"})
+		if _, err := strconv.Atoi(userID); err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: invalid user ID format"})
 			c.Abort()
 			return
 		}
 
-		claims, err := pkgjwt.ValidateToken(parts[1], secret)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: invalid token"})
-			c.Abort()
-			return
-		}
-
-		c.Set(claimsKey, &UserClaims{
-			ID:    claims.Subject,
-			Email: claims.Email,
-			Role:  claims.Role,
-		})
+		c.Set(UserIDKey, userID)
+		c.Set(UserEmailKey, userEmail)
+		c.Set(UserRoleKey, userRole)
 
 		c.Next()
 	}

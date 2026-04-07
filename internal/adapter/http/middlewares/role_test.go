@@ -35,7 +35,7 @@ func makeRoleToken(t *testing.T, role string) string {
 func setupRoleRouter(requiredRole string) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(middlewares.AuthRequired(roleTestSecret))
+	r.Use(middlewares.AuthRequired())
 	r.GET("/test", middlewares.RoleRequired(requiredRole), func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
@@ -96,7 +96,7 @@ func TestRoleRequired_MissingClaimsInContext(t *testing.T) {
 func TestExtractClaims_ReturnsCorrectValues(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(middlewares.AuthRequired(roleTestSecret))
+	r.Use(middlewares.AuthRequired())
 	r.GET("/test", func(c *gin.Context) {
 		claims, err := middlewares.ExtractClaims(c)
 		if err != nil {
