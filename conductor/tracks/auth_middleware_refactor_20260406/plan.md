@@ -1,0 +1,17 @@
+# Implementation Plan: Refactor Auth & Role Middlewares for Header-based Context
+
+## Phase 1: Refactor `auth.go` Middleware
+- [ ] Task: Write failing tests for `auth.go` to cover header extraction (`X-User-Id`, `X-User-Email`, `X-User-Role`), validation (presence, emptiness, ID format), and context setting (using string keys).
+- [ ] Task: Implement header extraction and validation in `auth.go` to pass the tests, completely replacing the old logic.
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Refactor auth.go Middleware' (Protocol in workflow.md)
+
+## Phase 2: Refactor `role.go` Middleware
+- [ ] Task: Write failing tests for `role.go` to cover reading the user role from the new Go request context string key (`user_role`).
+- [ ] Task: Implement the updated context reading logic in `role.go` to pass the tests.
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Refactor role.go Middleware' (Protocol in workflow.md)
+
+## Phase 3: Refactor Handlers
+- [ ] Task: Identify all handlers that currently extract user information from the context using the old authentication logic.
+- [ ] Task: Update the unit tests for the identified handlers to mock the new context string keys.
+- [ ] Task: Refactor the identified handlers to retrieve `user_id`, `user_email`, and `user_role` using the new string keys from the request context.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Refactor Handlers' (Protocol in workflow.md)
