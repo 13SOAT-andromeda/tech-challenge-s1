@@ -6,6 +6,7 @@ metadata:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/tags: kubernetes.io/cluster/eks-tech-challenge=owned
+    alb.ingress.kubernetes.io/manage-backend-security-group-rules: "true"
 spec:
   ingressClassName: alb
   rules:
