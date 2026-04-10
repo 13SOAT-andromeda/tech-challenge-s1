@@ -50,7 +50,7 @@ func NewRouter(
 		gintrace.WithUseGinErrors(),
 		gintrace.WithAnalytics(true),
 		gintrace.WithIgnoreRequest(func(c *gin.Context) bool {
-			return c.Request.URL.Path == "/health"
+			return c.Request.URL.Path == "/api/health"
 		}),
 		gintrace.WithStatusCheck(func(statusCode int) bool {
 			return statusCode >= 400
@@ -75,7 +75,9 @@ func NewRouter(
 		cors.New(corsConfig),
 	)
 
-	protected := router.Group("/")
+	api := router.Group("/api")
+
+	protected := api.Group("/")
 	protected.Use(middlewares.AuthRequired(jwtSecret))
 	{
 		customerGroup := protected.Group("/customers")
@@ -161,23 +163,23 @@ func NewRouter(
 	}
 
 	// Public routes — no authorization middleware applied.
-	publicOrders := router.Group("/orders")
+	publicOrders := api.Group("/orders")
 	{
 		publicOrders.GET("/:id/approve", orderHandler.ApproveOrder)
 		publicOrders.GET("/:id/reject", orderHandler.RejectOrder)
 	}
 
-	router.GET("/health", func(c *gin.Context) {
+	api.GET("/health", func(c *gin.Context) {
 		response.RespondSuccess(c, http.StatusOK, "ok")
 	})
 
-	// serve static swagger files from ./swagger so /swagger/swagger.yaml is available
-	router.Static("/swagger", "./swagger")
+	// serve static swagger files from ./swagger so /api/swagger/swagger.yaml is available
+	api.Static("/swagger", "./swagger")
 
-	// Serve the swagger UI under /docs and point it to the static spec at /swagger/swagger.yaml
-	router.GET("/docs/*any", swagger.WrapHandler(swaggerFiles.Handler, swagger.URL("/swagger/swagger.yaml")))
+	// Serve the swagger UI under /api/docs and point it to the static spec at /api/swagger/swagger.yaml
+	api.GET("/docs/*any", swagger.WrapHandler(swaggerFiles.Handler, swagger.URL("/api/swagger/swagger.yaml")))
 
-	router.StaticFile("/redoc", "./swagger/redoc.html")
+	api.StaticFile("/redoc", "./swagger/redoc.html")
 
 	return &Router{router}
 }

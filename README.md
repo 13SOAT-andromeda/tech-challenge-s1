@@ -134,8 +134,8 @@ Notas rápidas:
     ```
 
 4.  **Verifique se a aplicação está em execução**:
-    - **Health Check**: [http://localhost:8080/health](http://localhost:8080/health)
-    - **Swagger UI**: [http://localhost:8080/docs/index.html](http://localhost:8080/docs/index.html)
+    - **Health Check**: [http://localhost:8080/api/health](http://localhost:8080/api/health)
+    - **Swagger UI**: [http://localhost:8080/api/docs/index.html](http://localhost:8080/api/docs/index.html)
     - **Redoc**: [http://localhost:8080/redoc](http://localhost:8080/redoc)
 
 ---
