@@ -88,7 +88,7 @@ func NewIdentifiedReq(method, url string, body io.Reader, userID, email, role st
 }
 
 func GetApiUrl(cfg config.Config) string {
-	return cfg.Http.Url + ":" + cfg.Http.Port
+	return cfg.Http.Url + ":" + cfg.Http.Port + "/api"
 }
 
 func ParseBody[T any](resp *http.Response, data *T) error {

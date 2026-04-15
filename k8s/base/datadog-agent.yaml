@@ -60,5 +60,5 @@ spec:
 
             instances:
               - name: tech-challenge-api-health
-                url: http://tech-challenge-api-svc.default.svc.cluster.local/health
+                url: http://tech-challenge-api-svc.default.svc.cluster.local/api/health
                 timeout: 5
