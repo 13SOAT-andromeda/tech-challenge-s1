@@ -14,7 +14,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
-      - tech-challenge
+      - administrative-api
 
   app:
     build:
@@ -40,7 +40,7 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - tech-challenge
+      - administrative-api
 
   datadog-agent:
     image: gcr.io/datadoghq/agent:latest
@@ -73,12 +73,12 @@ services:
       - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
       - ./datadog/conf.d/http_check.yaml:/etc/datadog-agent/conf.d/http_check.yaml:ro
     networks:
-      - tech-challenge
+      - administrative-api
 
 volumes:
   db_data:
 
 networks:
-  tech-challenge:
-    name: tech-challenge
+  administrative-api:
+    name: administrative-api
     driver: bridge
