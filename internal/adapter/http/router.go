@@ -74,11 +74,9 @@ func NewRouter(
 	router.Use(
 		cors.New(corsConfig),
 	)
-
 	api := router.Group("/api")
-
 	protected := api.Group("/")
-	protected.Use(middlewares.AuthRequired(jwtSecret))
+	protected.Use(middlewares.AuthRequired())
 	{
 		customerGroup := protected.Group("/customers")
 		customerGroup.Use(middlewares.RoleRequired("administrator", "attendant"))

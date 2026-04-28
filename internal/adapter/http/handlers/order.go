@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/middlewares"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/response"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/application/ports"
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/domain"
@@ -40,11 +41,17 @@ func (h *OrderHandler) Create(ctx *gin.Context) {
 		return
 	}
 
-	/*userId, exists := ctx.Get("user_id")
-	if !exists {
+	userIdStr := middlewares.GetUserID(ctx)
+	if userIdStr == "" {
 		response.RespondError(ctx, http.StatusUnauthorized, "User ID not found in context")
 		return
-	}*/
+	}
+
+	userId, err := strconv.ParseUint(userIdStr, 10, 64)
+	if err != nil {
+		response.RespondError(ctx, http.StatusUnauthorized, "Invalid User ID format")
+		return
+	}
 
 	input := ports.CreateOrderInput{
 		VehicleKilometers: request.VehicleKilometers,
@@ -53,7 +60,7 @@ func (h *OrderHandler) Create(ctx *gin.Context) {
 		CompanyID:         request.CompanyID,
 	}
 
-	created, err := h.usecase.CreateOrder(ctx.Request.Context(), 1, input)
+	created, err := h.usecase.CreateOrder(ctx.Request.Context(), uint(userId), input)
 	if err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -69,13 +76,19 @@ func (h *OrderHandler) Assign(ctx *gin.Context) {
 		return
 	}
 
-	// userId, exists := ctx.Get("user_id")
-	// if !exists {
-	// 	response.RespondError(ctx, http.StatusUnauthorized, "User ID not found in context")
-	// 	return
-	// }
+	userIdStr := middlewares.GetUserID(ctx)
+	if userIdStr == "" {
+		response.RespondError(ctx, http.StatusUnauthorized, "User ID not found in context")
+		return
+	}
 
-	if err := h.usecase.AssignOrder(ctx.Request.Context(), uint(orderID), 1); err != nil {
+	userId, err := strconv.ParseUint(userIdStr, 10, 64)
+	if err != nil {
+		response.RespondError(ctx, http.StatusUnauthorized, "Invalid User ID format")
+		return
+	}
+
+	if err := h.usecase.AssignOrder(ctx.Request.Context(), uint(orderID), uint(userId)); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -90,11 +103,17 @@ func (h *OrderHandler) CompleteAnalysis(ctx *gin.Context) {
 		return
 	}
 
-	// userId, exists := ctx.Get("user_id")
-	// if !exists {
-	// 	response.RespondError(ctx, http.StatusUnauthorized, "User ID not found in context")
-	// 	return
-	// }
+	userIdStr := middlewares.GetUserID(ctx)
+	if userIdStr == "" {
+		response.RespondError(ctx, http.StatusUnauthorized, "User ID not found in context")
+		return
+	}
+
+	userId, err := strconv.ParseUint(userIdStr, 10, 64)
+	if err != nil {
+		response.RespondError(ctx, http.StatusUnauthorized, "Invalid User ID format")
+		return
+	}
 
 	var request CompleteAnalysisRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
@@ -108,7 +127,7 @@ func (h *OrderHandler) CompleteAnalysis(ctx *gin.Context) {
 		Maintenances:   request.Maintenances,
 	}
 
-	if err := h.usecase.CompleteOrderAnalysis(ctx.Request.Context(), uint(orderID), 1, input); err != nil {
+	if err := h.usecase.CompleteOrderAnalysis(ctx.Request.Context(), uint(orderID), uint(userId), input); err != nil {
 		response.RespondError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}

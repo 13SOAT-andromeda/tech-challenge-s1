@@ -4,121 +4,113 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/13SOAT-andromeda/tech-challenge-s1/internal/adapter/http/middlewares"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	pkgjwt "github.com/13SOAT-andromeda/tech-challenge-s1/pkg/jwt"
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 )
 
-const authTestSecret = "auth-test-secret"
-
-func makeValidToken(t *testing.T) string {
-	t.Helper()
-	claims := pkgjwt.Claims{
-		Email: "user@example.com",
-		Role:  "mechanic",
-		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   "99",
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signed, err := token.SignedString([]byte(authTestSecret))
-	require.NoError(t, err)
-	return signed
-}
-
-func setupAuthRouter(secret string) *gin.Engine {
+func setupRefactoredAuthRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(middlewares.AuthRequired(secret))
+	// Note: This will not compile initially because AuthRequired still expects a string argument
+	r.Use(middlewares.AuthRequired()) 
 	r.GET("/test", func(c *gin.Context) {
-		c.Status(http.StatusOK)
+		id, _ := c.Get(middlewares.UserIDKey)
+		email, _ := c.Get(middlewares.UserEmailKey)
+		role, _ := c.Get(middlewares.UserRoleKey)
+		c.JSON(http.StatusOK, gin.H{
+			"id":    id,
+			"email": email,
+			"role":  role,
+		})
 	})
 	return r
 }
 
-func TestAuthRequired_ValidToken(t *testing.T) {
-	r := setupAuthRouter(authTestSecret)
-	tokenStr := makeValidToken(t)
+func TestAuthRequired_Refactor(t *testing.T) {
+	tests := []struct {
+		name           string
+		headers        map[string]string
+		expectedStatus int
+		expectedBody   map[string]interface{}
+	}{
+		{
+			name: "Success - All Valid Headers",
+			headers: map[string]string{
+				"X-User-Id":    "123",
+				"X-User-Email": "test@example.com",
+				"X-User-Role":  "admin",
+			},
+			expectedStatus: http.StatusOK,
+			expectedBody: map[string]interface{}{
+				"id":    "123",
+				"email": "test@example.com",
+				"role":  "admin",
+			},
+		},
+		{
+			name: "Failure - Missing X-User-Id",
+			headers: map[string]string{
+				"X-User-Email": "test@example.com",
+				"X-User-Role":  "admin",
+			},
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name: "Failure - Empty X-User-Id",
+			headers: map[string]string{
+				"X-User-Id":    "",
+				"X-User-Email": "test@example.com",
+				"X-User-Role":  "admin",
+			},
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name: "Failure - Non-Numeric X-User-Id",
+			headers: map[string]string{
+				"X-User-Id":    "abc",
+				"X-User-Email": "test@example.com",
+				"X-User-Role":  "admin",
+			},
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name: "Failure - Missing X-User-Email",
+			headers: map[string]string{
+				"X-User-Id":    "123",
+				"X-User-Role":  "admin",
+			},
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name: "Failure - Missing X-User-Role",
+			headers: map[string]string{
+				"X-User-Id":    "123",
+				"X-User-Email": "test@example.com",
+			},
+			expectedStatus: http.StatusUnauthorized,
+		},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Bearer "+tokenStr)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := setupRefactoredAuthRouter()
+			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			for k, v := range tt.headers {
+				req.Header.Set(k, v)
+			}
 
-	assert.Equal(t, http.StatusOK, w.Code)
-}
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
 
-func TestAuthRequired_MissingHeader(t *testing.T) {
-	r := setupAuthRouter(authTestSecret)
-
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-}
-
-func TestAuthRequired_MalformedHeader(t *testing.T) {
-	r := setupAuthRouter(authTestSecret)
-
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Token somevalue") // not "Bearer"
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-}
-
-func TestAuthRequired_InvalidToken(t *testing.T) {
-	r := setupAuthRouter(authTestSecret)
-
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Bearer not.a.valid.jwt")
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-}
-
-func TestAuthRequired_WrongSecret(t *testing.T) {
-	r := setupAuthRouter("different-secret")
-	tokenStr := makeValidToken(t)
-
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Bearer "+tokenStr)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-}
-
-func TestAuthRequired_ClaimsStoredInContext(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	r := gin.New()
-	r.Use(middlewares.AuthRequired(authTestSecret))
-	r.GET("/test", func(c *gin.Context) {
-		id := middlewares.GetUserID(c)
-		role := middlewares.GetUserRole(c)
-		email := middlewares.GetUserEmail(c)
-		c.JSON(http.StatusOK, gin.H{"id": id, "role": role, "email": email})
-	})
-
-	tokenStr := makeValidToken(t)
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Bearer "+tokenStr)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	body := w.Body.String()
-	assert.Contains(t, body, `"id":"99"`)
-	assert.Contains(t, body, `"role":"mechanic"`)
-	assert.Contains(t, body, `"email":"user@example.com"`)
+			assert.Equal(t, tt.expectedStatus, w.Code)
+			if tt.expectedStatus == http.StatusOK {
+				for k, v := range tt.expectedBody {
+					assert.Contains(t, w.Body.String(), v.(string))
+					assert.Contains(t, w.Body.String(), k)
+				}
+			}
+		})
+	}
 }

@@ -85,6 +85,8 @@ func TestCreateOrder_Success(t *testing.T) {
 	mockProd.AssertExpectations(t)
 	mockMaint.AssertExpectations(t)
 	mockOrder.AssertExpectations(t)
+	mockUserService.AssertExpectations(t)
+	mockEmployeeService.AssertExpectations(t)
 }
 
 func TestCreateOrder_ProductServiceError(t *testing.T) {
@@ -272,6 +274,8 @@ func TestUseCase_AssignOrder(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "update error")
 		mockOrderService.AssertExpectations(t)
+		mockUserService.AssertExpectations(t)
+		mockEmployeeService.AssertExpectations(t)
 	})
 }
 
@@ -989,6 +993,8 @@ func TestUseCase_CompleteOrderAnalysis(t *testing.T) {
 		mockOrder.AssertExpectations(t)
 		mockProd.AssertExpectations(t)
 		mockMaint.AssertExpectations(t)
+		mockUserService.AssertExpectations(t)
+		mockEmployeeService.AssertExpectations(t)
 	})
 }
 
